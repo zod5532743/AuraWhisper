@@ -14,6 +14,8 @@ class AudioRecorder:
         self.device_index = device_index
         self.recording = []
         self.is_recording = False
+        self.current_volume = 0.0
+
 
     @staticmethod
     def get_input_devices():
@@ -39,6 +41,14 @@ class AudioRecorder:
                 logger.warning(status)
             if self.is_recording:
                 self.recording.append(indata.copy())
+                # Calculate RMS for volume visualization
+                rms = np.sqrt(np.mean(indata**2))
+                # Scale RMS to 0.0 - 1.0 roughly
+                v = min(1.0, rms * 50.0)
+                self.current_volume = v
+                if v > 0.05:
+                    logger.info(f"🎤 Mic Level: {v:.4f}")
+
 
         try:
             self.stream = sd.InputStream(

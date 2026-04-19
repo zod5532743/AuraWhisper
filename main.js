@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const axios = require('axios');
@@ -9,17 +9,63 @@ let settingsWindow;
 let tray;
 let isRecording = false;
 let pythonProcess = null;
+let hasNotifiedReady = false;
+
+// Function to poll backend status for notifications
+function pollStatusForNotification() {
+    setInterval(async () => {
+        try {
+            const res = await axios.get('http://127.0.0.1:8000/status');
+            if (res.data.status === 'ready' && !hasNotifiedReady) {
+                new Notification({
+                    title: 'UltraWhisper',
+                    body: 'AI model loaded and system is ready!',
+                    silent: false
+                }).show();
+                hasNotifiedReady = true;
+            } else if (res.data.status === 'loading') {
+                hasNotifiedReady = false; // Reset if it goes back to loading (e.g. model change)
+            }
+        } catch (e) {
+            // Backend might not be up yet
+        }
+    }, 2000);
+}
+
 
 function startPythonBackend() {
-    pythonProcess = spawn('python', [path.join(__dirname, 'backend', 'server.py')], {
-        shell: true,
-        stdio: 'inherit'
-    });
+    // Check if backend is already alive before spawning
+    axios.get('http://127.0.0.1:8000/status')
+        .then(() => {
+            console.log('Backend is already running. Skipping spawn.');
+            pollStatusForNotification();
+        })
+        .catch(() => {
+            const pythonExe = path.join(__dirname, 'backend', 'venv', 'Scripts', 'python.exe');
+            const scriptPath = path.join(__dirname, 'backend', 'server.py');
+            
+            console.log(`Starting backend with: ${pythonExe}`);
+            
+            pythonProcess = spawn(pythonExe, [scriptPath], {
+                cwd: path.join(__dirname, 'backend')
+            });
 
-    pythonProcess.on('error', (err) => {
-        console.error('Failed to start Python backend:', err);
-    });
+            pythonProcess.stdout.on('data', (data) => {
+                console.log(`Py stdout: ${data}`);
+            });
+
+            pythonProcess.stderr.on('data', (data) => {
+                console.error(`Py stderr: ${data}`);
+            });
+
+            pythonProcess.on('close', (code) => {
+                console.log(`Backend process exited with code ${code}`);
+                pythonProcess = null;
+            });
+        });
 }
+
+
 
 function stopPythonBackend() {
     if (pythonProcess) {
@@ -50,8 +96,10 @@ function createWindow() {
         transparent: true,
         alwaysOnTop: true,
         skipTaskbar: true,
+        focusable: false, // Prevent the window from taking focus away from other apps
         show: false,
         webPreferences: {
+
             nodeIntegration: true,
             contextIsolation: false
         }
@@ -67,16 +115,19 @@ function createSettingsWindow() {
     }
 
     settingsWindow = new BrowserWindow({
-        width: 400,
-        height: 500,
+        width: 450,
+        height: 650,
+        minWidth: 400,
+        minHeight: 500,
         title: 'UltraWhisper Settings',
-        backgroundColor: '#141419',
-        resizable: false,
+        backgroundColor: '#0a0a0f',
+        resizable: true,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         }
     });
+
 
     settingsWindow.loadFile('ui/settings.html');
 
@@ -104,19 +155,32 @@ function registerHotkey() {
         return;
     }
 
-    const hotkey = config.hotkey || 'Alt+Shift+S';
+    let hotkey = config.hotkey || 'Alt+Shift+U';
+    
+    // Normalize hotkey string to ensure consistency (Alt+Shift+U format)
+    hotkey = hotkey.split('+').map(part => {
+        const p = part.trim().toLowerCase();
+        return p.charAt(0).toUpperCase() + p.slice(1);
+    }).join('+').replace('Ctrl', 'CommandOrControl');
+
+    console.log(`Attempting to register global hotkey: [${hotkey}]`);
+
     const ret = globalShortcut.register(hotkey, async () => {
+        console.log(`Hotkey pressed: [${hotkey}]`);
         if (!isRecording) {
             try {
+                console.log('Sending start recording request to backend...');
                 await axios.post('http://127.0.0.1:8000/start');
                 isRecording = true;
-                showWindow();
+                if (mainWindow) mainWindow.showInactive();
+
             } catch (err) {
                 console.error('Error starting recording:', err.message);
                 showWindow();
             }
         } else {
             try {
+                console.log('Sending stop recording request to backend...');
                 await axios.post('http://127.0.0.1:8000/stop');
                 if (mainWindow) mainWindow.hide();
                 isRecording = false;
@@ -128,22 +192,25 @@ function registerHotkey() {
     });
 
     if (!ret) {
-        console.error(`Error: Hotkey registration failed for [${hotkey}]`);
+        console.error(`CRITICAL ERROR: Hotkey registration failed for [${hotkey}]. It might be used by another application.`);
     } else {
-        console.log(`Success: Registered global hotkey [${hotkey}]`);
+        console.log(`SUCCESS: Global hotkey [${hotkey}] is now ACTIVE.`);
     }
 }
+
 
 app.whenReady().then(() => {
     startPythonBackend();
     if (isSettingsMode) {
         createSettingsWindow();
-        // We still register hotkey so the app is "active" in tray if started this way
         registerHotkey();
     } else {
         createWindow();
         registerHotkey();
     }
+    
+    pollStatusForNotification();
+
 
     ipcMain.on('open-settings', () => {
         createSettingsWindow();

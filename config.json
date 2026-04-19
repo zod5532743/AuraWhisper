@@ -1,11 +1,11 @@
 {
-    "hotkey": "shift+f1",
-    "model_size": "tiny",
+    "hotkey": "Alt+Shift+S",
+    "model_size": "small",
     "device": "cpu",
     "compute_type": "int8",
-    "use_ollama": false,
-    "ollama_model": "qwen2.5-coder:14b",
+    "use_ollama": true,
+    "ollama_model": "gemma2:2b",
     "language": "ja",
-    "device_index": 0,
-    "mode": "hold"
+    "device_index": 6,
+    "mode": "toggle"
 }

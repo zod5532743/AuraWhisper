@@ -2,11 +2,12 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QTextEdit, QLabel
 )
-from PyQt5.QtCore import QThread, pyqtSignal, QObject
+from PyQt5.QtCore import QThread, pyqtSignal, QObject, QTimer # QTimerの追加
 import time
 import sys
-from .audio_recorder import AudioRecorder # 追加したimport
+from .audio_recorder import AudioRecorder 
 
+# ... (以降、コードは変更なし)
 
 # --- バックエンド処理シミュレーションのためのステートクラス ---
 
@@ -74,16 +75,26 @@ class MainWindow(QMainWindow):
         
         main_layout.addLayout(control_layout)
 
-        # 2. ステータス/ログ表示エリア
+        # 2. ステータス/ログ表示エリア (左側を占有)
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
         self.log_output.setText("--- System Initialized. Ready to record. ---")
         main_layout.addWidget(self.log_output)
 
-        # 3. 結果表示エリア (編集可能)
+        # 3. 結果表示エリア (中央に配置し、幅を固定)
         self.result_area = QTextEdit()
         self.result_area.setPlaceholderText("=== 文字起こし結果が出力されます ===\n（このエリアで内容の校正や編集を行えます）")
         main_layout.addWidget(self.result_area)
+
+        combined_layout = QHBoxLayout()
+        combined_layout.addWidget(self.log_output, 3)  # ログに3の伸縮比率を割り当てる
+        combined_layout.addWidget(self.result_area, 2) # 結果に2の伸縮比率を割り当てる
+        
+        # ログと結果エリアを統合した新しいレイアウトをmain_layoutに追加
+        main_layout.addLayout(combined_layout)
+        # 最後に、設定パネル用の占位子（または別コンテナ）を設けるかを検討する必要があるが、今回はシンプルに二分割で進める
+        
+        self.setCentralWidget(central_widget)
 
         self.setCentralWidget(central_widget)
 

@@ -1,66 +1,107 @@
-ご視聴ありがとうございました* {
+* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+:root {
+    --bg-color: #0a0a0f;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --accent-color: #007aff;
+    --accent-gradient: linear-gradient(135deg, #007aff 0%, #00c6ff 100%);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --font-main: 'Outfit', 'Inter', sans-serif;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
-    background: transparent;
+    font-family: var(--font-main);
+    background: transparent !important; /* Force transparent background */
+    color: var(--text-primary);
     overflow: hidden;
-    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
+    height: 100vh;
 }
 
+/* プレミアム・コンテナ (メインUI用) */
 .container {
     width: 380px;
-    height: 100px;
-    background: rgba(20, 20, 25, 0.7);
-    backdrop-filter: blur(15px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 90px;
+    background: rgba(15, 15, 20, 0.7); /* More transparent */
+    backdrop-filter: blur(28px) saturate(180%);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08); /* More subtle border */
     display: flex;
     align-items: center;
-    padding: 0 25px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: 0 32px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05); /* Soft inner glow */
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 
 .recording-active {
-    background: rgba(255, 45, 85, 0.15);
-    border: 1px solid rgba(255, 45, 85, 0.3);
+    background: rgba(255, 45, 85, 0.12);
+    border-color: rgba(255, 45, 85, 0.5);
+    box-shadow: 0 0 40px rgba(255, 45, 85, 0.25);
 }
 
+/* 録音インジケーター */
 .pulse {
-    width: 14px;
-    height: 14px;
-    background: #ff2d55;
+    width: 16px;
+    height: 16px;
+    background: #ff3b30;
     border-radius: 50%;
-    margin-right: 20px;
-    box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7);
-    animation: pulse 1.5s infinite;
+    margin-right: 24px;
+    position: relative;
+    /* Dynamic glow based on volume */
+    box-shadow: 0 0 calc(10px + (var(--volume-level, 0) * 25px)) rgba(255, 59, 48, calc(0.6 + (var(--volume-level, 0) * 0.4)));
+    transform: scale(calc(1 + (var(--volume-level, 0) * 0.4)));
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+    z-index: 10000;
 }
 
-@keyframes pulse {
-    0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7);
-    }
 
-    70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 10px rgba(255, 45, 85, 0);
-    }
 
-    100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(255, 45, 85, 0);
-    }
+#waveform-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 1;
+    display: block;
 }
+
+
+
+
+.pulse::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: #ff2d55;
+    border-radius: inherit;
+    transform: translate(-50%, -50%);
+    opacity: 0.8;
+    animation: pulse-apple 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulse-apple {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
+}
+
 
 .text-container {
     flex: 1;
@@ -69,100 +110,165 @@ body {
 #status-text {
     font-size: 18px;
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    letter-spacing: -0.01em;
 }
 
 #sub-status {
     font-size: 13px;
-    opacity: 0.6;
+    color: var(--text-secondary);
 }
 
-.hide {
-    display: none !important;
-}
-
-/* Settings Gear */
+/* 設定ボタン（メインUI） */
 .settings-btn {
     position: absolute;
     top: 15px;
     right: 15px;
     cursor: pointer;
-    opacity: 0.5;
-    transition: opacity 0.2s;
+    opacity: 0.4;
+    transition: all 0.2s ease;
+    padding: 5px;
 }
 
 .settings-btn:hover {
     opacity: 1;
+    transform: rotate(30deg);
 }
 
-/* Settings Controls (Common for settings.html) */
+/* 設定画面 (settings.html 用) */
+.settings-body {
+    padding: 30px;
+    background: radial-gradient(circle at top right, rgba(0, 122, 255, 0.05), transparent 400px), var(--bg-color);
+}
+
+.settings-header {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.settings-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
 .setting-item {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
 }
 
 .setting-item label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 select,
 input {
     width: 100%;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: white;
-    padding: 10px 12px;
-    border-radius: 10px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px 16px;
+    border-radius: 12px;
     font-family: inherit;
-    font-size: 14px;
-    transition: border-color 0.2s;
+    font-size: 15px;
+    transition: all 0.25s ease;
+}
+
+select:hover,
+input:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 select:focus,
 input:focus {
     outline: none;
-    border-color: #007aff;
-    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+}
+
+.hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.4;
 }
 
 .hotkey-input {
     cursor: pointer;
     text-align: center;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    color: #007aff;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-color);
     background: rgba(0, 122, 255, 0.1);
+    border: 1px dashed var(--accent-color);
 }
 
 .button-container {
     display: flex;
-    gap: 12px;
+    gap: 15px;
+    margin-top: 40px;
 }
 
 button {
     flex: 1;
-    padding: 12px;
-    border-radius: 10px;
+    padding: 14px;
+    border-radius: 14px;
     border: none;
     cursor: pointer;
     font-weight: 600;
-    font-size: 14px;
-    transition: opacity 0.2s;
-}
-
-button:hover {
-    opacity: 0.9;
+    font-size: 15px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .save-btn {
-    background: #007aff;
+    background: var(--accent-gradient);
     color: white;
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+}
+
+.save-btn:active {
+    transform: translateY(0);
 }
 
 .cancel-btn {
+    background: var(--input-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.cancel-btn:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: white;
+}
+
+.hide {
+    display: none !important;
 }

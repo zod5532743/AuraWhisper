@@ -2,135 +2,234 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>UltraWhisper Settings</title>
+    <title>Settings</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         body {
-            background: #141419;
+            background: transparent !important;
+            padding: 20px;
+            display: block;
+            height: auto;
             overflow: auto;
-            padding: 20px;
-            align-items: flex-start;
         }
-        .settings-container {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 15px;
-            padding: 20px;
+        .settings-window {
+            background: rgba(20, 20, 25, 0.8);
+            backdrop-filter: blur(32px) saturate(180%);
+            border-radius: 32px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+            color: white;
         }
-        h2 { margin-bottom: 20px; font-size: 20px; }
-        .hint { font-size: 11px; opacity: 0.5; margin-top: 4px; }
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin: 24px 0 12px 4px;
+            font-weight: 700;
+        }
+        .settings-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label {
+            flex: 1;
+        }
+        .setting-label h4 { font-size: 14px; font-weight: 600; }
+        .setting-label p { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        
+        select, input[type="text"] {
+            width: 180px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            text-align: right;
+        }
+        .hotkey-input {
+            width: 180px !important;
+            text-align: center !important;
+            color: var(--accent-color) !important;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
     </style>
 </head>
 <body>
-    <div class="settings-container">
-        <h2>Settings</h2>
-        
-        <div class="setting-item">
-            <label>Microphone</label>
-            <select id="mic-select"></select>
-            <div class="hint">Select the input device for recording.</div>
+    <div class="settings-window">
+        <header style="margin-bottom: 30px;">
+            <h2 style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Settings</h2>
+        </header>
+
+        <div class="section-title">General</div>
+        <div class="settings-card">
+            <div class="setting-row">
+                <div class="setting-label">
+                    <h4>Microphone</h4>
+                    <p>Input device for recording</p>
+                </div>
+                <select id="mic-select"></select>
+            </div>
+            <div class="setting-row">
+                <div class="setting-label">
+                    <h4>Shortcut</h4>
+                    <p>Global key to record</p>
+                </div>
+                <input type="text" id="hotkey-display" class="hotkey-input" readonly>
+            </div>
         </div>
 
-        <div class="setting-item">
-            <label>Recording Mode</label>
-            <select id="mode-select">
-                <option value="toggle">Toggle (Press to start/stop)</option>
-                <option value="hold">Hold (Push to talk)</option>
-            </select>
-            <div class="hint">Toggle: press once to start. Hold: record while pressing.</div>
+        <div class="section-title">AI Engine</div>
+        <div class="settings-card">
+            <div class="setting-row">
+                <div class="setting-label">
+                    <h4>Whisper Model</h4>
+                    <p>Accuracy vs Speed</p>
+                </div>
+                <select id="model-size-select">
+                    <option value="tiny">Tiny (Fastest)</option>
+                    <option value="base">Base</option>
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large-v3">Large-v3</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <div class="setting-label">
+                    <h4>Language</h4>
+                    <p>Recognition target</p>
+                </div>
+                <select id="language-select">
+                    <option value="ja">Japanese</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
         </div>
 
-        <div class="setting-item">
-            <label>Hotkey (Click to record)</label>
-            <input type="text" id="hotkey-display" class="hotkey-input" readonly>
-            <div class="hint">Click the box then press your desired key combination.</div>
+        <div class="section-title">Refinement</div>
+        <div class="settings-card">
+            <div class="setting-row">
+                <div class="setting-label">
+                    <h4>Ollama Polish</h4>
+                    <p>Fix grammar with AI</p>
+                </div>
+                <select id="ollama-enabled-select">
+                    <option value="true">On</option>
+                    <option value="false">Off</option>
+                </select>
+            </div>
+            <div class="setting-row" id="ollama-model-row">
+                <div class="setting-label">
+                    <h4>Ollama Model</h4>
+                    <p>Model name to use</p>
+                </div>
+                <input type="text" id="ollama-model-input" placeholder="qwen2.5-coder:14b">
+            </div>
         </div>
 
-        <div class="setting-item">
-            <label>AI Refinement (Ollama)</label>
-            <select id="ollama-select">
-                <option value="true">Enabled (Better grammar)</option>
-                <option value="false">Disabled (Faster result)</option>
-            </select>
-        </div>
-
-        <div class="button-container" style="margin-top: 30px;">
-            <button class="save-btn" id="save-settings">Save & Apply</button>
-            <button class="cancel-btn" id="close-window">Close</button>
+        <div class="button-container" style="margin-top: 40px; gap: 16px;">
+            <button class="save-btn" id="save-settings" style="flex: 2;">Apply Changes</button>
+            <button class="cancel-btn" id="close-window" style="flex: 1;">Close</button>
         </div>
     </div>
 
     <script>
         const { ipcRenderer } = require('electron');
+        
         const micSelect = document.getElementById('mic-select');
-        const modeSelect = document.getElementById('mode-select');
+        const modelSizeSelect = document.getElementById('model-size-select');
+        const languageSelect = document.getElementById('language-select');
+        const ollamaEnabledSelect = document.getElementById('ollama-enabled-select');
+        const ollamaModelInput = document.getElementById('ollama-model-input');
+        const ollamaModelRow = document.getElementById('ollama-model-row');
         const hotkeyDisplay = document.getElementById('hotkey-display');
-        const ollamaSelect = document.getElementById('ollama-select');
         
         let currentConfig = {};
         let isRecordingHotkey = false;
 
         async function init() {
-            // Fetch devices
-            const devRes = await fetch('http://127.0.0.1:8000/devices');
-            const devices = await devRes.json();
-            micSelect.innerHTML = '';
-            devices.forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d.id;
-                opt.text = d.name;
-                micSelect.appendChild(opt);
-            });
-            
-            // Fetch config
-            const confRes = await fetch('http://127.0.0.1:8000/config');
-            currentConfig = await confRes.json();
-            
-            micSelect.value = currentConfig.device_index || 0;
-            modeSelect.value = currentConfig.mode || 'toggle';
-            hotkeyDisplay.value = currentConfig.hotkey || 'Alt+Shift+S';
-            ollamaSelect.value = currentConfig.use_ollama !== undefined ? currentConfig.use_ollama.toString() : 'true';
+            try {
+                const devRes = await fetch('http://127.0.0.1:8000/devices');
+                const devices = await devRes.json();
+                micSelect.innerHTML = '';
+                devices.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.text = d.name.length > 25 ? d.name.substring(0, 25) + '...' : d.name;
+                    micSelect.appendChild(opt);
+                });
+                
+                const confRes = await fetch('http://127.0.0.1:8000/config');
+                currentConfig = await confRes.json();
+                
+                micSelect.value = currentConfig.device_index || 0;
+                modelSizeSelect.value = currentConfig.model_size || 'medium';
+                languageSelect.value = currentConfig.language || 'ja';
+                ollamaEnabledSelect.value = currentConfig.use_ollama !== undefined ? currentConfig.use_ollama.toString() : 'false';
+                ollamaModelInput.value = currentConfig.ollama_model || 'qwen2.5-coder:14b';
+                hotkeyDisplay.value = currentConfig.hotkey || 'Alt+Shift+U';
+
+                updateOllamaVisibility();
+            } catch (err) { console.error(err); }
         }
+
+        function updateOllamaVisibility() {
+            const isEnabled = ollamaEnabledSelect.value === 'true';
+            ollamaModelRow.style.display = isEnabled ? 'flex' : 'none';
+        }
+
+        ollamaEnabledSelect.onchange = updateOllamaVisibility;
 
         hotkeyDisplay.onclick = () => {
             isRecordingHotkey = true;
-            hotkeyDisplay.value = 'Recording keys...';
-            hotkeyDisplay.style.borderColor = '#007aff';
+            hotkeyDisplay.value = '...';
+            hotkeyDisplay.style.background = 'rgba(0, 122, 255, 0.15)';
         };
 
         window.onkeydown = (e) => {
             if (!isRecordingHotkey) return;
             e.preventDefault();
-            
+            if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return;
+
             const keys = [];
             if (e.ctrlKey) keys.push('Ctrl');
-            if (e.shiftKey) keys.push('Shift');
             if (e.altKey) keys.push('Alt');
+            if (e.shiftKey) keys.push('Shift');
             if (e.metaKey) keys.push('Cmd');
             
-            const key = e.key.toUpperCase();
-            if (key !== 'CONTROL' && key !== 'SHIFT' && key !== 'ALT' && key !== 'META') {
-                keys.push(key);
-                hotkeyDisplay.value = keys.join('+');
-                hotkeyDisplay.style.borderColor = '';
-                isRecordingHotkey = false;
-            }
+            let key = e.key;
+            if (key === ' ') key = 'Space';
+            if (key.length === 1) key = key.toUpperCase();
+            keys.push(key);
+            
+            hotkeyDisplay.value = keys.join('+');
+            hotkeyDisplay.style.background = '';
+            isRecordingHotkey = false;
         };
 
         document.getElementById('save-settings').onclick = async () => {
-            if (isRecordingHotkey) {
-                alert('Please finish recording the hotkey first!');
-                return;
-            }
-            
             const newConfig = {
                 ...currentConfig,
                 device_index: parseInt(micSelect.value),
-                mode: modeSelect.value,
+                model_size: modelSizeSelect.value,
+                language: languageSelect.value,
                 hotkey: hotkeyDisplay.value,
-                use_ollama: ollamaSelect.value === 'true'
+                use_ollama: ollamaEnabledSelect.value === 'true',
+                ollama_model: ollamaModelInput.value,
+                mode: 'toggle' // Force toggle mode for now as requested
             };
             
             await fetch('http://127.0.0.1:8000/config', {
@@ -140,7 +239,17 @@
             });
             
             ipcRenderer.send('config-updated');
-            alert('Settings saved successfully!');
+            window.close();
+        };
+
+        document.getElementById('close-window').onclick = () => window.close();
+        init();
+    </script>
+</body>
+</html>
+ } catch (err) {
+                alert('Failed to save settings: ' + err.message);
+            }
         };
 
         document.getElementById('close-window').onclick = () => {
@@ -151,3 +260,4 @@
     </script>
 </body>
 </html>
+

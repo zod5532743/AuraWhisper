@@ -2,7 +2,9 @@ import os
 import json
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+
 from pydantic import BaseModel
 from typing import Optional
 import logging
@@ -72,9 +74,9 @@ def init_transcriber_task():
     global transcriber
     try:
         transcriber = Transcriber(
-            model_size=config.get("model_size", "medium"),
-            device=config.get("device", "cuda"),
-            compute_type=config.get("compute_type", "int8_float16")
+            model_size=config.get("model_size", "small"),
+            device=config.get("device", "cpu"),
+            compute_type=config.get("compute_type")
         )
         app_state["status"] = "ready"
         app_state["error_message"] = None
@@ -177,11 +179,26 @@ def on_release(key):
 def trigger_start_sync():
     global target_hwnd
     if transcriber is None or app_state["is_recording"]: return
-    target_hwnd = user32.GetForegroundWindow()
+    
+    # Try multiple times to get the correct foreground window 
+    # (incase focus is transitioning)
+    max_retries = 3
+    for _ in range(max_retries):
+        hwnd = user32.GetForegroundWindow()
+        title_len = user32.GetWindowTextLengthW(hwnd)
+        if title_len > 0: # If window has a title, it's likely a real app (not desktop/shell)
+            target_hwnd = hwnd
+            logger.info(f"Target window captured: HWND={target_hwnd}")
+            break
+        time.sleep(0.05)
+    else:
+        target_hwnd = user32.GetForegroundWindow() # Fallback
+
     recorder.start_recording()
     app_state["is_recording"] = True
     app_state["status"] = "recording"
     app_state["error_message"] = None
+
 
 def trigger_stop_sync():
     if not app_state["is_recording"]: return
@@ -198,6 +215,8 @@ def process_and_paste_task():
     
     try:
         raw_text = transcriber.transcribe(audio_path, language=config.get("language", "ja"))
+        logger.info(f"Transcription result: [{raw_text}]")
+        
         if config.get("use_ollama", True):
             ollama_url = "http://localhost:11434/api/generate"
             model = config.get("ollama_model", "qwen2.5-coder:14b")
@@ -206,6 +225,7 @@ def process_and_paste_task():
                 with httpx.Client() as client:
                     resp = client.post(ollama_url, json={"model": model, "prompt": prompt, "stream": False}, timeout=30.0)
                     refined_text = resp.json().get("response", raw_text) if resp.status_code == 200 else raw_text
+                    logger.info(f"Refined via Ollama: [{refined_text}]")
             except:
                 refined_text = raw_text
         else:
@@ -213,11 +233,34 @@ def process_and_paste_task():
         
         if refined_text:
             pyperclip.copy(refined_text.strip())
+            logger.info("Copied to clipboard. Re-focusing and pasting...")
+            
             if target_hwnd:
-                user32.SetForegroundWindow(target_hwnd)
-            time.sleep(0.5)
+                # Get the thread IDs
+                foreground_thread = user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), None)
+                target_thread = user32.GetWindowThreadProcessId(target_hwnd, None)
+                
+                # Try to attach thread input to bypass focus restrictions
+                if foreground_thread != target_thread:
+                    user32.AttachThreadInput(foreground_thread, target_thread, True)
+                    user32.SetForegroundWindow(target_hwnd)
+                    user32.SetFocus(target_hwnd)
+                    user32.AttachThreadInput(foreground_thread, target_thread, False)
+                else:
+                    user32.SetForegroundWindow(target_hwnd)
+                
+                time.sleep(1.0) # Slightly longer wait for window to become stable
+            
+            # Reset all modifiers to prevent interference (e.g., if user is still holding Shift)
+            for m_key in [Key.ctrl, Key.shift, Key.alt, Key.cmd]:
+                keyboard_controller.release(m_key)
+            
+            # Send Paste command
             with keyboard_controller.pressed(Key.ctrl):
                 keyboard_controller.tap('v')
+            
+            logger.info("Paste command sent.")
+
     except Exception as e:
         error_msg = f"Processing error: {str(e)}"
         logger.error(error_msg)
@@ -243,9 +286,22 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @app.get("/status")
 async def get_status():
-    return app_state
+    status = app_state.copy()
+    # Explicitly cast to float to avoid numpy JSON serialization error
+    status["volume"] = float(recorder.current_volume) if recorder else 0.0
+    return status
 
 
 @app.get("/devices")

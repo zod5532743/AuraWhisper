@@ -1,1 +1,20 @@
+# Dependencies
 node_modules/
+backend/venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Build outputs
+dist/
+out/
+
+# Local config
+config.json
+*.wav
+*.log
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

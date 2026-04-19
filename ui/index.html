@@ -8,7 +8,9 @@
 </head>
 <body>
     <div class="container" id="app-container">
+        <canvas id="waveform-canvas" class="hide"></canvas>
         <div id="recording-indicator" class="pulse hide"></div>
+
         <div class="text-container">
             <div id="status-text">Ready</div>
             <div id="sub-status">Detecting...</div>
@@ -20,7 +22,67 @@
 
     <script>
         const { ipcRenderer } = require('electron');
+        
+        // Waveform Visualizer
+        class WaveformVisualizer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.volume = 0;
+                this.targetVolume = 0;
+                this.phase = 0;
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.animate();
+            }
+            resize() {
+                const dpr = window.devicePixelRatio || 1;
+                this.canvas.width = this.canvas.clientWidth * dpr;
+                this.canvas.height = this.canvas.clientHeight * dpr;
+                this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            setVolume(v) { this.targetVolume = v; }
+            animate() {
+                const width = this.canvas.clientWidth;
+                const height = this.canvas.clientHeight;
+                this.ctx.clearRect(0, 0, width, height);
+                
+                this.volume += (this.targetVolume - this.volume) * 0.15;
+                this.phase += 0.1 + (this.volume * 0.2);
+
+                // Draw waves even at 0 volume as subtle flat lines to confirm canvas is working
+                this.drawWave(width, height, 0.3, '#ff2d55', 1);
+                this.drawWave(width, height, 0.6, '#ff375f', 1.5);
+                this.drawWave(width, height, 0.9, '#ff4b73', 2);
+                requestAnimationFrame(() => this.animate());
+            }
+            drawWave(w, h, opacity, color, speed) {
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = color;
+                this.ctx.globalAlpha = opacity;
+                this.ctx.lineWidth = 2.5;
+                this.ctx.lineCap = 'round';
+                
+                const amplitude = (h / 2.5) * this.volume;
+                for (let x = 0; x < w; x += 5) {
+                    const sine = Math.sin(x * 0.03 + this.phase * speed);
+                    const envelope = Math.sin((x / w) * Math.PI); // Smooth edges
+                    const y = h / 2 + sine * amplitude * envelope;
+                    if (x === 0) this.ctx.moveTo(x, y);
+                    else this.ctx.lineTo(x, y);
+                }
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
+        }
+
+
+        const canvas = document.getElementById('waveform-canvas');
+        const visualizer = new WaveformVisualizer(canvas);
+
         const statusText = document.getElementById('status-text');
+
         const subStatus = document.getElementById('sub-status');
         const indicator = document.getElementById('recording-indicator');
         const appContainer = document.getElementById('app-container');
@@ -36,25 +98,44 @@
                     subStatus.innerText = 'Speak naturally';
                     indicator.classList.remove('hide');
                     appContainer.classList.add('recording-active');
+                    
+                    // Waveform Show & Update
+                    canvas.classList.remove('hide');
+                    const vol = data.volume || 0;
+                    visualizer.setVolume(vol);
+                    indicator.style.setProperty('--volume-level', vol);
                 } else if (data.status === 'analyzing') {
                     statusText.innerText = 'Analyzing...';
                     subStatus.innerText = 'Polishing with AI';
                     indicator.classList.add('hide');
+                    indicator.style.setProperty('--volume-level', 0);
                     appContainer.classList.remove('recording-active');
+                    canvas.classList.add('hide');
+                    visualizer.setVolume(0);
                 } else if (data.status === 'ready') {
+                    const confRes = await fetch('http://127.0.0.1:8000/config');
+                    const config = await confRes.json();
                     statusText.innerText = 'Ready';
-                    subStatus.innerText = 'Press hotkey to record';
+                    subStatus.innerText = `Press ${config.hotkey || 'Alt+Shift+U'} to record`;
                     indicator.classList.add('hide');
+                    indicator.style.setProperty('--volume-level', 0);
                     appContainer.classList.remove('recording-active');
+                    canvas.classList.add('hide');
+                    visualizer.setVolume(0);
                 } else if (data.status === 'loading') {
                     statusText.innerText = 'Loading...';
                     subStatus.innerText = 'Model is initializing';
+                    indicator.classList.add('hide');
+                    canvas.classList.add('hide');
                 }
+
             } catch (err) {
                 statusText.innerText = 'Offline';
                 subStatus.innerText = 'Backend not connected';
+                canvas.classList.add('hide');
             }
         }
+
         setInterval(updateStatus, 500);
 
         // --- Settings Button ---
