@@ -36,6 +36,46 @@
             padding: 8px 16px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        .footer-support {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .support-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .support-btn:hover {
+            background: rgba(255, 59, 48, 0.05);
+            border-color: rgba(255, 59, 48, 0.3);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
+        }
+
+        .support-btn .heart {
+            font-size: 1.1rem;
+            filter: drop-shadow(0 0 5px rgba(255, 59, 48, 0.5));
+        }
+
+        .button-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
         .setting-row {
             display: flex;
             align-items: center;
@@ -76,6 +116,16 @@
 
         <div class="section-title">General</div>
         <div class="settings-card">
+            <div class="footer-support">
+                <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="support-btn">
+                    <span class="heart">❤️</span> Support Development
+                </a>
+            </div>
+
+            <div class="button-group">
+                <button class="secondary" id="close-window">Cancel</button>
+                <button class="primary" id="save-settings">Apply Changes</button>
+            </div>
             <div class="setting-row">
                 <div class="setting-label">
                     <h4>Microphone</h4>
