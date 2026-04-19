@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>UltraWhisper Settings</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #141419;
+            overflow: auto;
+            padding: 20px;
+            align-items: flex-start;
+        }
+        .settings-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h2 { margin-bottom: 20px; font-size: 20px; }
+        .hint { font-size: 11px; opacity: 0.5; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <h2>Settings</h2>
+        
+        <div class="setting-item">
+            <label>Microphone</label>
+            <select id="mic-select"></select>
+            <div class="hint">Select the input device for recording.</div>
+        </div>
+
+        <div class="setting-item">
+            <label>Recording Mode</label>
+            <select id="mode-select">
+                <option value="toggle">Toggle (Press to start/stop)</option>
+                <option value="hold">Hold (Push to talk)</option>
+            </select>
+            <div class="hint">Toggle: press once to start. Hold: record while pressing.</div>
+        </div>
+
+        <div class="setting-item">
+            <label>Hotkey (Click to record)</label>
+            <input type="text" id="hotkey-display" class="hotkey-input" readonly>
+            <div class="hint">Click the box then press your desired key combination.</div>
+        </div>
+
+        <div class="setting-item">
+            <label>AI Refinement (Ollama)</label>
+            <select id="ollama-select">
+                <option value="true">Enabled (Better grammar)</option>
+                <option value="false">Disabled (Faster result)</option>
+            </select>
+        </div>
+
+        <div class="button-container" style="margin-top: 30px;">
+            <button class="save-btn" id="save-settings">Save & Apply</button>
+            <button class="cancel-btn" id="close-window">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const micSelect = document.getElementById('mic-select');
+        const modeSelect = document.getElementById('mode-select');
+        const hotkeyDisplay = document.getElementById('hotkey-display');
+        const ollamaSelect = document.getElementById('ollama-select');
+        
+        let currentConfig = {};
+        let isRecordingHotkey = false;
+
+        async function init() {
+            // Fetch devices
+            const devRes = await fetch('http://127.0.0.1:8000/devices');
+            const devices = await devRes.json();
+            micSelect.innerHTML = '';
+            devices.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.text = d.name;
+                micSelect.appendChild(opt);
+            });
+            
+            // Fetch config
+            const confRes = await fetch('http://127.0.0.1:8000/config');
+            currentConfig = await confRes.json();
+            
+            micSelect.value = currentConfig.device_index || 0;
+            modeSelect.value = currentConfig.mode || 'toggle';
+            hotkeyDisplay.value = currentConfig.hotkey || 'Alt+Shift+S';
+            ollamaSelect.value = currentConfig.use_ollama !== undefined ? currentConfig.use_ollama.toString() : 'true';
+        }
+
+        hotkeyDisplay.onclick = () => {
+            isRecordingHotkey = true;
+            hotkeyDisplay.value = 'Recording keys...';
+            hotkeyDisplay.style.borderColor = '#007aff';
+        };
+
+        window.onkeydown = (e) => {
+            if (!isRecordingHotkey) return;
+            e.preventDefault();
+            
+            const keys = [];
+            if (e.ctrlKey) keys.push('Ctrl');
+            if (e.shiftKey) keys.push('Shift');
+            if (e.altKey) keys.push('Alt');
+            if (e.metaKey) keys.push('Cmd');
+            
+            const key = e.key.toUpperCase();
+            if (key !== 'CONTROL' && key !== 'SHIFT' && key !== 'ALT' && key !== 'META') {
+                keys.push(key);
+                hotkeyDisplay.value = keys.join('+');
+                hotkeyDisplay.style.borderColor = '';
+                isRecordingHotkey = false;
+            }
+        };
+
+        document.getElementById('save-settings').onclick = async () => {
+            if (isRecordingHotkey) {
+                alert('Please finish recording the hotkey first!');
+                return;
+            }
+            
+            const newConfig = {
+                ...currentConfig,
+                device_index: parseInt(micSelect.value),
+                mode: modeSelect.value,
+                hotkey: hotkeyDisplay.value,
+                use_ollama: ollamaSelect.value === 'true'
+            };
+            
+            await fetch('http://127.0.0.1:8000/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newConfig)
+            });
+            
+            ipcRenderer.send('config-updated');
+            alert('Settings saved successfully!');
+        };
+
+        document.getElementById('close-window').onclick = () => {
+            window.close();
+        };
+
+        init();
+    </script>
+</body>
+</html>

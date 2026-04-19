@@ -1,0 +1,11 @@
+{
+    "hotkey": "Alt+Shift+S",
+    "model_size": "medium",
+    "device": "cuda",
+    "compute_type": "int8_float16",
+    "use_ollama": false,
+    "ollama_model": "qwen2.5-coder:14b",
+    "language": "ja",
+    "device_index": 6,
+    "mode": "toggle"
+}

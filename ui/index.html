@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>UltraWhisper</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container" id="app-container">
+        <div id="recording-indicator" class="pulse hide"></div>
+        <div class="text-container">
+            <div id="status-text">Ready</div>
+            <div id="sub-status">Detecting...</div>
+        </div>
+        <div class="settings-btn" id="open-settings-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const statusText = document.getElementById('status-text');
+        const subStatus = document.getElementById('sub-status');
+        const indicator = document.getElementById('recording-indicator');
+        const appContainer = document.getElementById('app-container');
+        
+        // --- Polling Logic ---
+        async function updateStatus() {
+            try {
+                const res = await fetch('http://127.0.0.1:8000/status');
+                const data = await res.json();
+                
+                if (data.status === 'recording') {
+                    statusText.innerText = 'Recording...';
+                    subStatus.innerText = 'Speak naturally';
+                    indicator.classList.remove('hide');
+                    appContainer.classList.add('recording-active');
+                } else if (data.status === 'analyzing') {
+                    statusText.innerText = 'Analyzing...';
+                    subStatus.innerText = 'Polishing with AI';
+                    indicator.classList.add('hide');
+                    appContainer.classList.remove('recording-active');
+                } else if (data.status === 'ready') {
+                    statusText.innerText = 'Ready';
+                    subStatus.innerText = 'Press hotkey to record';
+                    indicator.classList.add('hide');
+                    appContainer.classList.remove('recording-active');
+                } else if (data.status === 'loading') {
+                    statusText.innerText = 'Loading...';
+                    subStatus.innerText = 'Model is initializing';
+                }
+            } catch (err) {
+                statusText.innerText = 'Offline';
+                subStatus.innerText = 'Backend not connected';
+            }
+        }
+        setInterval(updateStatus, 500);
+
+        // --- Settings Button ---
+        document.getElementById('open-settings-btn').onclick = () => {
+            ipcRenderer.send('open-settings');
+        };
+    </script>
+</body>
+</html>

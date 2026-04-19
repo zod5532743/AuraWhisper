@@ -1,0 +1,6 @@
+@echo off
+echo Starting UltraWhisper Backend...
+start /B "" "backend\venv\Scripts\python.exe" backend\server.py
+timeout /t 5
+echo Starting UltraWhisper Frontend...
+npm start
