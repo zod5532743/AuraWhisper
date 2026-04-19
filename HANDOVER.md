@@ -32,11 +32,21 @@ The behavior of the system is### 既知の課題と解決策 (2026-04-20 更新)
     *   **対策**: `compute_type` を `float32` に設定して安定性を優先。万が一のために `main.js` でプロセスの自動再起動ロジックを実装。
 *   **マイクが音を拾わない**:
     *   **対策**: `sounddevice` で取得される ID は MME/WASAPI などで重複するため、Mixing Driver (ID: 1 など) を設定画面から正しく選択する必要がある。
-*   **波形が表示されない**:
-    *   **対策**: Canvas の `z-index` を最前面に設定。音量レベルを標準 `float` に変換してJSON送信することでシリアライズエラーを回避。
-ing `debug_audio.py`).
-- `use_ollama`: Boolean to enable/disable LLM-based text refinement.
-- `mode`: `toggle` (press once to start/stop) or `hold` (press and hold).
+### Troubleshooting & Tips (ナレッジベース)
+
+*   **Python の音声デバイス ID がずれる**:
+    *   Windows では MME, WASAPI, WDM-KS など複数のドライバモデルで同じデバイスがリストされます。`sd.query_devices()` で確認し、最も安定し、かつ音を確実に拾えるインデックス（多くの場合 MME や WASAPI）を選択してください。
+*   **JSON Serialization Error (numpy.float32)**:
+    *   `fastapi` のレスポンスに `numpy` 型が混ざると内部エラーで通信が切れます。必ず `float()` や `int()` でキャストしてから送信するようにしてください。
+*   **PowerShell のコマンド実行**:
+    *   PowerShell 5.1 等の環境では `&&` によるコマンド連結が失敗する場合があります。その際は必ず個別にコマンドを実行してください。
+*   **CORS (Cross-Origin Resource Sharing)**:
+    *   Electron (フロント) と Python (バック) のポートが異なるため、FastAPI 側で `CORSMiddleware` による許可設定が必須です。これが無いと「Offline」が解消されません。
+
+### 🛠 セットアップの秘訣
+- **仮想環境**: `python -m venv venv` で作成し、`requirements.txt` からライブラリをインストールしてください。
+- **モデルキャッシュ**: 初回のモデルロードには時間がかかります。`~/.cache/huggingface` またはプロジェクト内のモデルフォルダを確認してください。
+- **貼り付けの遅延**: PCの負荷状況により、ウィンドウフォーカスが移るまで `time.sleep(1.0)` 程度の待機が必要です。安定しない場合はここを調整してください。
 
 ## 🔍 Recent Debugging & Known Issues
 - **Audio Device Mismatch:** The default `device_index: 0` (Sound Mapper) may not capture audio. It is recommended to use the System Settings UI to select physical hardware like `US-2x2` or `NVIDIA Broadcast`.
@@ -62,10 +72,17 @@ ing `debug_audio.py`).
 
 
 ## 🚀 How to Run
+### Windows Startup (Automation)
+The application is now configured to start automatically when Windows boots.
+- **Trigger:** Windows Login.
+- **Behavior:** Launches hidden via `autostart.vbs` and stays resident in the system tray.
+- **Shortcut Path:** `%AppData%\Microsoft\Windows\Start Menu\Programs\Startup\UltraWhisper.lnk`
+
 ### Manual Start (Development)
 ```powershell
 npm start
 ```
+
 
 ### Batch Start (Legacy/Convenience)
 Use the existing `start.bat` (if configured) to launch the environment.
