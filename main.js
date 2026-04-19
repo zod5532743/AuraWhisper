@@ -1,4 +1,5 @@
 const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain } = require('electron');
+const { spawn } = require('child_process');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
@@ -7,6 +8,25 @@ let mainWindow;
 let settingsWindow;
 let tray;
 let isRecording = false;
+let pythonProcess = null;
+
+function startPythonBackend() {
+    pythonProcess = spawn('python', [path.join(__dirname, 'backend', 'server.py')], {
+        shell: true,
+        stdio: 'inherit'
+    });
+
+    pythonProcess.on('error', (err) => {
+        console.error('Failed to start Python backend:', err);
+    });
+}
+
+function stopPythonBackend() {
+    if (pythonProcess) {
+        pythonProcess.kill();
+        pythonProcess = null;
+    }
+}
 
 // Check if we started in settings-only mode
 const isSettingsMode = process.argv.includes('--settings');
@@ -115,6 +135,7 @@ function registerHotkey() {
 }
 
 app.whenReady().then(() => {
+    startPythonBackend();
     if (isSettingsMode) {
         createSettingsWindow();
         // We still register hotkey so the app is "active" in tray if started this way

@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QThread, pyqtSignal, QObject
 import time
 import sys
+from .audio_recorder import AudioRecorder # 追加したimport
+
 
 # --- バックエンド処理シミュレーションのためのステートクラス ---
 
@@ -45,8 +47,9 @@ class BackendWorker(QObject):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("UltraWhisper - Windows Edition")
-        self.setGeometry(100, 100, 900, 600)
+        # ... (略)
+        self.audio_recorder = AudioRecorder() # インスタンス化
+        self.recorder_device_index = None # デバイスIDを保持する場所を準備
         
         self.setup_ui()
 
@@ -86,16 +89,46 @@ class MainWindow(QMainWindow):
 
     # --- イベントハンドラ ---
 
-    def start_recording_simulation(self):
+        def start_recording_simulation(self):
         """録音開始ボタンが押されたときの処理"""
         self.log_output.clear()
-        self.log_output.append("--- ✅ 録音を開始します。マイクの入力を待機します... ---")
+        self.log_output.append("--- ✅ 録音フローを開始します。マイクの入力を待機します... ---")
         self.record_button.setEnabled(False)
         self.process_button.setEnabled(False)
-        # 実際にはここに録音ロジックを呼び出す
-        # 为了模拟，我们先假设一个文件路径
-        dummy_file_path = "path/to/recorded_audio.wav"
-        self.log_output.append(f"🟢 録音ファイルのダミーパスを設定しました: {dummy_file_path}")
+        
+        # 1. 録音デバイスの初期化とチェック
+        try:
+            devices = self.audio_recorder.get_input_devices()
+            if not devices:
+                self.log_output.append("🛑 エラー: 利用可能なマイクデバイスが見つかりません。マイクを接続してください。")
+                self.reset_ui()
+                return
+            
+            # デバイスIDを最初のものを使用し、録音器に設定
+            self.recorder_device_index = devices[0]['id']
+            self.log_output.append(f"✅ デバイス検出成功: {devices[0]['name']}")
+            
+            # 録音開始
+            self.audio_recorder.start_recording()
+            self.log_output.append("🟢 録音開始！実際にマイクに話しかけてください。（シミュレーションのため、3秒後に停止します）")
+
+            # 2. 録音のシミュレーション待機
+            time.sleep(3)
+
+            # 3. 録音の停止とファイルの生成
+            recorded_path = self.audio_recorder.stop_recording()
+            if recorded_path:
+                self.log_output.append(f"🟢 録音データが正常に取得され、一時ファイルに保存されました: {recorded_path}")
+                # 処理が成功したので、次のステップに必要な情報（ファイルパス）を保持
+                self.current_recording_path = recorded_path 
+                self.log_output.append("\n--- 録音フロー完了。次に【文字起こし開始】を押してください。---")
+            else:
+                 self.log_output.append("❌ 録音データが空のため、処理を中止します。")
+                 self.reset_ui()
+
+        except Exception as e:
+            self.log_output.append(f"🛑 録音の実行中に予期せぬエラーが発生しました。詳細: {str(e)}")
+            self.reset_ui()
 
     def start_transcription(self):
         """文字起こし開始ボタンが押されたときの処理"""
@@ -104,12 +137,24 @@ class MainWindow(QMainWindow):
         self.record_button.setEnabled(False)
         self.process_button.setEnabled(False)
         
-        # 実際の録音ファイルパスを渡す
-        dummy_file_path = "path/to/recorded_audio.wav"
+    def start_transcription(self):
+        """文字起こし開始ボタンが押されたときの処理"""
+        if not hasattr(self, 'current_recording_path') or not self.current_recording_path:
+            self.log_output.append("⚠️ 録音ファイルが準備されていません。先に【録音開始】を行ってください。")
+            self.reset_ui()
+            return
+
+        self.log_output.clear()
+        self.log_output.append("--- 🟡 文字起こしエンジンにデータを渡します。処理を開始します... ---")
+        self.record_button.setEnabled(False)
+        self.process_button.setEnabled(False)
+        
+        dummy_file_path = self.current_recording_path # 前回録音したファイルを使用
         
         # WorkerThreadを起動し、重い処理をバックグラウンドに逃がす
         self.thread = QThread()
         self.worker = BackendWorker()
+        # WorkerのインスタンスをGUI側のオブジェクトに保持し、終了後にクリーンアップできるようにする
         self.worker.moveToThread(self.thread)
         
         # シグナル接続
@@ -124,6 +169,9 @@ class MainWindow(QMainWindow):
         
         self.thread.start()
         self.thread.started.emit()
+        
+        # クリーンアップ用として、一時ファイルパスをリセットするための情報を保持
+        self.current_recording_path = None
 
     # --- スロット (GUI側の応答メソッド) ---
 

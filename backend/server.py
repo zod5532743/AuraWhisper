@@ -185,6 +185,7 @@ def trigger_start_sync():
 
 def trigger_stop_sync():
     if not app_state["is_recording"]: return
+    app_state["is_recording"] = False
     app_state["status"] = "analyzing"
     threading.Thread(target=process_and_paste_task).start()
 
