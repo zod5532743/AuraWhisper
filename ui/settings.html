@@ -1,200 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Settings</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <title>AuraWhisper Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #0071e3;
+            --bg: rgba(10, 10, 15, 0.9);
+            --border: rgba(255, 255, 255, 0.1);
+            --sidebar-w: 200px;
+        }
+        body {
+            margin: 0; padding: 0; height: 100vh; overflow: hidden;
+            font-family: 'Outfit', sans-serif; background: transparent; color: white;
+        }
+        .window {
+            display: flex; height: 100vh; background: var(--bg);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border); box-sizing: border-box;
+        }
+        .sidebar {
+            width: var(--sidebar-w); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding-top: 30px;
+        }
+        .item {
+            padding: 12px 20px; color: rgba(255,255,255,0.5); cursor: pointer;
+            font-size: 14px; transition: 0.2s; border-left: 3px solid transparent;
+        }
+        .item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: var(--accent); }
+        .main { flex: 1; padding: 40px; display: flex; flex-direction: column; }
+        h1 { margin: 0 0 30px 0; font-size: 24px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+        .card h3 { margin: 0 0 15px 0; font-size: 13px; color: var(--accent); text-transform: uppercase; }
+        .group { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
+        input, select {
+            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
+            color: white; padding: 10px 12px; border-radius: 8px; outline: none; box-sizing: border-box;
+            font-size: 14px; transition: border-color 0.2s;
+        }
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        select option {
+            background: #1a1a24;
+            color: white;
+        }
+        .footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 12px; }
+        .btn { padding: 10px 24px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; font-size: 14px; }
+        .btn-p { background: var(--accent); color: white; }
+        .btn-s { background: rgba(255,255,255,0.08); color: white; }
+    </style>
 </head>
-<body style="padding: 20px; display: block; height: auto; overflow: auto; background: transparent !important;">
-    <div class="settings-window">
-        <header style="margin-bottom: 32px;">
-            <h2 style="font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #fff;">Settings</h2>
-        </header>
-
-        <div class="section-title">General</div>
-        <div class="settings-card">
-            <div class="setting-row">
-                <div class="setting-label">
-                    <h4>Microphone</h4>
-                    <p>Input device for recording</p>
-                </div>
-                <select id="mic-select" style="width: 200px;"></select>
-            </div>
-            <div class="setting-row">
-                <div class="setting-label">
-                    <h4>Shortcut</h4>
-                    <p>Global key to start/stop</p>
-                </div>
-                <input type="text" id="hotkey-display" class="hotkey-input" style="width: 200px; text-align: center; color: var(--accent-primary); font-weight: 700; font-family: 'JetBrains Mono';" readonly>
-            </div>
+<body>
+    <div class="window">
+        <div class="sidebar">
+            <div class="item active" id="tab-gen" onclick="tab('gen')">General</div>
+            <div class="item" id="tab-ai" onclick="tab('ai')">AI Engine</div>
         </div>
-
-        <div class="section-title">AI Engine</div>
-        <div class="settings-card">
-            <div class="setting-row">
-                <div class="setting-label">
-                    <h4>Whisper Model</h4>
-                    <p>Accuracy vs Performance</p>
+        <div class="main">
+            <div id="sec-gen">
+                <h1>General</h1>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Keyboard</h3>
+                        <div class="group"><label>Hotkey</label><input type="text" id="hotkey"></div>
+                        <div class="group"><label>Mode</label><select id="mode"><option value="toggle">Toggle</option><option value="hold">Hold</option></select></div>
+                    </div>
+                    <div class="card">
+                        <h3>Language</h3>
+                        <div class="group"><label>Input</label><select id="lang"><option value="ja">Japanese</option><option value="en">English</option></select></div>
+                    </div>
                 </div>
-                <select id="model-size-select" style="width: 150px;">
-                    <option value="tiny">Tiny (Fastest)</option>
-                    <option value="base">Base</option>
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large-v3">Large-v3</option>
-                </select>
             </div>
-            <div class="setting-row">
-                <div class="setting-label">
-                    <h4>Language</h4>
-                    <p>Detection target</p>
+            <div id="sec-ai" style="display:none">
+                <h1>AI Engine</h1>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Whisper</h3>
+                        <div class="group">
+                            <label>Size</label>
+                            <select id="size">
+                                <option value="tiny">Tiny</option>
+                                <option value="base">Base</option>
+                                <option value="small">Small</option>
+                                <option value="medium">Medium</option>
+                                <option value="large-v3">Large v3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Ollama</h3>
+                        <div class="group">
+                            <label>Refine</label>
+                            <select id="ollama">
+                                <option value="false">Off</option>
+                                <option value="true">On</option>
+                            </select>
+                        </div>
+                        <div class="group">
+                            <label>Model</label>
+                            <select id="ollama-model">
+                                <option value="gemma2:2b">Gemma 2 (2B)</option>
+                                <option value="qwen2.5-coder:7b">Qwen 2.5 Coder (7B)</option>
+                                <option value="llama3.1:8b">Llama 3.1 (8B)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <select id="language-select" style="width: 150px;">
-                    <option value="ja">Japanese</option>
-                    <option value="en">English</option>
-                </select>
             </div>
-        </div>
-
-        <div class="section-title">Polishing</div>
-        <div class="settings-card">
-            <div class="setting-row">
-                <div class="setting-label">
-                    <h4>AI Refinement</h4>
-                    <p>Fix grammar with Ollama</p>
-                </div>
-                <select id="ollama-enabled-select" style="width: 100px;">
-                    <option value="true">On</option>
-                    <option value="false">Off</option>
-                </select>
+            <div class="footer">
+                <button class="btn btn-s" onclick="window.close()">Cancel</button>
+                <button class="btn btn-p" id="save">Save</button>
             </div>
-            <div class="setting-row" id="ollama-model-row">
-                <div class="setting-label">
-                    <h4>Ollama Model</h4>
-                    <p>Local LLM to use</p>
-                </div>
-                <input type="text" id="ollama-model-input" placeholder="qwen2.5-coder:14b" style="width: 180px;">
-            </div>
-        </div>
-
-        <div style="margin-top: 40px; display: flex; gap: 12px;">
-            <button class="btn btn-primary" id="save-settings" style="flex: 2;">Apply Changes</button>
-            <button class="btn btn-secondary" id="close-window" style="flex: 1;">Cancel</button>
-        </div>
-
-        <div style="margin-top: 24px; text-align: center;">
-            <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" style="color: var(--text-secondary); text-decoration: none; font-size: 12px; opacity: 0.6; transition: opacity 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
-                ❤️ Support Development
-            </a>
         </div>
     </div>
-
     <script>
         const { ipcRenderer } = require('electron');
-        
-        const micSelect = document.getElementById('mic-select');
-        const modelSizeSelect = document.getElementById('model-size-select');
-        const languageSelect = document.getElementById('language-select');
-        const ollamaEnabledSelect = document.getElementById('ollama-enabled-select');
-        const ollamaModelInput = document.getElementById('ollama-model-input');
-        const ollamaModelRow = document.getElementById('ollama-model-row');
-        const hotkeyDisplay = document.getElementById('hotkey-display');
-        
-        let currentConfig = {};
-        let isRecordingHotkey = false;
-
-        async function init() {
-            try {
-                // Fetch devices
-                const devRes = await fetch('http://127.0.0.1:8000/devices');
-                const devices = await devRes.json();
-                micSelect.innerHTML = '';
-                devices.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d.id;
-                    opt.text = d.name.length > 25 ? d.name.substring(0, 25) + '...' : d.name;
-                    micSelect.appendChild(opt);
-                });
-                
-                // Fetch config
-                const confRes = await fetch('http://127.0.0.1:8000/config');
-                currentConfig = await confRes.json();
-                
-                micSelect.value = currentConfig.device_index || 0;
-                modelSizeSelect.value = currentConfig.model_size || 'medium';
-                languageSelect.value = currentConfig.language || 'ja';
-                ollamaEnabledSelect.value = currentConfig.use_ollama !== undefined ? currentConfig.use_ollama.toString() : 'false';
-                ollamaModelInput.value = currentConfig.ollama_model || 'qwen2.5-coder:14b';
-                hotkeyDisplay.value = currentConfig.hotkey || 'Alt+Shift+U';
-
-                updateOllamaVisibility();
-            } catch (err) { console.error(err); }
+        function tab(id) {
+            document.getElementById('sec-gen').style.display = id==='gen'?'block':'none';
+            document.getElementById('sec-ai').style.display = id==='ai'?'block':'none';
+            document.getElementById('tab-gen').classList.toggle('active', id==='gen');
+            document.getElementById('tab-ai').classList.toggle('active', id==='ai');
         }
-
-        function updateOllamaVisibility() {
-            const isEnabled = ollamaEnabledSelect.value === 'true';
-            ollamaModelRow.style.display = isEnabled ? 'flex' : 'none';
+        async function load() {
+            const r = await fetch('http://127.0.0.1:8000/status'); // 一応サーバーから現在の設定を取得
+            const res = await fetch('http://127.0.0.1:8000/config');
+            const c = await res.json();
+            document.getElementById('hotkey').value = c.hotkey;
+            document.getElementById('mode').value = c.mode || 'toggle';
+            document.getElementById('lang').value = c.language;
+            document.getElementById('size').value = c.model_size;
+            document.getElementById('ollama').value = c.use_ollama.toString();
+            document.getElementById('ollama-model').value = c.ollama_model || 'gemma2:2b';
         }
-
-        ollamaEnabledSelect.onchange = updateOllamaVisibility;
-
-        hotkeyDisplay.onclick = () => {
-            isRecordingHotkey = true;
-            hotkeyDisplay.value = 'Press keys...';
-            hotkeyDisplay.style.borderColor = 'var(--accent-primary)';
-            hotkeyDisplay.style.background = 'rgba(0, 113, 227, 0.1)';
-        };
-
-        window.onkeydown = (e) => {
-            if (!isRecordingHotkey) return;
-            e.preventDefault();
-            if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return;
-
-            const keys = [];
-            if (e.ctrlKey) keys.push('Ctrl');
-            if (e.altKey) keys.push('Alt');
-            if (e.shiftKey) keys.push('Shift');
-            if (e.metaKey) keys.push('Cmd');
-            
-            let key = e.key;
-            if (key === ' ') key = 'Space';
-            if (key.length === 1) key = key.toUpperCase();
-            keys.push(key);
-            
-            hotkeyDisplay.value = keys.join('+');
-            hotkeyDisplay.style.borderColor = '';
-            hotkeyDisplay.style.background = '';
-            isRecordingHotkey = false;
-        };
-
-        document.getElementById('save-settings').onclick = async () => {
-            try {
-                const newConfig = {
-                    ...currentConfig,
-                    device_index: parseInt(micSelect.value),
-                    model_size: modelSizeSelect.value,
-                    language: languageSelect.value,
-                    hotkey: hotkeyDisplay.value,
-                    use_ollama: ollamaEnabledSelect.value === 'true',
-                    ollama_model: ollamaModelInput.value
-                };
-                
-                await fetch('http://127.0.0.1:8000/config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newConfig)
-                });
-                
-                ipcRenderer.send('config-updated');
-                window.close();
-            } catch (err) {
-                alert('Save failed: ' + err.message);
-            }
-        };
-
-        document.getElementById('close-window').onclick = () => window.close();
-        init();
+        document.getElementById('save').onclick = async () => {
+            const c = {
+                hotkey: document.getElementById('hotkey').value,
+                mode: document.getElementById('mode').value,
+                language: document.getElementById('lang').value,
+                model_size: document.getElementById('size').value,
+                use_ollama: document.getElementById('ollama').value === 'true',
+                ollama_model: document.getElementById('ollama-model').value
+            };
+            await fetch('http://127.0.0.1:8000/config', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(c)
+            });
+            ipcRenderer.send('config-updated');
+            window.close();
+        }
+        load();
     </script>
 </body>
 </html>

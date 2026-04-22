@@ -18,7 +18,7 @@ function pollStatusForNotification() {
         try {
             const res = await axios.get('http://127.0.0.1:8000/status');
             console.log('Backend status:', res.data.status);
-            
+
             if (res.data.status === 'ready' && !hasNotifiedReady) {
                 console.log('Sending ready notification...');
                 new Notification({
@@ -29,7 +29,7 @@ function pollStatusForNotification() {
                 hasNotifiedReady = true;
                 // Once ready, we can slow down polling
             } else if (res.data.status === 'loading') {
-                hasNotifiedReady = false; 
+                hasNotifiedReady = false;
             }
         } catch (e) {
             console.log('Waiting for backend to wake up...');
@@ -48,9 +48,9 @@ function startPythonBackend() {
         .catch(() => {
             const pythonExe = path.join(__dirname, 'backend', 'venv', 'Scripts', 'python.exe');
             const scriptPath = path.join(__dirname, 'backend', 'server.py');
-            
+
             console.log(`Starting backend with: ${pythonExe}`);
-            
+
             pythonProcess = spawn(pythonExe, [scriptPath], {
                 cwd: path.join(__dirname, 'backend')
             });
@@ -120,10 +120,10 @@ function createSettingsWindow() {
     }
 
     settingsWindow = new BrowserWindow({
-        width: 450,
-        height: 650,
-        minWidth: 400,
-        minHeight: 500,
+        width: 850,
+        height: 850,
+        minWidth: 700,
+        minHeight: 700,
         title: 'AuraWhisper Settings',
         backgroundColor: '#0a0a0f',
         resizable: true,
@@ -168,7 +168,7 @@ function registerHotkey() {
     }
 
     let hotkey = config.hotkey || 'Alt+Shift+U';
-    
+
     // Normalize hotkey string to ensure consistency (Alt+Shift+U format)
     hotkey = hotkey.split('+').map(part => {
         const p = part.trim().toLowerCase();
@@ -220,7 +220,7 @@ app.whenReady().then(() => {
         createWindow();
         registerHotkey();
     }
-    
+
     pollStatusForNotification();
 
 
@@ -236,13 +236,15 @@ app.whenReady().then(() => {
 
     // Tray Icon
     try {
-        tray = new Tray(path.join(__dirname, 'ui/icon.png')); 
+        tray = new Tray(path.join(__dirname, 'ui/icon.png'));
         const contextMenu = Menu.buildFromTemplate([
             { label: 'Settings', click: () => createSettingsWindow() },
-            { label: 'Show Recorder', click: () => {
-                if (!mainWindow) createWindow();
-                mainWindow.show();
-            }},
+            {
+                label: 'Show Recorder', click: () => {
+                    if (!mainWindow) createWindow();
+                    mainWindow.show();
+                }
+            },
             { type: 'separator' },
             { label: 'Quit', click: () => app.quit() }
         ]);
