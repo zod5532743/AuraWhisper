@@ -1,5 +1,5 @@
 {
-  "name": "ultrawhisper",
+  "name": "aurawhisper",
   "version": "1.0.0",
   "description": "Premium dictation tool for Windows",
   "main": "main.js",
@@ -15,7 +15,7 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.yourcompany.ultrawhisper",
+    "appId": "com.yourcompany.aurawhisper",
     "files": [
       "**/*.js",
       "**/*.json",

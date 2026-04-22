@@ -1,4 +1,4 @@
-# 🚀 UltraWhisper Roadmap
+# 🚀 AuraWhisper Roadmap
 
 Mac の Superwhisper を超える、Windows 用 AI 音声入力レイヤーへの道。
 

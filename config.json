@@ -1,9 +1,9 @@
 {
     "hotkey": "Alt+Shift+S",
-    "model_size": "small",
+    "model_size": "base",
     "device": "cpu",
     "compute_type": "int8",
-    "use_ollama": true,
+    "use_ollama": false,
     "ollama_model": "gemma2:2b",
     "language": "ja",
     "device_index": 6,

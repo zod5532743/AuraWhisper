@@ -18,7 +18,7 @@ function pollStatusForNotification() {
             const res = await axios.get('http://127.0.0.1:8000/status');
             if (res.data.status === 'ready' && !hasNotifiedReady) {
                 new Notification({
-                    title: 'UltraWhisper',
+                    title: 'AuraWhisper',
                     body: 'AI model loaded and system is ready!',
                     silent: false
                 }).show();
@@ -119,15 +119,22 @@ function createSettingsWindow() {
         height: 650,
         minWidth: 400,
         minHeight: 500,
-        title: 'UltraWhisper Settings',
+        title: 'AuraWhisper Settings',
         backgroundColor: '#0a0a0f',
         resizable: true,
+        alwaysOnTop: true, // Ensure it's above the recorder
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         }
     });
 
+    // Optional: center relative to screen or main window
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        const bounds = mainWindow.getBounds();
+        settingsWindow.setPosition(bounds.x, bounds.y - 100); // Near the recorder but slightly above
+        settingsWindow.center();
+    }
 
     settingsWindow.loadFile('ui/settings.html');
 
@@ -234,7 +241,7 @@ app.whenReady().then(() => {
             { type: 'separator' },
             { label: 'Quit', click: () => app.quit() }
         ]);
-        tray.setToolTip('UltraWhisper');
+        tray.setToolTip('AuraWhisper');
         tray.setContextMenu(contextMenu);
     } catch (e) {
         console.error("Tray icon failed to load:", e.message);

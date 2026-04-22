@@ -5,140 +5,28 @@
     <title>Settings</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background: transparent !important;
-            padding: 20px;
-            display: block;
-            height: auto;
-            overflow: auto;
-        }
-        .settings-window {
-            background: rgba(20, 20, 25, 0.8);
-            backdrop-filter: blur(32px) saturate(180%);
-            border-radius: 32px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 32px;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-            color: white;
-        }
-        .section-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: var(--text-secondary);
-            margin: 24px 0 12px 4px;
-            font-weight: 700;
-        }
-        .settings-card {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 20px;
-            padding: 8px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .footer-support {
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .support-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .support-btn:hover {
-            background: rgba(255, 59, 48, 0.05);
-            border-color: rgba(255, 59, 48, 0.3);
-            color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2);
-        }
-
-        .support-btn .heart {
-            font-size: 1.1rem;
-            filter: drop-shadow(0 0 5px rgba(255, 59, 48, 0.5));
-        }
-
-        .button-group {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .setting-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .setting-row:last-child { border-bottom: none; }
-        .setting-label {
-            flex: 1;
-        }
-        .setting-label h4 { font-size: 14px; font-weight: 600; }
-        .setting-label p { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-        
-        select, input[type="text"] {
-            width: 180px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 13px;
-            text-align: right;
-        }
-        .hotkey-input {
-            width: 180px !important;
-            text-align: center !important;
-            color: var(--accent-color) !important;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-    </style>
 </head>
-<body>
+<body style="padding: 20px; display: block; height: auto; overflow: auto; background: transparent !important;">
     <div class="settings-window">
-        <header style="margin-bottom: 30px;">
-            <h2 style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Settings</h2>
+        <header style="margin-bottom: 32px;">
+            <h2 style="font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #fff;">Settings</h2>
         </header>
 
         <div class="section-title">General</div>
         <div class="settings-card">
-            <div class="footer-support">
-                <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" class="support-btn">
-                    <span class="heart">❤️</span> Support Development
-                </a>
-            </div>
-
-            <div class="button-group">
-                <button class="secondary" id="close-window">Cancel</button>
-                <button class="primary" id="save-settings">Apply Changes</button>
-            </div>
             <div class="setting-row">
                 <div class="setting-label">
                     <h4>Microphone</h4>
                     <p>Input device for recording</p>
                 </div>
-                <select id="mic-select"></select>
+                <select id="mic-select" style="width: 200px;"></select>
             </div>
             <div class="setting-row">
                 <div class="setting-label">
                     <h4>Shortcut</h4>
-                    <p>Global key to record</p>
+                    <p>Global key to start/stop</p>
                 </div>
-                <input type="text" id="hotkey-display" class="hotkey-input" readonly>
+                <input type="text" id="hotkey-display" class="hotkey-input" style="width: 200px; text-align: center; color: var(--accent-primary); font-weight: 700; font-family: 'JetBrains Mono';" readonly>
             </div>
         </div>
 
@@ -147,9 +35,9 @@
             <div class="setting-row">
                 <div class="setting-label">
                     <h4>Whisper Model</h4>
-                    <p>Accuracy vs Speed</p>
+                    <p>Accuracy vs Performance</p>
                 </div>
-                <select id="model-size-select">
+                <select id="model-size-select" style="width: 150px;">
                     <option value="tiny">Tiny (Fastest)</option>
                     <option value="base">Base</option>
                     <option value="small">Small</option>
@@ -160,23 +48,23 @@
             <div class="setting-row">
                 <div class="setting-label">
                     <h4>Language</h4>
-                    <p>Recognition target</p>
+                    <p>Detection target</p>
                 </div>
-                <select id="language-select">
+                <select id="language-select" style="width: 150px;">
                     <option value="ja">Japanese</option>
                     <option value="en">English</option>
                 </select>
             </div>
         </div>
 
-        <div class="section-title">Refinement</div>
+        <div class="section-title">Polishing</div>
         <div class="settings-card">
             <div class="setting-row">
                 <div class="setting-label">
-                    <h4>Ollama Polish</h4>
-                    <p>Fix grammar with AI</p>
+                    <h4>AI Refinement</h4>
+                    <p>Fix grammar with Ollama</p>
                 </div>
-                <select id="ollama-enabled-select">
+                <select id="ollama-enabled-select" style="width: 100px;">
                     <option value="true">On</option>
                     <option value="false">Off</option>
                 </select>
@@ -184,15 +72,21 @@
             <div class="setting-row" id="ollama-model-row">
                 <div class="setting-label">
                     <h4>Ollama Model</h4>
-                    <p>Model name to use</p>
+                    <p>Local LLM to use</p>
                 </div>
-                <input type="text" id="ollama-model-input" placeholder="qwen2.5-coder:14b">
+                <input type="text" id="ollama-model-input" placeholder="qwen2.5-coder:14b" style="width: 180px;">
             </div>
         </div>
 
-        <div class="button-container" style="margin-top: 40px; gap: 16px;">
-            <button class="save-btn" id="save-settings" style="flex: 2;">Apply Changes</button>
-            <button class="cancel-btn" id="close-window" style="flex: 1;">Close</button>
+        <div style="margin-top: 40px; display: flex; gap: 12px;">
+            <button class="btn btn-primary" id="save-settings" style="flex: 2;">Apply Changes</button>
+            <button class="btn btn-secondary" id="close-window" style="flex: 1;">Cancel</button>
+        </div>
+
+        <div style="margin-top: 24px; text-align: center;">
+            <a href="https://www.buymeacoffee.com/YOUR_USERNAME" target="_blank" style="color: var(--text-secondary); text-decoration: none; font-size: 12px; opacity: 0.6; transition: opacity 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+                ❤️ Support Development
+            </a>
         </div>
     </div>
 
@@ -212,6 +106,7 @@
 
         async function init() {
             try {
+                // Fetch devices
                 const devRes = await fetch('http://127.0.0.1:8000/devices');
                 const devices = await devRes.json();
                 micSelect.innerHTML = '';
@@ -222,6 +117,7 @@
                     micSelect.appendChild(opt);
                 });
                 
+                // Fetch config
                 const confRes = await fetch('http://127.0.0.1:8000/config');
                 currentConfig = await confRes.json();
                 
@@ -245,8 +141,9 @@
 
         hotkeyDisplay.onclick = () => {
             isRecordingHotkey = true;
-            hotkeyDisplay.value = '...';
-            hotkeyDisplay.style.background = 'rgba(0, 122, 255, 0.15)';
+            hotkeyDisplay.value = 'Press keys...';
+            hotkeyDisplay.style.borderColor = 'var(--accent-primary)';
+            hotkeyDisplay.style.background = 'rgba(0, 113, 227, 0.1)';
         };
 
         window.onkeydown = (e) => {
@@ -266,30 +163,34 @@
             keys.push(key);
             
             hotkeyDisplay.value = keys.join('+');
+            hotkeyDisplay.style.borderColor = '';
             hotkeyDisplay.style.background = '';
             isRecordingHotkey = false;
         };
 
         document.getElementById('save-settings').onclick = async () => {
-            const newConfig = {
-                ...currentConfig,
-                device_index: parseInt(micSelect.value),
-                model_size: modelSizeSelect.value,
-                language: languageSelect.value,
-                hotkey: hotkeyDisplay.value,
-                use_ollama: ollamaEnabledSelect.value === 'true',
-                ollama_model: ollamaModelInput.value,
-                mode: 'toggle' // Force toggle mode for now as requested
-            };
-            
-            await fetch('http://127.0.0.1:8000/config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newConfig)
-            });
-            
-            ipcRenderer.send('config-updated');
-            window.close();
+            try {
+                const newConfig = {
+                    ...currentConfig,
+                    device_index: parseInt(micSelect.value),
+                    model_size: modelSizeSelect.value,
+                    language: languageSelect.value,
+                    hotkey: hotkeyDisplay.value,
+                    use_ollama: ollamaEnabledSelect.value === 'true',
+                    ollama_model: ollamaModelInput.value
+                };
+                
+                await fetch('http://127.0.0.1:8000/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newConfig)
+                });
+                
+                ipcRenderer.send('config-updated');
+                window.close();
+            } catch (err) {
+                alert('Save failed: ' + err.message);
+            }
         };
 
         document.getElementById('close-window').onclick = () => window.close();
@@ -297,17 +198,3 @@
     </script>
 </body>
 </html>
- } catch (err) {
-                alert('Failed to save settings: ' + err.message);
-            }
-        };
-
-        document.getElementById('close-window').onclick = () => {
-            window.close();
-        };
-
-        init();
-    </script>
-</body>
-</html>
-

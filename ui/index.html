@@ -2,20 +2,20 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>UltraWhisper</title>
+    <title>AuraWhisper</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container" id="app-container">
-        <canvas id="waveform-canvas" class="hide"></canvas>
+        <canvas id="waveform-canvas"></canvas>
         <div id="recording-indicator" class="pulse hide"></div>
 
         <div class="text-container">
-            <div id="status-text">Ready</div>
-            <div id="sub-status">Detecting...</div>
+            <div id="status-text" class="fade-up">Ready</div>
+            <div id="sub-status" class="fade-up">Detecting...</div>
         </div>
-        <div class="settings-btn" id="open-settings-btn">
+        <div class="settings-btn" id="open-settings-btn" title="Settings">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </div>
     </div>
@@ -23,122 +23,137 @@
     <script>
         const { ipcRenderer } = require('electron');
         
-        // Waveform Visualizer
-        class WaveformVisualizer {
+        // --- Fluid Waveform Visualizer ---
+        class FluidVisualizer {
             constructor(canvas) {
                 this.canvas = canvas;
                 this.ctx = canvas.getContext('2d');
                 this.volume = 0;
                 this.targetVolume = 0;
                 this.phase = 0;
+                this.waves = [
+                    { speed: 0.1, amplitude: 0.8, frequency: 0.03, color: 'rgba(0, 113, 227, 0.4)' },
+                    { speed: 0.15, amplitude: 0.6, frequency: 0.04, color: 'rgba(175, 82, 222, 0.3)' },
+                    { speed: 0.08, amplitude: 1.0, frequency: 0.02, color: 'rgba(255, 59, 48, 0.2)' }
+                ];
                 this.resize();
                 window.addEventListener('resize', () => this.resize());
                 this.animate();
             }
+
             resize() {
                 const dpr = window.devicePixelRatio || 1;
                 this.canvas.width = this.canvas.clientWidth * dpr;
                 this.canvas.height = this.canvas.clientHeight * dpr;
                 this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
-            setVolume(v) { this.targetVolume = v; }
+
+            setVolume(v) {
+                this.targetVolume = Math.max(0.05, v); // Keep a tiny baseline movement
+            }
+
             animate() {
                 const width = this.canvas.clientWidth;
                 const height = this.canvas.clientHeight;
                 this.ctx.clearRect(0, 0, width, height);
                 
-                this.volume += (this.targetVolume - this.volume) * 0.15;
-                this.phase += 0.1 + (this.volume * 0.2);
+                this.volume += (this.targetVolume - this.volume) * 0.1;
+                this.phase += 0.02 + (this.volume * 0.05);
 
-                // Draw waves even at 0 volume as subtle flat lines to confirm canvas is working
-                this.drawWave(width, height, 0.3, '#ff2d55', 1);
-                this.drawWave(width, height, 0.6, '#ff375f', 1.5);
-                this.drawWave(width, height, 0.9, '#ff4b73', 2);
+                this.waves.forEach((wave, i) => {
+                    this.drawWave(width, height, wave, i);
+                });
+
                 requestAnimationFrame(() => this.animate());
             }
-            drawWave(w, h, opacity, color, speed) {
-                this.ctx.save();
+
+            drawWave(w, h, config, index) {
                 this.ctx.beginPath();
-                this.ctx.strokeStyle = color;
-                this.ctx.globalAlpha = opacity;
-                this.ctx.lineWidth = 2.5;
+                this.ctx.strokeStyle = config.color;
+                this.ctx.lineWidth = 2;
                 this.ctx.lineCap = 'round';
                 
-                const amplitude = (h / 2.5) * this.volume;
-                for (let x = 0; x < w; x += 5) {
-                    const sine = Math.sin(x * 0.03 + this.phase * speed);
-                    const envelope = Math.sin((x / w) * Math.PI); // Smooth edges
-                    const y = h / 2 + sine * amplitude * envelope;
+                const midY = h / 2;
+                const amplitude = (h * 0.4) * this.volume * config.amplitude;
+
+                for (let x = 0; x <= w; x += 2) {
+                    const normX = x / w;
+                    // Envelope to keep ends at center
+                    const envelope = Math.sin(normX * Math.PI);
+                    
+                    const sine = Math.sin(x * config.frequency + this.phase * config.speed * (index + 1));
+                    const y = midY + sine * amplitude * envelope;
+
                     if (x === 0) this.ctx.moveTo(x, y);
                     else this.ctx.lineTo(x, y);
                 }
                 this.ctx.stroke();
-                this.ctx.restore();
             }
         }
 
-
         const canvas = document.getElementById('waveform-canvas');
-        const visualizer = new WaveformVisualizer(canvas);
+        const visualizer = new FluidVisualizer(canvas);
 
         const statusText = document.getElementById('status-text');
-
         const subStatus = document.getElementById('sub-status');
         const indicator = document.getElementById('recording-indicator');
         const appContainer = document.getElementById('app-container');
         
-        // --- Polling Logic ---
+        let lastStatus = '';
+
+        function setStatus(main, sub, type) {
+            if (lastStatus === main) return;
+            lastStatus = main;
+
+            // Trigger re-animation
+            statusText.classList.remove('fade-up');
+            subStatus.classList.remove('fade-up');
+            void statusText.offsetWidth; // trigger reflow
+            statusText.classList.add('fade-up');
+            subStatus.classList.add('fade-up');
+
+            statusText.innerText = main;
+            subStatus.innerText = sub;
+
+            // Handle UI states
+            if (type === 'recording') {
+                indicator.classList.remove('hide');
+                appContainer.classList.add('recording-active');
+            } else {
+                indicator.classList.add('hide');
+                appContainer.classList.remove('recording-active');
+            }
+        }
+        
         async function updateStatus() {
             try {
                 const res = await fetch('http://127.0.0.1:8000/status');
                 const data = await res.json();
                 
                 if (data.status === 'recording') {
-                    statusText.innerText = 'Recording...';
-                    subStatus.innerText = 'Speak naturally';
-                    indicator.classList.remove('hide');
-                    appContainer.classList.add('recording-active');
-                    
-                    // Waveform Show & Update
-                    canvas.classList.remove('hide');
-                    const vol = data.volume || 0;
-                    visualizer.setVolume(vol);
-                    indicator.style.setProperty('--volume-level', vol);
+                    setStatus('Listening...', 'Speak naturally', 'recording');
+                    visualizer.setVolume(data.volume || 0);
                 } else if (data.status === 'analyzing') {
-                    statusText.innerText = 'Analyzing...';
-                    subStatus.innerText = 'Polishing with AI';
-                    indicator.classList.add('hide');
-                    indicator.style.setProperty('--volume-level', 0);
-                    appContainer.classList.remove('recording-active');
-                    canvas.classList.add('hide');
-                    visualizer.setVolume(0);
+                    setStatus('Refining...', 'AI is polishing your text', 'analyzing');
+                    visualizer.setVolume(0.1); // subtle pulse
                 } else if (data.status === 'ready') {
                     const confRes = await fetch('http://127.0.0.1:8000/config');
                     const config = await confRes.json();
-                    statusText.innerText = 'Ready';
-                    subStatus.innerText = `Press ${config.hotkey || 'Alt+Shift+U'} to record`;
-                    indicator.classList.add('hide');
-                    indicator.style.setProperty('--volume-level', 0);
-                    appContainer.classList.remove('recording-active');
-                    canvas.classList.add('hide');
-                    visualizer.setVolume(0);
+                    setStatus('Ready', `Press ${config.hotkey || 'Alt+Shift+U'}`, 'ready');
+                    visualizer.setVolume(0.05);
                 } else if (data.status === 'loading') {
-                    statusText.innerText = 'Loading...';
-                    subStatus.innerText = 'Model is initializing';
-                    indicator.classList.add('hide');
-                    canvas.classList.add('hide');
+                    setStatus('Initializing...', 'Loading AI models', 'loading');
+                    visualizer.setVolume(0.05);
                 }
 
             } catch (err) {
-                statusText.innerText = 'Offline';
-                subStatus.innerText = 'Backend not connected';
-                canvas.classList.add('hide');
+                setStatus('Offline', 'Backend not connected', 'error');
+                visualizer.setVolume(0);
             }
         }
 
-        setInterval(updateStatus, 500);
+        setInterval(updateStatus, 300);
 
-        // --- Settings Button ---
         document.getElementById('open-settings-btn').onclick = () => {
             ipcRenderer.send('open-settings');
         };

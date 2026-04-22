@@ -1,7 +1,7 @@
-# UltraWhisper Project Handover
+# AuraWhisper Project Handover
 
 ## 📋 Project Overview
-UltraWhisper is a hybrid application designed for real-time audio transcription and automated text processing (refinement) using AI. It captures audio via a microphone, transcribes it using OpenAI's Whisper model, optionally refines the text using Ollama (LLM), and automatically pastes the final result into the active window using keyboard simulation.
+AuraWhisper is a hybrid application designed for real-time audio transcription and automated text processing (refinement) using AI. It captures audio via a microphone, transcribes it using OpenAI's Whisper model, optionally refines the text using Ollama (LLM), and automatically pastes the final result into the active window using keyboard simulation.
 
 ## 🏗️ Architecture & Tech Stack
 The project uses a dual-process architecture:
@@ -76,7 +76,7 @@ The behavior of the system is### 既知の課題と解決策 (2026-04-20 更新)
 The application is now configured to start automatically when Windows boots.
 - **Trigger:** Windows Login.
 - **Behavior:** Launches hidden via `autostart.vbs` and stays resident in the system tray.
-- **Shortcut Path:** `%AppData%\Microsoft\Windows\Start Menu\Programs\Startup\UltraWhisper.lnk`
+- **Shortcut Path:** `%AppData%\Microsoft\Windows\Start Menu\Programs\Startup\AuraWhisper.lnk`
 
 ### Manual Start (Development)
 ```powershell
