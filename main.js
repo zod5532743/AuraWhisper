@@ -13,21 +13,26 @@ let hasNotifiedReady = false;
 
 // Function to poll backend status for notifications
 function pollStatusForNotification() {
-    setInterval(async () => {
+    console.log('Starting backend status polling...');
+    const timer = setInterval(async () => {
         try {
             const res = await axios.get('http://127.0.0.1:8000/status');
+            console.log('Backend status:', res.data.status);
+            
             if (res.data.status === 'ready' && !hasNotifiedReady) {
+                console.log('Sending ready notification...');
                 new Notification({
                     title: 'AuraWhisper',
                     body: 'AI model loaded and system is ready!',
                     silent: false
                 }).show();
                 hasNotifiedReady = true;
+                // Once ready, we can slow down polling
             } else if (res.data.status === 'loading') {
-                hasNotifiedReady = false; // Reset if it goes back to loading (e.g. model change)
+                hasNotifiedReady = false; 
             }
         } catch (e) {
-            // Backend might not be up yet
+            console.log('Waiting for backend to wake up...');
         }
     }, 2000);
 }

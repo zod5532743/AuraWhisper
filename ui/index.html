@@ -23,76 +23,95 @@
     <script>
         const { ipcRenderer } = require('electron');
         
-        // --- Fluid Waveform Visualizer ---
-        class FluidVisualizer {
+        // --- Sound Feedback ---
+        class AudioFeedback {
+            constructor() {
+                this.audioCtx = null;
+            }
+            init() {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+            }
+            playBeep(freq, dur, vol) {
+                if (!this.audioCtx) return;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.start();
+                osc.stop(this.audioCtx.currentTime + dur);
+            }
+            playStart() { this.playBeep(880, 0.1, 0.2); }
+            playStop() { this.playBeep(440, 0.1, 0.2); }
+        }
+
+        const audioFeedback = new AudioFeedback();
+        document.addEventListener('mousedown', () => audioFeedback.init(), { once: true });
+
+        // --- Classical Waveform Visualizer (差し戻し & 強化) ---
+        class WaveformVisualizer {
             constructor(canvas) {
                 this.canvas = canvas;
                 this.ctx = canvas.getContext('2d');
                 this.volume = 0;
                 this.targetVolume = 0;
                 this.phase = 0;
-                this.waves = [
-                    { speed: 0.1, amplitude: 0.8, frequency: 0.03, color: 'rgba(0, 113, 227, 0.4)' },
-                    { speed: 0.15, amplitude: 0.6, frequency: 0.04, color: 'rgba(175, 82, 222, 0.3)' },
-                    { speed: 0.08, amplitude: 1.0, frequency: 0.02, color: 'rgba(255, 59, 48, 0.2)' }
-                ];
                 this.resize();
                 window.addEventListener('resize', () => this.resize());
                 this.animate();
             }
-
             resize() {
                 const dpr = window.devicePixelRatio || 1;
-                this.canvas.width = this.canvas.clientWidth * dpr;
-                this.canvas.height = this.canvas.clientHeight * dpr;
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width * dpr;
+                this.canvas.height = rect.height * dpr;
                 this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             }
-
-            setVolume(v) {
-                this.targetVolume = Math.max(0.05, v); // Keep a tiny baseline movement
-            }
-
+            setVolume(v) { this.targetVolume = Math.max(0.02, v); }
             animate() {
-                const width = this.canvas.clientWidth;
-                const height = this.canvas.clientHeight;
-                this.ctx.clearRect(0, 0, width, height);
+                const w = this.canvas.width / (window.devicePixelRatio || 1);
+                const h = this.canvas.height / (window.devicePixelRatio || 1);
+                this.ctx.clearRect(0, 0, w, h);
                 
-                this.volume += (this.targetVolume - this.volume) * 0.1;
-                this.phase += 0.02 + (this.volume * 0.05);
+                this.volume += (this.targetVolume - this.volume) * 0.1; // More smooth
+                this.phase += 0.04 + (this.volume * 0.05); // Slowed down significantly
 
-                this.waves.forEach((wave, i) => {
-                    this.drawWave(width, height, wave, i);
-                });
-
+                // 以前の好評だった「3本の重なる波」 - ゆったりとした速度倍率
+                this.drawWave(w, h, 0.4, '#0071e3', 0.5);
+                this.drawWave(w, h, 0.2, '#af52de', 0.8);
+                this.drawWave(w, h, 0.1, '#ff3b30', 1.0);
+                
                 requestAnimationFrame(() => this.animate());
             }
-
-            drawWave(w, h, config, index) {
+            drawWave(w, h, opacity, color, speed) {
+                this.ctx.save();
                 this.ctx.beginPath();
-                this.ctx.strokeStyle = config.color;
-                this.ctx.lineWidth = 2;
+                this.ctx.strokeStyle = color;
+                this.ctx.globalAlpha = opacity;
+                this.ctx.lineWidth = 3;
                 this.ctx.lineCap = 'round';
                 
-                const midY = h / 2;
-                const amplitude = (h * 0.4) * this.volume * config.amplitude;
-
-                for (let x = 0; x <= w; x += 2) {
-                    const normX = x / w;
-                    // Envelope to keep ends at center
-                    const envelope = Math.sin(normX * Math.PI);
-                    
-                    const sine = Math.sin(x * config.frequency + this.phase * config.speed * (index + 1));
-                    const y = midY + sine * amplitude * envelope;
-
+                const amplitude = (h * 0.25) * this.volume; // 振幅を3分の2程度に抑制 (0.4 -> 0.25)
+                for (let x = 0; x <= w; x += 5) {
+                    const sine = Math.sin(x * 0.03 + this.phase * speed);
+                    const envelope = Math.sin((x / w) * Math.PI); 
+                    const y = h / 2 + sine * amplitude * envelope;
                     if (x === 0) this.ctx.moveTo(x, y);
                     else this.ctx.lineTo(x, y);
                 }
                 this.ctx.stroke();
+                this.ctx.restore();
             }
         }
 
         const canvas = document.getElementById('waveform-canvas');
-        const visualizer = new FluidVisualizer(canvas);
+        const visualizer = new WaveformVisualizer(canvas);
 
         const statusText = document.getElementById('status-text');
         const subStatus = document.getElementById('sub-status');
@@ -100,22 +119,29 @@
         const appContainer = document.getElementById('app-container');
         
         let lastStatus = '';
+        let lastStatusType = '';
 
         function setStatus(main, sub, type) {
-            if (lastStatus === main) return;
-            lastStatus = main;
+            if (lastStatus === main && lastStatusType === type) return;
+            
+            if (type === 'recording' && lastStatusType !== 'recording') {
+                audioFeedback.playStart();
+            } else if (lastStatusType === 'recording' && type !== 'recording') {
+                audioFeedback.playStop();
+            }
 
-            // Trigger re-animation
+            lastStatus = main;
+            lastStatusType = type;
+
             statusText.classList.remove('fade-up');
             subStatus.classList.remove('fade-up');
-            void statusText.offsetWidth; // trigger reflow
+            void statusText.offsetWidth; 
             statusText.classList.add('fade-up');
             subStatus.classList.add('fade-up');
 
             statusText.innerText = main;
             subStatus.innerText = sub;
 
-            // Handle UI states
             if (type === 'recording') {
                 indicator.classList.remove('hide');
                 appContainer.classList.add('recording-active');
@@ -132,27 +158,26 @@
                 
                 if (data.status === 'recording') {
                     setStatus('Listening...', 'Speak naturally', 'recording');
-                    visualizer.setVolume(data.volume || 0);
+                    visualizer.setVolume(data.volume || 0.1);
                 } else if (data.status === 'analyzing') {
                     setStatus('Refining...', 'AI is polishing your text', 'analyzing');
-                    visualizer.setVolume(0.1); // subtle pulse
+                    visualizer.setVolume(0.05);
                 } else if (data.status === 'ready') {
                     const confRes = await fetch('http://127.0.0.1:8000/config');
                     const config = await confRes.json();
                     setStatus('Ready', `Press ${config.hotkey || 'Alt+Shift+U'}`, 'ready');
-                    visualizer.setVolume(0.05);
+                    visualizer.setVolume(0.02);
                 } else if (data.status === 'loading') {
                     setStatus('Initializing...', 'Loading AI models', 'loading');
-                    visualizer.setVolume(0.05);
+                    visualizer.setVolume(0.02);
                 }
-
             } catch (err) {
                 setStatus('Offline', 'Backend not connected', 'error');
                 visualizer.setVolume(0);
             }
         }
 
-        setInterval(updateStatus, 300);
+        setInterval(updateStatus, 400);
 
         document.getElementById('open-settings-btn').onclick = () => {
             ipcRenderer.send('open-settings');

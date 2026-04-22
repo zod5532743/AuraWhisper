@@ -1,6 +1,6 @@
 {
     "hotkey": "Alt+Shift+S",
-    "model_size": "base",
+    "model_size": "medium",
     "device": "cpu",
     "compute_type": "int8",
     "use_ollama": false,
