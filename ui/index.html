@@ -27,15 +27,30 @@
         class AudioFeedback {
             constructor() {
                 this.audioCtx = null;
+                this.unlock(); // Attempt to unlock on load
             }
-            init() {
-                if (!this.audioCtx) {
-                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+            unlock() {
+                const unlockHandler = () => {
+                    if (!this.audioCtx) {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume().then(() => {
+                            // Once resumed, remove handlers
+                            document.removeEventListener('mousedown', unlockHandler);
+                            document.removeEventListener('keydown', unlockHandler);
+                            console.log("Audio unlocked and ready.");
+                        });
+                    }
+                };
+                document.addEventListener('mousedown', unlockHandler);
+                document.addEventListener('keydown', unlockHandler);
             }
             playBeep(freq, dur, vol) {
-                if (!this.audioCtx) return;
+                if (!this.audioCtx || this.audioCtx.state !== 'running') {
+                    console.log("Audio Context not ready. State:", this.audioCtx ? this.audioCtx.state : "null");
+                    return;
+                }
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
                 osc.type = 'sine';
@@ -47,8 +62,8 @@
                 osc.start();
                 osc.stop(this.audioCtx.currentTime + dur);
             }
-            playStart() { this.playBeep(880, 0.1, 0.2); }
-            playStop() { this.playBeep(440, 0.1, 0.2); }
+            playStart() { this.playBeep(880, 0.1, 0.4); } // Increased volume
+            playStop() { this.playBeep(440, 0.1, 0.4); }  // Increased volume
         }
 
         const audioFeedback = new AudioFeedback();

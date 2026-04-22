@@ -2,7 +2,7 @@
     "hotkey": "Alt+Shift+S",
     "mode": "toggle",
     "language": "ja",
-    "model_size": "medium",
+    "model_size": "small",
     "use_ollama": false,
     "ollama_model": "gemma2:2b"
 }

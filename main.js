@@ -1,4 +1,17 @@
-const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification } = require('electron');
+const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification, shell } = require('electron');
+
+// ... (中略)
+
+ipcMain.on('play-start-sound', () => {
+    // Windowsの標準ビープ音を鳴らす
+    shell.beep();
+});
+
+ipcMain.on('play-stop-sound', () => {
+    // 終了時は2回鳴らすなど、区別をつける
+    shell.beep();
+    setTimeout(() => shell.beep(), 100);
+});
 const { spawn } = require('child_process');
 const path = require('path');
 const axios = require('axios');
