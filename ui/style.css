@@ -20,43 +20,64 @@
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-body {
-    font-family: var(--font-main);
+html, body {
     background: transparent !important;
-    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
     overflow: hidden;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     -webkit-font-smoothing: antialiased;
+    font-family: var(--font-main);
 }
 
 /* プレミアム・フローティング・コンテナ */
 .container {
     width: 360px;
     height: 84px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(40px) saturate(210%);
-    -webkit-backdrop-filter: blur(40px) saturate(210%);
+    background: #1a1a1f; /* Use a solid-ish background instead of blur to fix Windows artifacts */
     border-radius: 28px;
-    border: 1px solid var(--border-glass);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
     padding: 0 28px;
-    box-shadow: 
-        0 30px 60px rgba(0, 0, 0, 0.6),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow: none;
+    overflow: hidden; /* Prevent inner artifacts from leaking */
     position: relative;
     transition: all 0.6s var(--ease-out-expo);
+}
+
+/* Mode Badge */
+.mode-badge {
+    position: absolute;
+    top: 10px;
+    left: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: 0.2s;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+}
+.mode-badge:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    transform: translateY(-1px);
 }
 
 .recording-active {
     background: rgba(255, 45, 85, 0.1);
     border-color: rgba(255, 45, 85, 0.3);
-    box-shadow: 
-        0 30px 60px rgba(0, 0, 0, 0.6),
-        0 0 40px rgba(255, 45, 85, 0.15);
+    box-shadow: none !important;
 }
 
 /* 録音インジケーター（より控えめで上品に） */

@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "original": "ディゼーブル",
+        "replacement": "Disable"
+    },
+    {
+        "original": "イネーブル",
+        "replacement": "Enable"
+    },
+    {
+        "original": "スーパーウィスパー",
+        "replacement": "SuperWhisper"
+    }
+]

@@ -47,38 +47,62 @@
             border-left-color: var(--accent); font-weight: 600;
         }
         .nav-item.active svg { opacity: 1; stroke: var(--accent); }
+        
+        /* Language Toggle */
+        .lang-switch {
+            margin-top: auto;
+            padding: 20px 30px;
+            display: flex;
+            gap: 10px;
+        }
+        .lang-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: rgba(255,255,255,0.4);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .lang-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
 
         /* Main Content */
-        .main { flex: 1; padding: 50px 60px; overflow-y: auto; display: flex; flex-direction: column; }
+        .main { flex: 1; padding: 30px 45px; overflow-y: auto; display: flex; flex-direction: column; }
         .section { display: none; animation: fadeIn 0.4s ease-out; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h1 { margin: 0 0 40px 0; font-size: 32px; font-weight: 600; letter-spacing: -1px; }
+        h1 { margin: 0 0 30px 0; font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
         
         /* Dashboard Cards */
-        .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; }
         .stat-card { 
             background: var(--card-bg); border: 1px solid var(--border); 
-            border-radius: 20px; padding: 25px; 
+            border-radius: 16px; padding: 20px; 
             transition: 0.3s;
         }
-        .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.06); }
-        .stat-label { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 28px; font-weight: 600; }
-        .stat-unit { font-size: 14px; color: rgba(255,255,255,0.3); margin-left: 5px; }
+        .stat-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.06); }
+        .stat-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 24px; font-weight: 600; }
+        .stat-unit { font-size: 12px; color: rgba(255,255,255,0.3); margin-left: 4px; }
 
         /* General UI Elements */
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
-        .card h3 { margin: 0 0 20px 0; font-size: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+        .card h3 { margin: 0 0 16px 0; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
         
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        .form-group { margin-bottom: 14px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        label { display: block; font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
         
         input, select {
-            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
-            color: white; padding: 12px 16px; border-radius: 10px; outline: none; box-sizing: border-box;
-            font-size: 14px; transition: 0.2s;
+            width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border);
+            color: white; padding: 10px 14px; border-radius: 8px; outline: none; box-sizing: border-box;
+            font-size: 13px; transition: 0.2s;
             user-select: auto;
         }
         select { cursor: pointer; }
@@ -86,34 +110,34 @@
         input:focus, select:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
 
         /* Vocabulary Table */
-        .vocab-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .vocab-table th { text-align: left; padding: 12px; font-size: 12px; color: rgba(255,255,255,0.3); border-bottom: 1px solid var(--border); }
-        .vocab-table td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .btn-delete { color: #ff453a; cursor: pointer; opacity: 0.6; transition: 0.2s; background: none; border: none; font-size: 12px; }
+        .vocab-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .vocab-table th { text-align: left; padding: 10px; font-size: 11px; color: rgba(255,255,255,0.3); border-bottom: 1px solid var(--border); }
+        .vocab-table td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .btn-delete { color: #ff453a; cursor: pointer; opacity: 0.6; transition: 0.2s; background: none; border: none; font-size: 11px; }
         .btn-delete:hover { opacity: 1; }
 
         /* History List */
         .history-item { 
             background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; 
-            padding: 20px; margin-bottom: 12px; cursor: pointer; transition: 0.2s;
-            display: flex; flex-direction: column; gap: 8px;
+            padding: 16px; margin-bottom: 10px; cursor: pointer; transition: 0.2s;
+            display: flex; flex-direction: column; gap: 6px;
         }
         .history-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); }
-        .history-meta { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.3); }
-        .history-text { font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.9); }
-        .history-tag { background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; }
+        .history-meta { display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.3); }
+        .history-text { font-size: 14px; line-height: 1.4; color: rgba(255,255,255,0.9); }
+        .history-tag { background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; }
 
         /* Buttons */
-        .footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 12px; padding-top: 20px; }
-        .btn { padding: 12px 28px; border-radius: 10px; cursor: pointer; border: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; }
+        .btn { padding: 10px 24px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; font-size: 13px; transition: 0.2s; }
         .btn-p { background: var(--accent); color: white; }
-        .btn-p:hover { background: #007aff; box-shadow: 0 4px 15px rgba(0,113,227,0.3); }
-        .btn-s { background: rgba(255,255,255,0.08); color: white; }
-        .btn-s:hover { background: rgba(255,255,255,0.12); }
-        .btn-danger { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: 1px solid rgba(255, 69, 58, 0.2); }
-        .btn-danger:hover { background: rgba(255, 69, 58, 0.2); border-color: #ff453a; }
+        .btn-p:hover { background: #007aff; box-shadow: 0 4px 12px rgba(0,113,227,0.3); }
+        .btn-s { background: rgba(255,255,255,0.06); color: white; }
+        .btn-s:hover { background: rgba(255,255,255,0.1); }
+        .btn-danger { background: rgba(255, 69, 58, 0.08); color: #ff453a; border: 1px solid rgba(255, 69, 58, 0.15); padding: 8px 20px; font-size: 12px; }
+        .btn-danger:hover { background: rgba(255, 69, 58, 0.15); border-color: #ff453a; }
 
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
@@ -123,6 +147,57 @@
             border-color: var(--accent) !important;
             box-shadow: 0 0 15px rgba(0, 113, 227, 0.2);
         }
+
+        /* Toggle Switch */
+        .switch-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 26px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.08);
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 34px;
+            border: 1px solid var(--border);
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        input:checked + .slider {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
         /* Toast Notification */
         #toast {
             position: fixed;
@@ -149,56 +224,56 @@
         }
         #toast svg { width: 18px; height: 18px; }
     </style>
+    <!-- Script consolidated to the bottom for better reliability -->
+
 </head>
 <body>
     <div class="window">
-        <div id="toast">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-        <span id="toast-message">Settings Saved!</span>
-    </div>
-
-    <div class="sidebar">
+            <div class="sidebar">
             <div class="sidebar-brand">AuraWhisper</div>
             <div class="nav-item active" id="nav-home" onclick="tab('home')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                Home
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span data-i18n="nav_home">Home</span>
             </div>
             <div class="nav-item" id="nav-vocab" onclick="tab('vocab')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>
-                Vocabulary
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
+                <span data-i18n="nav_vocab">Vocabulary</span>
             </div>
             <div class="nav-item" id="nav-history" onclick="tab('history')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                History
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                <span data-i18n="nav_history">History</span>
             </div>
             <div class="nav-item" id="nav-modes" onclick="tab('modes')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                Modes
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/></svg>
+                <span data-i18n="nav_modes">Modes</span>
             </div>
             <div class="nav-item" id="nav-ai" onclick="tab('ai')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9-2.9"/><circle cx="12" cy="12" r="3"/></svg>
-                AI Engine
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/></svg>
+                <span data-i18n="nav_ai">AI Engine</span>
             </div>
             <div class="nav-item" id="nav-gen" onclick="tab('gen')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
-                General
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+                <span data-i18n="nav_general">General</span>
+            </div>
+            <div class="lang-switch">
+                <div class="lang-btn" id="lang-ja" onclick="setUILang('ja')">JA</div>
+                <div class="lang-btn" id="lang-en" onclick="setUILang('en')">EN</div>
             </div>
         </div>
         <div class="main">
-            <!-- Home Section -->
             <div id="sec-home" class="section active">
-                <h1>Dashboard</h1>
+                <h1 data-i18n="nav_home">Dashboard</h1>
                 <div class="grid-stats">
                     <div class="stat-card">
-                        <div class="stat-label">Total Characters</div>
+                        <div class="stat-label" data-i18n="stat_total">Total Characters</div>
                         <div class="stat-value" id="stat-total-chars">0<span class="stat-unit">chars</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Saved Time</div>
+                        <div class="stat-label" data-i18n="stat_time">Saved Time</div>
                         <div class="stat-value" id="stat-saved-time">0<span class="stat-unit">mins</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Avg Accuracy</div>
+                        <div class="stat-label" data-i18n="stat_acc">Avg Accuracy</div>
                         <div class="stat-value" id="stat-avg-acc">98<span class="stat-unit">%</span></div>
                     </div>
                 </div>
@@ -221,26 +296,28 @@
                 <h1>Vocabulary</h1>
                 <div class="card">
                     <h3>Add New Rule</h3>
-                    <div style="display:flex; gap:12px;">
-                        <div style="flex:1;"><label>Original Text</label><input type="text" id="vocab-orig" placeholder="e.g. あいがた"></div>
-                        <div style="flex:1;"><label>Replacement</label><input type="text" id="vocab-repl" placeholder="e.g. Antigravity"></div>
-                        <div style="display:flex; align-items:flex-end;"><button class="btn btn-p" onclick="addVocab()">Add</button></div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Original Text</label><input type="text" id="vocab-orig" placeholder="e.g. あいがた"></div>
+                        <div class="form-group"><label>Replacement</label><input type="text" id="vocab-repl" placeholder="e.g. Antigravity"></div>
                     </div>
+                    <div style="display:flex; justify-content:flex-end;"><button class="btn btn-p" onclick="addVocab()">Add Rule</button></div>
                 </div>
                 <div class="card">
                     <h3>Your Dictionary</h3>
-                    <table class="vocab-table">
-                        <thead><tr><th>Original</th><th>Replacement</th><th></th></tr></thead>
-                        <tbody id="vocab-list-body">
-                            <!-- Dynamically populated -->
-                        </tbody>
-                    </table>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <table class="vocab-table">
+                            <thead><tr><th>Original</th><th>Replacement</th><th></th></tr></thead>
+                            <tbody id="vocab-list-body">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- History Section -->
             <div id="sec-history" class="section">
-                <h1>History</h1>
+                <h1 data-i18n="nav_history">History</h1>
                 <div id="history-container">
                     <!-- Dynamically populated -->
                 </div>
@@ -248,8 +325,11 @@
 
             <!-- Modes Section -->
             <div id="sec-modes" class="section">
-                <h1>Modes</h1>
-                <p style="color:rgba(255,255,255,0.4); font-size:14px; margin-bottom:30px;">利用シーンに合わせて、AIの校正プロンプトを切り替えます。</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h1 data-i18n="nav_modes">Modes</h1>
+                    <button class="btn btn-p" onclick="openNewModeEditor()" data-i18n="add_new_mode">+ New Mode</button>
+                </div>
+                <p style="color:rgba(255,255,255,0.4); font-size:14px; margin-bottom:30px;" data-i18n="mode_desc">利用シーンに合わせて、AIの校正プロンプトを切り替えます。</p>
                 
                 <div id="modes-list" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; margin-bottom:40px;">
                     <!-- Dynamically populated cards -->
@@ -275,132 +355,214 @@
 
             <!-- AI Engine Section -->
             <div id="sec-ai" class="section">
-                <h1>AI Engine</h1>
+                <h1 data-i18n="nav_ai">AI Engine</h1>
                 <div class="card">
-                    <h3>Whisper Transcription</h3>
-                    <div class="form-group">
-                        <label>Model Size</label>
-                        <select id="size">
-                            <option value="tiny">Tiny (Fastest)</option>
-                            <option value="base">Base</option>
-                            <option value="small">Small (Balanced)</option>
-                            <option value="medium">Medium</option>
-                            <option value="large-v3">Large v3 (Most Accurate)</option>
-                        </select>
+                    <h3 data-i18n="nav_ai">Whisper Transcription</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-i18n="lbl_size">Model Size</label>
+                            <select id="size">
+                                <option value="tiny">Tiny (Fastest)</option>
+                                <option value="base">Base</option>
+                                <option value="small">Small (Balanced)</option>
+                                <option value="medium">Medium</option>
+                                <option value="large-v3">Large v3 (Most Accurate)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_device">Compute Device</label>
+                            <select id="device">
+                                <option value="auto">Auto (Prefer GPU)</option>
+                                <option value="cuda">NVIDIA GPU (CUDA)</option>
+                                <option value="cpu">CPU (Standard)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="card">
-                    <h3>Ollama Refinement</h3>
-                    <div class="form-group">
-                        <label>Enable Ollama Post-processing</label>
-                        <select id="ollama">
-                            <option value="false">Disabled</option>
-                            <option value="true">Enabled</option>
-                        </select>
+                    <h3 data-i18n="lbl_provider">AI Provider</h3>
+                    <div class="form-grid">
+                        <div class="form-group switch-container">
+                            <label data-i18n="lbl_provider">Enable Ollama Post-processing</label>
+                            <label class="switch">
+                                <input type="checkbox" id="ollama">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_provider">Active Ollama Model</label>
+                            <select id="ollama-model" onchange="checkOllamaModelStatus()">
+                                <!-- Dynamically populated -->
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Ollama Model</label>
-                        <select id="ollama-model">
-                            <option value="gemma2:2b">Gemma 2 (2B)</option>
-                            <option value="qwen2.5-coder:7b">Qwen 2.5 Coder (7B)</option>
-                            <option value="qwen2.5-coder:14b">Qwen 2.5 Coder (14B)</option>
-                            <option value="llama3.1:8b">Llama 3.1 (8B)</option>
-                        </select>
+                </div>
+                <div class="card">
+                    <h3>Connection & API</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>AI Provider</label>
+                            <select id="ai-provider" onchange="toggleProviderFields()">
+                                <option value="ollama">Ollama (Local / LAN)</option>
+                                <option value="openai">OpenAI / Compatible API</option>
+                                <option value="gemini">Google Gemini</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="field-base-url">
+                            <label>Base URL</label>
+                            <input type="text" id="ollama-base-url" placeholder="http://localhost:11434">
+                        </div>
+                        <div class="form-group" id="field-api-key" style="display:none;">
+                            <label>API Key</label>
+                            <input type="password" id="api-key" placeholder="sk-...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="ollama-library-card">
+                    <h3>Model Library</h3>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:15px;">利用可能な推奨モデルです。インストールして校正の質を向上させましょう。</p>
+                    <div id="ollama-library-list" style="display:flex; flex-direction:column; gap:10px;">
+                        <!-- Dynamically populated -->
                     </div>
                 </div>
             </div>
 
             <!-- General Section -->
             <div id="sec-gen" class="section">
-                <h1>General</h1>
+                <h1 data-i18n="nav_general">General</h1>
                 <div class="card">
-                    <h3>Interaction</h3>
-                    <div class="form-group">
-                        <label>Global Hotkey</label>
-                        <input type="text" id="hotkey">
-                    </div>
-                    <div class="form-group">
-                        <label>Recording Mode</label>
-                        <select id="mode">
-                            <option value="toggle">Toggle (Press to Start/Stop)</option>
-                            <option value="hold">Hold (Push to Talk)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Window Style</label>
-                        <select id="window-style">
-                            <option value="classic">Classic (Floating Bar)</option>
-                            <option value="mini">Mini (Compact Bar)</option>
-                        </select>
+                    <h3 data-i18n="nav_general">Interaction & Visual</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-i18n="lbl_hotkey">Global Hotkey</label>
+                            <input type="text" id="hotkey">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="nav_modes">Window Style</label>
+                            <select id="window-style">
+                                <option value="classic">Classic (Floating Bar)</option>
+                                <option value="mini">Mini (Compact Bar)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="nav_home">Default Language</label>
+                            <select id="lang">
+                                <option value="ja">Japanese</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="card">
-                    <h3>Smart Insertion</h3>
-                    <div class="form-group">
-                        <label>Auto-Punctuation</label>
-                        <select id="auto-punc">
-                            <option value="true">Enabled (Add . or 。 at end)</option>
-                            <option value="false">Disabled</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>After Insertion</label>
-                        <select id="after-insert">
-                            <option value="none">None</option>
-                            <option value="newline">Add Newline (\n)</option>
-                            <option value="space">Add Space ( )</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>Notifications</h3>
-                    <div class="form-group">
-                        <label>Desktop Alerts</label>
-                        <select id="notifications">
-                            <option value="true">Enabled</option>
-                            <option value="false">Disabled</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>Language</h3>
-                    <div class="form-group">
-                        <label>Default Language</label>
-                        <select id="lang">
-                            <option value="ja">Japanese</option>
-                            <option value="en">English</option>
-                        </select>
+                    <h3 data-i18n="lbl_auto_punc">Smart Insertion & Alerts</h3>
+                    <div class="form-grid">
+                        <div class="form-group switch-container">
+                            <label data-i18n="lbl_auto_punc">Auto-Punctuation</label>
+                            <label class="switch">
+                                <input type="checkbox" id="auto-punc">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_after_insert">After Insertion</label>
+                            <select id="after-insert">
+                                <option value="none">None</option>
+                                <option value="newline">Add Newline (\n)</option>
+                                <option value="space">Add Space ( )</option>
+                            </select>
+                        </div>
+                        <div class="form-group switch-container">
+                            <label data-i18n="lbl_notifications">Desktop Alerts</label>
+                            <label class="switch">
+                                <input type="checkbox" id="notifications">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group switch-container">
+                            <label data-i18n="lbl_autostart">Run at Startup (Windows)</label>
+                            <label class="switch">
+                                <input type="checkbox" id="autostart">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div class="card">
-                    <h3>System</h3>
-                    <p style="font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:15px;">アプリの動作が不安定な場合や、変更を完全に適用したい場合に再起動してください。</p>
-                    <button class="btn btn-danger" onclick="relaunchApp()">Restart AuraWhisper</button>
+                    <h3>Maintenance</h3>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:15px;">アプリやAIエンジンの動作が不安定な場合に再起動を試してください。</p>
+                    <button class="btn btn-danger" onclick="relaunchApp()">Force Reboot / Relaunch</button>
                 </div>
             </div>
 
-            <div class="footer">
-                <button class="btn btn-s" onclick="window.close()">Cancel</button>
-                <button class="btn btn-p" id="save">Save Changes</button>
+            <div class="footer" style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+                <button class="btn btn-s" onclick="window.close()" data-i18n="btn_cancel">Cancel</button>
+                <button class="btn btn-p" id="save" data-i18n="btn_save">Save Changes</button>
             </div>
         </div>
     </div>
 
     <script>
         const { ipcRenderer } = require('electron');
-        const API = 'http://127.0.0.1:8000';
+        const TRANSLATIONS = {
+            ja: {
+                nav_home: "ホーム", nav_history: "履歴", nav_vocab: "辞書", nav_modes: "モード", nav_ai: "AI設定", nav_general: "一般設定",
+                total_chars: "総文字数", saved_time: "短縮時間", recent_activity: "最近の活動",
+                add_new_mode: "+ 新規モード", mode_desc: "利用シーンに合わせて校正プロンプトを切り替えます。",
+                btn_save: "変更を保存", btn_cancel: "キャンセル", btn_edit: "編集", btn_delete: "削除",
+                lbl_hotkey: "グローバルショートカット", lbl_size: "モデルサイズ", lbl_device: "計算デバイス",
+                lbl_auto_punc: "自動句読点", lbl_after_insert: "挿入後の動作", lbl_notifications: "デスクトップ通知",
+                lbl_autostart: "OS起動時に自動実行", lbl_provider: "AIプロバイダー", lbl_base_url: "ベースURL",
+                stat_total: "総文字数", stat_time: "節約時間", stat_acc: "平均精度",
+                dash_activity: "アクティビティ (過去7日間)", dash_recent: "最近の活動",
+                vocab_title: "単語帳", vocab_add: "新しいルールを追加", vocab_orig: "元のテキスト", vocab_repl: "置換後", vocab_btn: "追加", vocab_list: "辞書リスト"
+            },
+            en: {
+                nav_home: "Home", nav_history: "History", nav_vocab: "Vocabulary", nav_modes: "Modes", nav_ai: "AI Engine", nav_general: "General Settings",
+                total_chars: "Total Chars", saved_time: "Time Saved", recent_activity: "Recent Activity",
+                add_new_mode: "+ New Mode", mode_desc: "Switch between different AI personalities.",
+                btn_save: "Save Changes", btn_cancel: "Cancel", btn_edit: "Edit", btn_delete: "Delete",
+                lbl_hotkey: "Global Hotkey", lbl_size: "Model Size", lbl_device: "Compute Device",
+                lbl_auto_punc: "Auto-Punctuation", lbl_after_insert: "After Insertion", lbl_notifications: "Desktop Notifications",
+                lbl_autostart: "Auto-start on Login", lbl_provider: "AI Provider", lbl_base_url: "Base URL",
+                stat_total: "Total Characters", stat_time: "Saved Time", stat_acc: "Avg Accuracy",
+                dash_activity: "Activity (Last 7 Days)", dash_recent: "Recent Activity",
+                vocab_title: "Vocabulary", vocab_add: "Add New Rule", vocab_orig: "Original Text", vocab_repl: "Replacement", vocab_btn: "Add Rule", vocab_list: "Your Dictionary"
+            }
+        };
+
+        let currentUILang = localStorage.getItem('ui_lang') || 'ja';
+
+        function setUILang(lang) {
+            currentUILang = lang;
+            localStorage.setItem('ui_lang', lang);
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.id === 'lang-' + lang));
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+                    el.innerText = TRANSLATIONS[lang][key];
+                }
+            });
+        }
+
+        const API = 'http://localhost:8000';
 
         function tab(id) {
+            console.log('Switching to tab:', id);
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            document.getElementById('sec-' + id).classList.add('active');
-            document.getElementById('nav-' + id).classList.add('active');
+            const targetSec = document.getElementById('sec-' + id);
+            const targetNav = document.getElementById('nav-' + id);
+            
+            if (targetSec) targetSec.classList.add('active');
+            if (targetNav) targetNav.classList.add('active');
 
             if (id === 'home') loadHome();
-            if (id === 'vocab') loadVocab();
-            if (id === 'history') loadHistory();
-            if (id === 'modes') loadModes();
+            else if (id === 'vocab') loadVocab();
+            else if (id === 'history') loadHistory();
+            else if (id === 'modes') loadModes();
+            else if (id === 'ai') checkOllamaModelStatus();
         }
 
         async function loadHome() {
@@ -533,13 +695,17 @@
             container.innerHTML = history.map(h => {
                 const date = new Date(h.timestamp).toLocaleString();
                 return `
-                    <div class="history-item" onclick="copyText('${h.text.replace(/'/g, "\\'")}')">
+                    <div class="history-item">
                         <div class="history-meta">
                             <span>${date}</span>
                             <span class="history-tag">${h.model}</span>
                         </div>
                         <div class="history-text">${h.text}</div>
-                        <div class="history-meta">
+                        <div class="history-meta" style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+                            <button class="btn btn-s" style="padding:4px 10px; font-size:11px;" onclick="copyText('${h.text.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">Copy</button>
+                            <button class="btn btn-p" style="padding:4px 10px; font-size:11px;" onclick="pasteText('${h.text.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">Paste</button>
+                        </div>
+                        <div class="history-meta" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:6px; margin-top:6px;">
                             <span>${h.chars} characters</span>
                             <span>${h.duration}s</span>
                         </div>
@@ -550,7 +716,18 @@
 
         function copyText(text) {
             navigator.clipboard.writeText(text);
-            // Simple toast/visual feedback could be added here
+            showToast('Copied to clipboard');
+        }
+
+        async function pasteText(text) {
+            showToast('Pasting...');
+            await fetch(API + '/paste', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({text})
+            });
+            // Close immediately to let OS return focus to the previous app
+            window.close();
         }
 
         let currentActiveModeId = 'general';
@@ -567,7 +744,10 @@
                      onclick="selectMode('${m.id}')">
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <div class="stat-label" style="color:${m.id === currentActiveModeId ? 'var(--accent)' : ''}">${m.name}</div>
-                        <button class="btn-delete" style="padding:0; font-size:11px;" onclick="event.stopPropagation(); editMode(${i})">Edit</button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-delete" style="padding:0; font-size:11px; color:var(--accent);" onclick="event.stopPropagation(); editMode(${i})">Edit</button>
+                            <button class="btn-delete" style="padding:0; font-size:11px;" onclick="event.stopPropagation(); deleteMode(${i})">Delete</button>
+                        </div>
                     </div>
                     <div style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:8px; line-height:1.4;">${m.description || ''}</div>
                 </div>
@@ -591,22 +771,162 @@
             document.getElementById('mode-editor').scrollIntoView({behavior: 'smooth'});
         }
 
+        function openNewModeEditor() {
+            document.getElementById('mode-editor').style.display = 'block';
+            document.getElementById('edit-mode-index').value = -1;
+            document.getElementById('edit-mode-name-title').innerText = 'New Mode';
+            document.getElementById('edit-mode-name').value = 'My Custom Mode';
+            document.getElementById('edit-mode-prompt').value = '提供されたテキストを、自分の好みのスタイルに校正してください。';
+            document.getElementById('mode-editor').scrollIntoView({behavior: 'smooth'});
+        }
+
         async function saveModeEdit() {
-            const index = document.getElementById('edit-mode-index').value;
+            const index = parseInt(document.getElementById('edit-mode-index').value);
             const updatedItem = {
-                ...allModes[index],
+                id: index === -1 ? 'mode-' + Date.now() : allModes[index].id,
                 name: document.getElementById('edit-mode-name').value,
-                prompt: document.getElementById('edit-mode-prompt').value
+                description: 'Custom user defined mode.',
+                prompt: document.getElementById('edit-mode-prompt').value,
+                icon: index === -1 ? 'settings' : allModes[index].icon
             };
 
             await fetch(API + '/modes', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({action: 'update', index: parseInt(index), item: updatedItem})
+                body: JSON.stringify({
+                    action: index === -1 ? 'add' : 'update', 
+                    index: index, 
+                    item: updatedItem
+                })
             });
             
             document.getElementById('mode-editor').style.display = 'none';
             loadModes();
+        }
+
+        async function deleteMode(index) {
+            if (!confirm(`Are you sure you want to delete "${allModes[index].name}"?`)) return;
+            
+            await fetch(API + '/modes', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({action: 'delete', index: index})
+            });
+            loadModes();
+        }
+
+        function toggleProviderFields() {
+            const provider = document.getElementById('ai-provider').value;
+            const baseUrlField = document.getElementById('field-base-url');
+            const apiKeyField = document.getElementById('field-api-key');
+            const libraryCard = document.getElementById('ollama-library-card');
+            
+            if (provider === 'ollama') {
+                baseUrlField.style.display = 'block';
+                apiKeyField.style.display = 'none';
+                libraryCard.style.display = 'block';
+            } else if (provider === 'openai') {
+                baseUrlField.style.display = 'block'; // Can be custom endpoint
+                apiKeyField.style.display = 'block';
+                libraryCard.style.display = 'none';
+            } else if (provider === 'gemini') {
+                baseUrlField.style.display = 'none';
+                apiKeyField.style.display = 'block';
+                libraryCard.style.display = 'none';
+            }
+        }
+
+        let installedOllamaModels = [];
+        const RECOMMENDED_MODELS = [
+            { id: 'gemma2:2b', name: 'Gemma 2 (2B) - Lightweight' },
+            { id: 'qwen2.5-coder:7b', name: 'Qwen 2.5 Coder (7B)' },
+            { id: 'qwen2.5-coder:14b', name: 'Qwen 2.5 Coder (14B) - Best' },
+            { id: 'llama3.1:8b', name: 'Llama 3.1 (8B)' },
+            { id: 'llama3.2:3b', name: 'Llama 3.2 (3B)' },
+            { id: 'phi3:latest', name: 'Phi-3 Mini' }
+        ];
+
+        async function checkOllamaModelStatus() {
+            try {
+                const res = await fetch(API + '/ollama/models');
+                const data = await res.json();
+                installedOllamaModels = (data.models || []).map(m => m.name);
+                
+                renderModelLibrary();
+                updateModelSelect();
+            } catch (err) {
+                console.error('Failed to check Ollama models:', err);
+            }
+        }
+
+        function renderModelLibrary() {
+            const list = document.getElementById('ollama-library-list');
+            if (!list) return;
+
+            list.innerHTML = RECOMMENDED_MODELS.map(m => {
+                const isInstalled = installedOllamaModels.some(im => im.startsWith(m.id));
+                return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:10px 16px; border-radius:10px; border:1px solid var(--border);">
+                        <div>
+                            <div style="font-size:13px; font-weight:600;">${m.name}</div>
+                            <div style="font-size:10px; color:rgba(255,255,255,0.3);">${m.id}</div>
+                        </div>
+                        <div>
+                            ${isInstalled ? 
+                                '<span style="font-size:11px; color:#34c759; font-weight:600;">Installed</span>' : 
+                                `<button class="btn btn-s" style="padding:5px 12px; font-size:11px;" onclick="pullModel('${m.id}')">Install</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateModelSelect() {
+            const select = document.getElementById('ollama-model');
+            if (!select) return;
+
+            const currentValue = select.value;
+            
+            // Combine Recommended and Installed
+            const allOptions = [...RECOMMENDED_MODELS.map(m => m.id)];
+            installedOllamaModels.forEach(m => {
+                const baseName = m.split(':')[0];
+                if (!allOptions.some(opt => opt.startsWith(baseName))) {
+                    allOptions.push(m);
+                }
+            });
+
+            const uniqueOptions = [...new Set(allOptions)];
+            
+            select.innerHTML = uniqueOptions.map(opt => {
+                const isInstalled = installedOllamaModels.some(im => im.startsWith(opt));
+                return `<option value="${opt}">${opt} ${isInstalled ? '' : '(Not Installed)'}</option>`;
+            }).join('');
+
+            if (currentValue && uniqueOptions.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        async function pullModel(modelId) {
+            const model = modelId || document.getElementById('ollama-model').value;
+            showToast(`Downloading ${model}... This may take a while.`);
+            
+            await fetch(API + '/ollama/pull', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({model})
+            });
+            
+            const timer = setInterval(async () => {
+                await checkOllamaModelStatus();
+                const isInstalled = installedOllamaModels.some(m => m.startsWith(model));
+                if (isInstalled) {
+                    clearInterval(timer);
+                    showToast(`${model} installed successfully!`);
+                }
+            }, 5000);
         }
 
         function relaunchApp() {
@@ -616,51 +936,97 @@
         }
 
         async function loadConfig() {
-            const res = await fetch(API + '/config');
-            const c = await res.json();
-            document.getElementById('hotkey').value = c.hotkey;
-            document.getElementById('mode').value = c.mode || 'toggle';
-            document.getElementById('lang').value = c.language;
-            document.getElementById('size').value = c.model_size;
-            document.getElementById('ollama').value = c.use_ollama.toString();
-            document.getElementById('ollama-model').value = c.ollama_model || 'gemma2:2b';
-            document.getElementById('window-style').value = c.window_style || 'classic';
-            document.getElementById('auto-punc').value = c.auto_punctuation !== false ? 'true' : 'false';
-            document.getElementById('after-insert').value = c.after_insertion || 'none';
-            document.getElementById('notifications').value = c.notifications !== false ? 'true' : 'false';
-            currentActiveModeId = c.active_mode_id || 'general';
-            loadHome();
+            try {
+                const res = await fetch(API + '/config');
+                const c = await res.json();
+                
+                document.getElementById('hotkey').value = c.hotkey || '';
+                document.getElementById('lang').value = c.language || 'ja';
+                document.getElementById('size').value = c.model_size || 'small';
+                document.getElementById('device').value = c.device || 'auto';
+                document.getElementById('ollama').checked = !!c.use_ollama;
+                document.getElementById('ollama-model').value = c.ollama_model || 'gemma2:2b';
+                document.getElementById('window-style').value = c.window_style || 'classic';
+                document.getElementById('auto-punc').checked = c.auto_punctuation !== false;
+                document.getElementById('after-insert').value = c.after_insertion || 'none';
+                document.getElementById('notifications').checked = c.notifications !== false;
+                document.getElementById('autostart').checked = !!c.autostart;
+                
+                // New AI fields
+                document.getElementById('ai-provider').value = c.ai_provider || 'ollama';
+                document.getElementById('ollama-base-url').value = c.ollama_base_url || 'http://localhost:11434';
+                document.getElementById('api-key').value = c.api_key || '';
+                toggleProviderFields();
+
+                setUILang(c.ui_lang || 'ja');
+
+                currentActiveModeId = c.active_mode_id || 'general';
+                loadHome();
+                checkOllamaModelStatus();
+            } catch (err) {
+                console.error('Failed to load config:', err);
+            }
         }
 
         document.getElementById('save').onclick = async () => {
-            const c = {
-                hotkey: document.getElementById('hotkey').value,
-                mode: document.getElementById('mode').value,
-                language: document.getElementById('lang').value,
-                model_size: document.getElementById('size').value,
-                use_ollama: document.getElementById('ollama').value === 'true',
-                ollama_model: document.getElementById('ollama-model').value,
-                window_style: document.getElementById('window-style').value,
-                auto_punctuation: document.getElementById('auto-punc').value === 'true',
-                after_insertion: document.getElementById('after-insert').value,
-                notifications: document.getElementById('notifications').value === 'true',
-                active_mode_id: currentActiveModeId
-            };
+            const saveBtn = document.getElementById('save');
+            const originalText = saveBtn.innerText;
+            
             try {
-                const saveBtn = document.getElementById('save');
-                const originalText = saveBtn.innerText;
+                console.log('Save initiated...');
+                const getV = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return null;
+                    return el.type === 'checkbox' ? el.checked : el.value;
+                };
+
+                const configToSave = {
+                    hotkey: getV('hotkey') || 'Alt+Shift+S',
+                    mode: 'toggle',
+                    language: getV('lang'),
+                    model_size: getV('size'),
+                    device: getV('device'),
+                    use_ollama: getV('ollama'),
+                    ollama_model: getV('ollama-model'),
+                    window_style: getV('window-style'),
+                    auto_punctuation: getV('auto-punc'),
+                    after_insertion: getV('after-insert'),
+                    notifications: getV('notifications'),
+                    autostart: getV('autostart'),
+                    active_mode_id: currentActiveModeId,
+                    ui_lang: currentUILang,
+                    ai_provider: getV('ai-provider'),
+                    ollama_base_url: getV('ollama-base-url'),
+                    api_key: getV('api-key')
+                };
+
+                if (!configToSave.hotkey || configToSave.hotkey.trim() === '') {
+                    configToSave.hotkey = 'Alt+Shift+S';
+                }
+
+                console.log('Sending config to backend:', configToSave);
                 
                 const response = await fetch(API + '/config', {
                     method: 'POST',
                     headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify(c)
+                    body: JSON.stringify(configToSave)
                 });
                 
-                if (!response.ok) throw new Error('Save failed on server');
+                if (!response.ok) {
+                    let errorDetail = 'Server Error';
+                    try {
+                        const errData = await response.json();
+                        errorDetail = errData.detail || errorDetail;
+                    } catch (e) {}
+                    throw new Error(errorDetail);
+                }
                 
-                ipcRenderer.send('config-updated');
+                console.log('Config saved to backend. Sending IPC signals...');
+                if (typeof ipcRenderer !== 'undefined') {
+                    ipcRenderer.send('config-updated');
+                    ipcRenderer.send('set-autostart', configToSave.autostart);
+                }
                 
-                // Visual Feedback
                 showToast('Settings saved successfully!');
                 saveBtn.innerText = 'Saved!';
                 saveBtn.style.background = '#34c759';
@@ -668,17 +1034,19 @@
                 setTimeout(() => {
                     saveBtn.innerText = originalText;
                     saveBtn.style.background = '';
-                    saveBtn.style.pointerEvents = 'auto';
-                    window.close(); // Close after 2 seconds
-                }, 2000);
+                    window.close();
+                }, 1200);
             } catch (err) {
-                console.error(err);
-                alert('Failed to save changes: ' + err.message);
-                const saveBtn = document.getElementById('save');
+                console.error('Save operation failed:', err);
+                let detail = err.message;
+                if (err instanceof TypeError && err.message === 'Failed to fetch') {
+                    detail = `Cannot connect to backend server at ${API}.\nIs the Python backend running?`;
+                }
+                alert(`Save Error: ${detail}\n\nTechnical details:\n${err.stack || err}`);
                 saveBtn.innerText = 'Error';
                 saveBtn.style.background = '#ff3b30';
                 setTimeout(() => {
-                    saveBtn.innerText = 'Save Changes';
+                    saveBtn.innerText = originalText;
                     saveBtn.style.background = '';
                 }, 2000);
             }
@@ -686,7 +1054,9 @@
 
         function showToast(message) {
             const toast = document.getElementById('toast');
-            document.getElementById('toast-message').innerText = message;
+            if (!toast) return;
+            const msgEl = document.getElementById('toast-message');
+            if (msgEl) msgEl.innerText = message;
             toast.classList.add('show');
             setTimeout(() => {
                 toast.classList.remove('show');

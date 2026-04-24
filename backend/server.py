@@ -35,6 +35,15 @@ if os.name == 'nt':
 from transcriber import Transcriber
 from audio_recorder import AudioRecorder
 
+# Check for CUDA availability
+try:
+    import ctranslate2
+    cuda_available = ctranslate2.get_cuda_device_count() > 0
+    logger.info(f"CUDA detected: {cuda_available} (Count: {ctranslate2.get_cuda_device_count()})")
+except Exception as e:
+    logger.warning(f"Failed to check CUDA availability: {e}")
+    cuda_available = False
+
 # Global state and instances
 
 app_state = {
@@ -114,9 +123,16 @@ def init_app_globals():
 def init_transcriber_task():
     global transcriber
     try:
+        # Prefer CUDA if available and not explicitly set to CPU
+        device = config.get("device", "auto")
+        if device == "auto":
+            device = "cuda" if cuda_available else "cpu"
+        
+        logger.info(f"Initializing transcriber on {device}...")
+        
         transcriber = Transcriber(
             model_size=config.get("model_size", "small"),
-            device=config.get("device", "cpu"),
+            device=device,
             compute_type=config.get("compute_type")
         )
         app_state["status"] = "ready"
@@ -268,8 +284,10 @@ def process_and_paste_task():
                 raw_text = raw_text.replace(item["original"], item["replacement"])
         
         if config.get("use_ollama", True):
-            ollama_url = "http://localhost:11434/api/generate"
+            provider = config.get("ai_provider", "ollama")
+            base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
             model = config.get("ollama_model", "qwen2.5-coder:14b")
+            api_key = config.get("api_key", "")
             
             # Get current mode prompt
             active_mode_id = config.get("active_mode_id", "general")
@@ -282,12 +300,36 @@ def process_and_paste_task():
             else:
                 prompt = f"以下の文章を校正して、修正後の文章のみ出力してください:\n{raw_text}"
             
+            refined_text = raw_text
             try:
                 with httpx.Client() as client:
-                    resp = client.post(ollama_url, json={"model": model, "prompt": prompt, "stream": False}, timeout=30.0)
-                    refined_text = resp.json().get("response", raw_text) if resp.status_code == 200 else raw_text
-                    logger.info(f"Refined via Ollama (Mode: {active_mode_id}): [{refined_text}]")
-            except:
+                    if provider == "ollama":
+                        url = f"{base_url}/api/generate"
+                        resp = client.post(url, json={"model": model, "prompt": prompt, "stream": False}, timeout=60.0)
+                        if resp.status_code == 200:
+                            refined_text = resp.json().get("response", raw_text)
+                    
+                    elif provider == "openai":
+                        url = f"{base_url}/v1/chat/completions" if "localhost" not in base_url else "https://api.openai.com/v1/chat/completions"
+                        headers = {"Authorization": f"Bearer {api_key}"}
+                        payload = {
+                            "model": model,
+                            "messages": [{"role": "user", "content": prompt}]
+                        }
+                        resp = client.post(url, json=payload, headers=headers, timeout=60.0)
+                        if resp.status_code == 200:
+                            refined_text = resp.json()["choices"][0]["message"]["content"]
+
+                    elif provider == "gemini":
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+                        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+                        resp = client.post(url, json=payload, timeout=60.0)
+                        if resp.status_code == 200:
+                            refined_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+                    logger.info(f"Refined via {provider} ({active_mode_id}): [{refined_text}]")
+            except Exception as e:
+                logger.error(f"AI Refinement failed: {e}")
                 refined_text = raw_text
         else:
             refined_text = raw_text
@@ -329,32 +371,7 @@ def process_and_paste_task():
             
             pyperclip.copy(final_text)
             logger.info("Copied to clipboard. Re-focusing and pasting...")
-            
-            if target_hwnd:
-                # Get the thread IDs
-                foreground_thread = user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), None)
-                target_thread = user32.GetWindowThreadProcessId(target_hwnd, None)
-                
-                # Try to attach thread input to bypass focus restrictions
-                if foreground_thread != target_thread:
-                    user32.AttachThreadInput(foreground_thread, target_thread, True)
-                    user32.SetForegroundWindow(target_hwnd)
-                    user32.SetFocus(target_hwnd)
-                    user32.AttachThreadInput(foreground_thread, target_thread, False)
-                else:
-                    user32.SetForegroundWindow(target_hwnd)
-                
-                time.sleep(1.0) # Slightly longer wait for window to become stable
-            
-            # Reset all modifiers to prevent interference
-            for m_key in [Key.ctrl, Key.shift, Key.alt, Key.cmd]:
-                keyboard_controller.release(m_key)
-            
-            # Send Paste command
-            with keyboard_controller.pressed(Key.ctrl):
-                keyboard_controller.tap('v')
-            
-            logger.info("Paste command sent.")
+            send_paste_command()
 
     except Exception as e:
         error_msg = f"Processing error: {str(e)}"
@@ -367,6 +384,106 @@ def process_and_paste_task():
             app_state["status"] = "ready"
         if os.path.exists(audio_path):
             os.remove(audio_path)
+
+def refine_and_paste(raw_text):
+    """Refine existing text with current config and paste it."""
+    try:
+        app_state["status"] = "analyzing"
+        start_time = time.time()
+        
+        # Apply Vocabulary
+        vocabulary = load_vocabulary()
+        for item in vocabulary:
+            if item.get("original") and item.get("replacement"):
+                raw_text = raw_text.replace(item["original"], item["replacement"])
+        
+        if config.get("use_ollama", True):
+            provider = config.get("ai_provider", "ollama")
+            base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
+            model = config.get("ollama_model", "qwen2.5-coder:14b")
+            api_key = config.get("api_key", "")
+            active_mode_id = config.get("active_mode_id", "general")
+            modes = load_modes()
+            active_mode = next((m for m in modes if m["id"] == active_mode_id), None)
+            
+            system_prompt = active_mode.get("prompt", "校正してください。") if active_mode else "校正してください。"
+            prompt = f"{system_prompt}\n\n入力テキスト:\n{raw_text}"
+            
+            refined_text = raw_text
+            try:
+                with httpx.Client() as client:
+                    if provider == "ollama":
+                        resp = client.post(f"{base_url}/api/generate", json={"model": model, "prompt": prompt, "stream": False}, timeout=60.0)
+                        if resp.status_code == 200: refined_text = resp.json().get("response", raw_text)
+                    elif provider == "openai":
+                        url = f"{base_url}/v1/chat/completions" if "localhost" not in base_url else "https://api.openai.com/v1/chat/completions"
+                        resp = client.post(url, json={"model": model, "messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": f"Bearer {api_key}"}, timeout=60.0)
+                        if resp.status_code == 200: refined_text = resp.json()["choices"][0]["message"]["content"]
+                    elif provider == "gemini":
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+                        resp = client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=60.0)
+                        if resp.status_code == 200: refined_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+            except Exception as e:
+                logger.error(f"Refinement error: {e}")
+        else:
+            refined_text = raw_text
+
+        final_text = refined_text.strip()
+        # (Auto-Punctuation logic could be added here too)
+        
+        pyperclip.copy(final_text)
+        send_paste_command()
+        
+        # Save updated version to history
+        history = load_history()
+        history_item = {
+            "id": int(time.time() * 1000),
+            "timestamp": datetime.now().isoformat(),
+            "model": f"{config.get('ollama_model')} (Reprocessed)",
+            "original": raw_text,
+            "text": final_text,
+            "chars": len(final_text),
+            "duration": round(time.time() - start_time, 2)
+        }
+        history.insert(0, history_item)
+        save_history(history[:100])
+
+    except Exception as e:
+        logger.error(f"Reprocess error: {e}")
+    finally:
+        app_state["status"] = "ready"
+
+def send_paste_command():
+    # If target_hwnd is not set, try to get current foreground window as fallback
+    current_target = target_hwnd if target_hwnd else user32.GetForegroundWindow()
+    
+    if current_target:
+        # Get the thread IDs
+        foreground_thread = user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), None)
+        target_thread = user32.GetWindowThreadProcessId(current_target, None)
+        
+        # Try to attach thread input to bypass focus restrictions
+        if foreground_thread != target_thread:
+            try:
+                user32.AttachThreadInput(foreground_thread, target_thread, True)
+                user32.SetForegroundWindow(current_target)
+                user32.SetFocus(current_target)
+                user32.AttachThreadInput(foreground_thread, target_thread, False)
+            except: pass
+        else:
+            user32.SetForegroundWindow(current_target)
+        
+        time.sleep(0.5) # Give it a moment to stabilize
+    
+    # Reset all modifiers to prevent interference
+    for m_key in [Key.ctrl, Key.shift, Key.alt, Key.cmd]:
+        keyboard_controller.release(m_key)
+    
+    # Send Paste command
+    with keyboard_controller.pressed(Key.ctrl):
+        keyboard_controller.tap('v')
+    
+    logger.info("Paste command sent.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -427,6 +544,15 @@ async def save_config(new_config: dict):
         logger.error(f"Error saving config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/config/reload")
+async def config_reload():
+    logger.info("Reloading config signal received from main process")
+    global config, recorder
+    config = load_config()
+    # Update recorder if device changed
+    recorder = AudioRecorder(device_index=config.get("device_index"))
+    return {"status": "ok"}
+
 @app.post("/start")
 async def api_start():
     trigger_start_sync()
@@ -483,6 +609,68 @@ async def update_modes(payload: dict):
             modes[idx] = item
     save_modes(modes)
     return {"status": "ok", "modes": modes}
+
+@app.get("/ollama/models")
+async def get_ollama_models():
+    base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{base_url}/api/tags", timeout=5.0)
+            if resp.status_code == 200:
+                return resp.json()
+            else:
+                return {"models": []}
+    except Exception as e:
+        logger.error(f"Error fetching Ollama models: {e}")
+        return {"models": []}
+
+@app.post("/ollama/pull")
+async def pull_ollama_model(payload: dict):
+    model = payload.get("model")
+    if not model:
+        raise HTTPException(400, "Model name required")
+    
+    def pull_task():
+        base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
+        try:
+            logger.info(f"Starting to pull model: {model} from {base_url}")
+            with httpx.Client() as client:
+                client.post(f"{base_url}/api/pull", json={"name": model, "stream": False}, timeout=None)
+            logger.info(f"Finished pulling model: {model}")
+        except Exception as e:
+            logger.error(f"Error pulling model {model}: {e}")
+
+    threading.Thread(target=pull_task).start()
+    return {"status": "started", "model": model}
+
+@app.post("/paste")
+async def api_paste(payload: dict):
+    text = payload.get("text")
+    if not text:
+        raise HTTPException(400, "Text required")
+    
+    pyperclip.copy(text)
+    
+    # We need to wait a bit so the settings window can hide and focus returns to the previous app
+    def delayed_paste():
+        time.sleep(0.8) # Wait for focus transition
+        send_paste_command()
+    
+    threading.Thread(target=delayed_paste).start()
+    return {"status": "ok"}
+
+@app.post("/reprocess_last")
+async def api_reprocess_last():
+    history = load_history()
+    if not history:
+        raise HTTPException(404, "No history to reprocess")
+    
+    last_original = history[0].get("original")
+    if not last_original:
+        raise HTTPException(400, "Last history item has no original text")
+    
+    threading.Thread(target=refine_and_paste, args=(last_original,)).start()
+    return {"status": "started"}
 
 if __name__ == "__main__":
     import uvicorn

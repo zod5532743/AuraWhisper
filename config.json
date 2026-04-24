@@ -3,11 +3,17 @@
     "mode": "toggle",
     "language": "ja",
     "model_size": "small",
+    "device": "auto",
     "use_ollama": false,
     "ollama_model": "gemma2:2b",
     "window_style": "classic",
     "auto_punctuation": true,
     "after_insertion": "newline",
     "notifications": true,
-    "active_mode_id": "general"
+    "autostart": true,
+    "active_mode_id": "general",
+    "ui_lang": "ja",
+    "ai_provider": "ollama",
+    "ollama_base_url": "http://localhost:11434",
+    "api_key": ""
 }
