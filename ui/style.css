@@ -271,9 +271,34 @@ select option {
 .hide {
     display: none !important;
 }
-ground: rgba(255, 255, 255, 0.1);
+
+/* --- Mini Mode Styles --- */
+.container-mini {
+    width: 240px;
+    height: 58px;
+    border-radius: 20px;
+    padding: 0 20px;
 }
 
-.hide {
-    display: none !important;
+.container-mini .pulse {
+    width: 10px;
+    height: 10px;
+    margin-right: 14px;
+}
+
+.container-mini #status-text {
+    font-size: 14px;
+}
+
+.container-mini #sub-status {
+    display: none;
+}
+
+.container-mini .settings-btn {
+    right: 14px;
+}
+
+.container-mini .settings-btn svg {
+    width: 14px;
+    height: 14px;
 }

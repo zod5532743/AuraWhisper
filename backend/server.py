@@ -50,6 +50,9 @@ transcriber = None
 recorder = None
 config = {}
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config.json")
+HISTORY_PATH = os.path.join(os.path.dirname(__file__), "..", "history.json")
+VOCAB_PATH = os.path.join(os.path.dirname(__file__), "..", "vocabulary.json")
+MODES_PATH = os.path.join(os.path.dirname(__file__), "..", "modes.json")
 
 def load_config():
     try:
@@ -63,10 +66,48 @@ def save_config_file(new_config):
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(new_config, f, indent=4, ensure_ascii=False)
 
+def load_history():
+    try:
+        if not os.path.exists(HISTORY_PATH): return []
+        with open(HISTORY_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except: return []
+
+def save_history(data):
+    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+def load_vocabulary():
+    try:
+        if not os.path.exists(VOCAB_PATH): return []
+        with open(VOCAB_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except: return []
+
+def save_vocabulary(data):
+    with open(VOCAB_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
+def load_modes():
+    try:
+        if not os.path.exists(MODES_PATH): return []
+        with open(MODES_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except: return []
+
+def save_modes(data):
+    with open(MODES_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
 def init_app_globals():
     global config, recorder, transcriber
     config = load_config()
     recorder = AudioRecorder(device_index=config.get("device_index"))
+    
+    # Initialize history and vocabulary files if they don't exist
+    if not os.path.exists(HISTORY_PATH): save_history([])
+    if not os.path.exists(VOCAB_PATH): save_vocabulary([])
+    if not os.path.exists(MODES_PATH): save_modes([])
     # Transcriber is initialized later in background thread
 
 
@@ -214,25 +255,79 @@ def process_and_paste_task():
         return
     
     try:
+        from datetime import datetime
+        start_time = time.time()
+        
         raw_text = transcriber.transcribe(audio_path, language=config.get("language", "ja"))
         logger.info(f"Transcription result: [{raw_text}]")
+        
+        # Apply Vocabulary replacement (Pre-Ollama)
+        vocabulary = load_vocabulary()
+        for item in vocabulary:
+            if item.get("original") and item.get("replacement"):
+                raw_text = raw_text.replace(item["original"], item["replacement"])
         
         if config.get("use_ollama", True):
             ollama_url = "http://localhost:11434/api/generate"
             model = config.get("ollama_model", "qwen2.5-coder:14b")
-            prompt = f"以下の文章を校正して、修正後の文章のみ出力してください:\n{raw_text}"
+            
+            # Get current mode prompt
+            active_mode_id = config.get("active_mode_id", "general")
+            modes = load_modes()
+            active_mode = next((m for m in modes if m["id"] == active_mode_id), None)
+            
+            if active_mode:
+                system_prompt = active_mode.get("prompt", "校正してください。")
+                prompt = f"{system_prompt}\n\n入力テキスト:\n{raw_text}"
+            else:
+                prompt = f"以下の文章を校正して、修正後の文章のみ出力してください:\n{raw_text}"
+            
             try:
                 with httpx.Client() as client:
                     resp = client.post(ollama_url, json={"model": model, "prompt": prompt, "stream": False}, timeout=30.0)
                     refined_text = resp.json().get("response", raw_text) if resp.status_code == 200 else raw_text
-                    logger.info(f"Refined via Ollama: [{refined_text}]")
+                    logger.info(f"Refined via Ollama (Mode: {active_mode_id}): [{refined_text}]")
             except:
                 refined_text = raw_text
         else:
             refined_text = raw_text
         
-        if refined_text:
-            pyperclip.copy(refined_text.strip())
+        # Final cleanup and Smart Insertion
+        final_text = refined_text.strip()
+        
+        if final_text:
+            # Auto-Punctuation
+            if config.get("auto_punctuation", True):
+                punc_marks = (".", "!", "?", "。", "！", "？")
+                if not final_text.endswith(punc_marks):
+                    if config.get("language") == "ja":
+                        final_text += "。"
+                    else:
+                        final_text += "."
+            
+            # After Insertion suffix
+            after_insert = config.get("after_insertion", "none")
+            if after_insert == "newline":
+                final_text += "\n"
+            elif after_insert == "space":
+                final_text += " "
+
+            # Save to History
+            duration = time.time() - start_time
+            history_item = {
+                "id": int(time.time() * 1000),
+                "timestamp": datetime.now().isoformat(),
+                "model": config.get("ollama_model") if config.get("use_ollama") else config.get("model_size"),
+                "original": raw_text,
+                "text": final_text,
+                "chars": len(final_text),
+                "duration": round(duration, 2)
+            }
+            history = load_history()
+            history.insert(0, history_item) # Newest first
+            save_history(history[:100]) # Keep last 100
+            
+            pyperclip.copy(final_text)
             logger.info("Copied to clipboard. Re-focusing and pasting...")
             
             if target_hwnd:
@@ -251,7 +346,7 @@ def process_and_paste_task():
                 
                 time.sleep(1.0) # Slightly longer wait for window to become stable
             
-            # Reset all modifiers to prevent interference (e.g., if user is still holding Shift)
+            # Reset all modifiers to prevent interference
             for m_key in [Key.ctrl, Key.shift, Key.alt, Key.cmd]:
                 keyboard_controller.release(m_key)
             
@@ -319,11 +414,18 @@ async def get_config():
 
 @app.post("/config")
 async def save_config(new_config: dict):
-    save_config_file(new_config)
-    global config, recorder
-    config = load_config()
-    recorder = AudioRecorder(device_index=config.get("device_index"))
-    return {"status": "saved"}
+    logger.info(f"Saving new config: {new_config}")
+    try:
+        save_config_file(new_config)
+        global config, recorder
+        config = load_config()
+        # Update recorder if device changed
+        recorder = AudioRecorder(device_index=config.get("device_index"))
+        logger.info("Config saved and reloaded successfully")
+        return {"status": "saved"}
+    except Exception as e:
+        logger.error(f"Error saving config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/start")
 async def api_start():
@@ -334,6 +436,53 @@ async def api_start():
 async def api_stop():
     trigger_stop_sync()
     return {"status": "ok"}
+
+@app.get("/history")
+async def get_history():
+    return load_history()
+
+@app.get("/vocabulary")
+async def get_vocabulary():
+    return load_vocabulary()
+
+@app.post("/vocabulary")
+async def update_vocabulary(payload: dict):
+    vocab = load_vocabulary()
+    action = payload.get("action")
+    if action == "add":
+        item = payload.get("item")
+        if not item or "original" not in item:
+            raise HTTPException(400, "Invalid item")
+        vocab.append(item)
+    elif action == "delete":
+        idx = payload.get("index")
+        if idx is not None and 0 <= idx < len(vocab):
+            vocab.pop(idx)
+    save_vocabulary(vocab)
+    return {"status": "ok", "vocabulary": vocab}
+
+@app.get("/modes")
+async def get_modes():
+    return load_modes()
+
+@app.post("/modes")
+async def update_modes(payload: dict):
+    modes = load_modes()
+    action = payload.get("action")
+    if action == "add":
+        item = payload.get("item")
+        modes.append(item)
+    elif action == "delete":
+        idx = payload.get("index")
+        if idx is not None and 0 <= idx < len(modes):
+            modes.pop(idx)
+    elif action == "update":
+        idx = payload.get("index")
+        item = payload.get("item")
+        if idx is not None and 0 <= idx < len(modes):
+            modes[idx] = item
+    save_modes(modes)
+    return {"status": "ok", "modes": modes}
 
 if __name__ == "__main__":
     import uvicorn

@@ -2,15 +2,12 @@ const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification, s
 
 // ... (中略)
 
-ipcMain.on('play-start-sound', () => {
-    // Windowsの標準ビープ音を鳴らす
-    shell.beep();
-});
-
-ipcMain.on('play-stop-sound', () => {
-    // 終了時は2回鳴らすなど、区別をつける
-    shell.beep();
-    setTimeout(() => shell.beep(), 100);
+ipcMain.on('relaunch-app', () => {
+    if (pythonProcess) {
+        pythonProcess.kill();
+    }
+    app.relaunch();
+    app.exit(0);
 });
 const { spawn } = require('child_process');
 const path = require('path');
@@ -33,12 +30,15 @@ function pollStatusForNotification() {
             console.log('Backend status:', res.data.status);
 
             if (res.data.status === 'ready' && !hasNotifiedReady) {
-                console.log('Sending ready notification...');
-                new Notification({
-                    title: 'AuraWhisper',
-                    body: 'AI model loaded and system is ready!',
-                    silent: false
-                }).show();
+                const config = loadConfig();
+                if (config.notifications !== false) {
+                    console.log('Sending ready notification...');
+                    new Notification({
+                        title: 'AuraWhisper',
+                        body: 'AI model loaded and system is ready!',
+                        silent: false
+                    }).show();
+                }
                 hasNotifiedReady = true;
                 // Once ready, we can slow down polling
             } else if (res.data.status === 'loading') {
@@ -133,10 +133,10 @@ function createSettingsWindow() {
     }
 
     settingsWindow = new BrowserWindow({
-        width: 850,
-        height: 850,
-        minWidth: 700,
-        minHeight: 700,
+        width: 1000,
+        height: 750,
+        minWidth: 900,
+        minHeight: 650,
         title: 'AuraWhisper Settings',
         backgroundColor: '#0a0a0f',
         resizable: true,
@@ -241,6 +241,15 @@ app.whenReady().then(() => {
         createSettingsWindow();
     });
 
+    ipcMain.on('resize-window', (event, { width, height }) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            const currentSize = mainWindow.getSize();
+            if (currentSize[0] !== width || currentSize[1] !== height) {
+                mainWindow.setSize(width, height, true);
+            }
+        }
+    });
+
     ipcMain.on('config-updated', () => {
         console.log('Config updated signal received.');
         registerHotkey();
@@ -275,4 +284,8 @@ app.on('window-all-closed', () => {
     } else if (isSettingsMode && !mainWindow) {
         app.quit();
     }
+});
+
+app.on('will-quit', () => {
+    stopPythonBackend();
 });

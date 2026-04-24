@@ -4,5 +4,10 @@
     "language": "ja",
     "model_size": "small",
     "use_ollama": false,
-    "ollama_model": "gemma2:2b"
+    "ollama_model": "gemma2:2b",
+    "window_style": "classic",
+    "auto_punctuation": true,
+    "after_insertion": "newline",
+    "notifications": true,
+    "active_mode_id": "general"
 }

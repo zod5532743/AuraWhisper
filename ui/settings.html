@@ -2,139 +2,621 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>AuraWhisper Settings</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+    <title>AuraWhisper Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --accent: #0071e3;
-            --bg: rgba(10, 10, 15, 0.9);
+            --accent-bg: rgba(0, 113, 227, 0.1);
+            --bg: rgba(10, 10, 15, 0.85);
             --border: rgba(255, 255, 255, 0.1);
-            --sidebar-w: 200px;
+            --sidebar-w: 240px;
+            --card-bg: rgba(255, 255, 255, 0.04);
         }
         body {
             margin: 0; padding: 0; height: 100vh; overflow: hidden;
             font-family: 'Outfit', sans-serif; background: transparent; color: white;
+            user-select: none;
         }
         .window {
             display: flex; height: 100vh; background: var(--bg);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
             border: 1px solid var(--border); box-sizing: border-box;
         }
+        
+        /* Sidebar */
         .sidebar {
             width: var(--sidebar-w); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding-top: 30px;
+            display: flex; flex-direction: column; padding: 40px 0;
+            background: rgba(255, 255, 255, 0.02);
         }
-        .item {
-            padding: 12px 20px; color: rgba(255,255,255,0.5); cursor: pointer;
-            font-size: 14px; transition: 0.2s; border-left: 3px solid transparent;
+        .sidebar-brand {
+            padding: 0 30px 40px 30px; font-size: 20px; font-weight: 600;
+            letter-spacing: -0.5px; color: white;
         }
-        .item:hover { background: rgba(255,255,255,0.05); color: white; }
-        .item.active { background: rgba(255,255,255,0.1); color: white; border-left-color: var(--accent); }
-        .main { flex: 1; padding: 40px; display: flex; flex-direction: column; }
-        h1 { margin: 0 0 30px 0; font-size: 24px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-        .card h3 { margin: 0 0 15px 0; font-size: 13px; color: var(--accent); text-transform: uppercase; }
-        .group { margin-bottom: 15px; }
-        label { display: block; font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
+        .nav-item {
+            padding: 12px 30px; color: rgba(255,255,255,0.4); cursor: pointer;
+            font-size: 15px; transition: 0.2s; border-left: 3px solid transparent;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .nav-item svg { width: 18px; height: 18px; opacity: 0.5; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { 
+            background: var(--accent-bg); color: white; 
+            border-left-color: var(--accent); font-weight: 600;
+        }
+        .nav-item.active svg { opacity: 1; stroke: var(--accent); }
+
+        /* Main Content */
+        .main { flex: 1; padding: 50px 60px; overflow-y: auto; display: flex; flex-direction: column; }
+        .section { display: none; animation: fadeIn 0.4s ease-out; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 { margin: 0 0 40px 0; font-size: 32px; font-weight: 600; letter-spacing: -1px; }
+        
+        /* Dashboard Cards */
+        .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .stat-card { 
+            background: var(--card-bg); border: 1px solid var(--border); 
+            border-radius: 20px; padding: 25px; 
+            transition: 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.06); }
+        .stat-label { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 28px; font-weight: 600; }
+        .stat-unit { font-size: 14px; color: rgba(255,255,255,0.3); margin-left: 5px; }
+
+        /* General UI Elements */
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+        .card h3 { margin: 0 0 20px 0; font-size: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; }
+        
         input, select {
             width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border);
-            color: white; padding: 10px 12px; border-radius: 8px; outline: none; box-sizing: border-box;
-            font-size: 14px; transition: border-color 0.2s;
+            color: white; padding: 12px 16px; border-radius: 10px; outline: none; box-sizing: border-box;
+            font-size: 14px; transition: 0.2s;
+            user-select: auto;
         }
-        select {
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.5)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 40px;
-            cursor: pointer;
+        select { cursor: pointer; }
+        option { background: #1a1a1f; color: white; }
+        input:focus, select:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
+
+        /* Vocabulary Table */
+        .vocab-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .vocab-table th { text-align: left; padding: 12px; font-size: 12px; color: rgba(255,255,255,0.3); border-bottom: 1px solid var(--border); }
+        .vocab-table td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .btn-delete { color: #ff453a; cursor: pointer; opacity: 0.6; transition: 0.2s; background: none; border: none; font-size: 12px; }
+        .btn-delete:hover { opacity: 1; }
+
+        /* History List */
+        .history-item { 
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; 
+            padding: 20px; margin-bottom: 12px; cursor: pointer; transition: 0.2s;
+            display: flex; flex-direction: column; gap: 8px;
         }
-        select option {
-            background: #1a1a24;
-            color: white;
-        }
-        .footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 12px; }
-        .btn { padding: 10px 24px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; font-size: 14px; }
+        .history-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); }
+        .history-meta { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.3); }
+        .history-text { font-size: 15px; line-height: 1.5; color: rgba(255,255,255,0.9); }
+        .history-tag { background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; }
+
+        /* Buttons */
+        .footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 12px; padding-top: 20px; }
+        .btn { padding: 12px 28px; border-radius: 10px; cursor: pointer; border: none; font-weight: 600; font-size: 14px; transition: 0.2s; }
         .btn-p { background: var(--accent); color: white; }
+        .btn-p:hover { background: #007aff; box-shadow: 0 4px 15px rgba(0,113,227,0.3); }
         .btn-s { background: rgba(255,255,255,0.08); color: white; }
+        .btn-s:hover { background: rgba(255,255,255,0.12); }
+        .btn-danger { background: rgba(255, 69, 58, 0.1); color: #ff453a; border: 1px solid rgba(255, 69, 58, 0.2); }
+        .btn-danger:hover { background: rgba(255, 69, 58, 0.2); border-color: #ff453a; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        .active-mode-card {
+            background: var(--accent-bg) !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 15px rgba(0, 113, 227, 0.2);
+        }
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #34c759;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            z-index: 9999;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        #toast svg { width: 18px; height: 18px; }
     </style>
 </head>
 <body>
     <div class="window">
-        <div class="sidebar">
-            <div class="item active" id="tab-gen" onclick="tab('gen')">General</div>
-            <div class="item" id="tab-ai" onclick="tab('ai')">AI Engine</div>
+        <div id="toast">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span id="toast-message">Settings Saved!</span>
+    </div>
+
+    <div class="sidebar">
+            <div class="sidebar-brand">AuraWhisper</div>
+            <div class="nav-item active" id="nav-home" onclick="tab('home')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
+            </div>
+            <div class="nav-item" id="nav-vocab" onclick="tab('vocab')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>
+                Vocabulary
+            </div>
+            <div class="nav-item" id="nav-history" onclick="tab('history')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                History
+            </div>
+            <div class="nav-item" id="nav-modes" onclick="tab('modes')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Modes
+            </div>
+            <div class="nav-item" id="nav-ai" onclick="tab('ai')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m16.2 7.8 2.9-2.9"/><path d="M18 12h4"/><path d="m16.2 16.2 2.9 2.9"/><path d="M12 18v4"/><path d="m4.9 19.1 2.9-2.9"/><path d="M2 12h4"/><path d="m4.9 4.9 2.9-2.9"/><circle cx="12" cy="12" r="3"/></svg>
+                AI Engine
+            </div>
+            <div class="nav-item" id="nav-gen" onclick="tab('gen')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                General
+            </div>
         </div>
         <div class="main">
-            <div id="sec-gen">
-                <h1>General</h1>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Keyboard</h3>
-                        <div class="group"><label>Hotkey</label><input type="text" id="hotkey"></div>
-                        <div class="group"><label>Mode</label><select id="mode"><option value="toggle">Toggle</option><option value="hold">Hold</option></select></div>
+            <!-- Home Section -->
+            <div id="sec-home" class="section active">
+                <h1>Dashboard</h1>
+                <div class="grid-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Characters</div>
+                        <div class="stat-value" id="stat-total-chars">0<span class="stat-unit">chars</span></div>
                     </div>
-                    <div class="card">
-                        <h3>Language</h3>
-                        <div class="group"><label>Input</label><select id="lang"><option value="ja">Japanese</option><option value="en">English</option></select></div>
+                    <div class="stat-card">
+                        <div class="stat-label">Saved Time</div>
+                        <div class="stat-value" id="stat-saved-time">0<span class="stat-unit">mins</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Accuracy</div>
+                        <div class="stat-value" id="stat-avg-acc">98<span class="stat-unit">%</span></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Activity (Last 7 Days)</h3>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div id="home-recent-list">
+                        <p style="color:rgba(255,255,255,0.2); font-size:13px;">No recent activity</p>
                     </div>
                 </div>
             </div>
-            <div id="sec-ai" style="display:none">
+
+            <!-- Vocabulary Section -->
+            <div id="sec-vocab" class="section">
+                <h1>Vocabulary</h1>
+                <div class="card">
+                    <h3>Add New Rule</h3>
+                    <div style="display:flex; gap:12px;">
+                        <div style="flex:1;"><label>Original Text</label><input type="text" id="vocab-orig" placeholder="e.g. あいがた"></div>
+                        <div style="flex:1;"><label>Replacement</label><input type="text" id="vocab-repl" placeholder="e.g. Antigravity"></div>
+                        <div style="display:flex; align-items:flex-end;"><button class="btn btn-p" onclick="addVocab()">Add</button></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Your Dictionary</h3>
+                    <table class="vocab-table">
+                        <thead><tr><th>Original</th><th>Replacement</th><th></th></tr></thead>
+                        <tbody id="vocab-list-body">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div id="sec-history" class="section">
+                <h1>History</h1>
+                <div id="history-container">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Modes Section -->
+            <div id="sec-modes" class="section">
+                <h1>Modes</h1>
+                <p style="color:rgba(255,255,255,0.4); font-size:14px; margin-bottom:30px;">利用シーンに合わせて、AIの校正プロンプトを切り替えます。</p>
+                
+                <div id="modes-list" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; margin-bottom:40px;">
+                    <!-- Dynamically populated cards -->
+                </div>
+
+                <div class="card" id="mode-editor" style="display:none;">
+                    <h3>Edit Mode: <span id="edit-mode-name-title"></span></h3>
+                    <input type="hidden" id="edit-mode-index">
+                    <div class="form-group">
+                        <label>Mode Name</label>
+                        <input type="text" id="edit-mode-name">
+                    </div>
+                    <div class="form-group">
+                        <label>System Prompt (Instruction)</label>
+                        <textarea id="edit-mode-prompt" style="width:100%; height:120px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:white; padding:12px; outline:none; font-family:inherit; font-size:14px;"></textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button class="btn btn-s" onclick="document.getElementById('mode-editor').style.display='none'">Cancel</button>
+                        <button class="btn btn-p" onclick="saveModeEdit()">Update Mode</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Engine Section -->
+            <div id="sec-ai" class="section">
                 <h1>AI Engine</h1>
-                <div class="grid">
-                    <div class="card">
-                        <h3>Whisper</h3>
-                        <div class="group">
-                            <label>Size</label>
-                            <select id="size">
-                                <option value="tiny">Tiny</option>
-                                <option value="base">Base</option>
-                                <option value="small">Small</option>
-                                <option value="medium">Medium</option>
-                                <option value="large-v3">Large v3</option>
-                            </select>
-                        </div>
+                <div class="card">
+                    <h3>Whisper Transcription</h3>
+                    <div class="form-group">
+                        <label>Model Size</label>
+                        <select id="size">
+                            <option value="tiny">Tiny (Fastest)</option>
+                            <option value="base">Base</option>
+                            <option value="small">Small (Balanced)</option>
+                            <option value="medium">Medium</option>
+                            <option value="large-v3">Large v3 (Most Accurate)</option>
+                        </select>
                     </div>
-                    <div class="card">
-                        <h3>Ollama</h3>
-                        <div class="group">
-                            <label>Refine</label>
-                            <select id="ollama">
-                                <option value="false">Off</option>
-                                <option value="true">On</option>
-                            </select>
-                        </div>
-                        <div class="group">
-                            <label>Model</label>
-                            <select id="ollama-model">
-                                <option value="gemma2:2b">Gemma 2 (2B)</option>
-                                <option value="qwen2.5-coder:7b">Qwen 2.5 Coder (7B)</option>
-                                <option value="llama3.1:8b">Llama 3.1 (8B)</option>
-                            </select>
-                        </div>
+                </div>
+                <div class="card">
+                    <h3>Ollama Refinement</h3>
+                    <div class="form-group">
+                        <label>Enable Ollama Post-processing</label>
+                        <select id="ollama">
+                            <option value="false">Disabled</option>
+                            <option value="true">Enabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ollama Model</label>
+                        <select id="ollama-model">
+                            <option value="gemma2:2b">Gemma 2 (2B)</option>
+                            <option value="qwen2.5-coder:7b">Qwen 2.5 Coder (7B)</option>
+                            <option value="qwen2.5-coder:14b">Qwen 2.5 Coder (14B)</option>
+                            <option value="llama3.1:8b">Llama 3.1 (8B)</option>
+                        </select>
                     </div>
                 </div>
             </div>
+
+            <!-- General Section -->
+            <div id="sec-gen" class="section">
+                <h1>General</h1>
+                <div class="card">
+                    <h3>Interaction</h3>
+                    <div class="form-group">
+                        <label>Global Hotkey</label>
+                        <input type="text" id="hotkey">
+                    </div>
+                    <div class="form-group">
+                        <label>Recording Mode</label>
+                        <select id="mode">
+                            <option value="toggle">Toggle (Press to Start/Stop)</option>
+                            <option value="hold">Hold (Push to Talk)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Window Style</label>
+                        <select id="window-style">
+                            <option value="classic">Classic (Floating Bar)</option>
+                            <option value="mini">Mini (Compact Bar)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Smart Insertion</h3>
+                    <div class="form-group">
+                        <label>Auto-Punctuation</label>
+                        <select id="auto-punc">
+                            <option value="true">Enabled (Add . or 。 at end)</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>After Insertion</label>
+                        <select id="after-insert">
+                            <option value="none">None</option>
+                            <option value="newline">Add Newline (\n)</option>
+                            <option value="space">Add Space ( )</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Notifications</h3>
+                    <div class="form-group">
+                        <label>Desktop Alerts</label>
+                        <select id="notifications">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Language</h3>
+                    <div class="form-group">
+                        <label>Default Language</label>
+                        <select id="lang">
+                            <option value="ja">Japanese</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>System</h3>
+                    <p style="font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:15px;">アプリの動作が不安定な場合や、変更を完全に適用したい場合に再起動してください。</p>
+                    <button class="btn btn-danger" onclick="relaunchApp()">Restart AuraWhisper</button>
+                </div>
+            </div>
+
             <div class="footer">
                 <button class="btn btn-s" onclick="window.close()">Cancel</button>
-                <button class="btn btn-p" id="save">Save</button>
+                <button class="btn btn-p" id="save">Save Changes</button>
             </div>
         </div>
     </div>
+
     <script>
         const { ipcRenderer } = require('electron');
+        const API = 'http://127.0.0.1:8000';
+
         function tab(id) {
-            document.getElementById('sec-gen').style.display = id==='gen'?'block':'none';
-            document.getElementById('sec-ai').style.display = id==='ai'?'block':'none';
-            document.getElementById('tab-gen').classList.toggle('active', id==='gen');
-            document.getElementById('tab-ai').classList.toggle('active', id==='ai');
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById('sec-' + id).classList.add('active');
+            document.getElementById('nav-' + id).classList.add('active');
+
+            if (id === 'home') loadHome();
+            if (id === 'vocab') loadVocab();
+            if (id === 'history') loadHistory();
+            if (id === 'modes') loadModes();
         }
-        async function load() {
-            const r = await fetch('http://127.0.0.1:8000/status'); // 一応サーバーから現在の設定を取得
-            const res = await fetch('http://127.0.0.1:8000/config');
+
+        async function loadHome() {
+            const res = await fetch(API + '/history');
+            const history = await res.json();
+            
+            let totalChars = 0;
+            let totalSeconds = 0;
+            history.forEach(h => {
+                totalChars += (h.chars || 0);
+                totalSeconds += (h.duration || 0);
+            });
+
+            document.getElementById('stat-total-chars').innerHTML = `${totalChars.toLocaleString()}<span class="stat-unit">chars</span>`;
+            document.getElementById('stat-saved-time').innerHTML = `${Math.round(totalSeconds / 60)}<span class="stat-unit">mins</span>`;
+
+            renderChart(history);
+
+            const recentList = document.getElementById('home-recent-list');
+            recentList.innerHTML = history.slice(0, 3).map(h => `
+                <div style="font-size:13px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:rgba(255,255,255,0.7);">
+                    ${h.text.substring(0, 60)}${h.text.length > 60 ? '...' : ''}
+                </div>
+            `).join('') || '<p style="color:rgba(255,255,255,0.2); font-size:13px;">No recent activity</p>';
+        }
+
+        let activityChart = null;
+
+        function renderChart(history) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            
+            // Group by date (last 7 days)
+            const days = [];
+            const counts = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateStr = d.toISOString().split('T')[0];
+                const label = d.toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
+                
+                const charCount = history
+                    .filter(h => h.timestamp.startsWith(dateStr))
+                    .reduce((sum, h) => sum + (h.chars || 0), 0);
+                
+                days.push(label);
+                counts.push(charCount);
+            }
+
+            if (activityChart) activityChart.destroy();
+
+            activityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Characters',
+                        data: counts,
+                        borderColor: '#0071e3',
+                        backgroundColor: 'rgba(0, 113, 227, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#0071e3',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: 'rgba(255, 255, 255, 0.3)', font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.3)', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadVocab() {
+            const res = await fetch(API + '/vocabulary');
+            const vocab = await res.json();
+            const body = document.getElementById('vocab-list-body');
+            body.innerHTML = vocab.map((v, i) => `
+                <tr>
+                    <td>${v.original}</td>
+                    <td>${v.replacement}</td>
+                    <td style="text-align:right"><button class="btn-delete" onclick="deleteVocab(${i})">Delete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function addVocab() {
+            const original = document.getElementById('vocab-orig').value;
+            const replacement = document.getElementById('vocab-repl').value;
+            if (!original) return;
+
+            await fetch(API + '/vocabulary', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({action: 'add', item: {original, replacement}})
+            });
+            document.getElementById('vocab-orig').value = '';
+            document.getElementById('vocab-repl').value = '';
+            loadVocab();
+        }
+
+        async function deleteVocab(index) {
+            await fetch(API + '/vocabulary', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({action: 'delete', index})
+            });
+            loadVocab();
+        }
+
+        async function loadHistory() {
+            const res = await fetch(API + '/history');
+            const history = await res.json();
+            const container = document.getElementById('history-container');
+            container.innerHTML = history.map(h => {
+                const date = new Date(h.timestamp).toLocaleString();
+                return `
+                    <div class="history-item" onclick="copyText('${h.text.replace(/'/g, "\\'")}')">
+                        <div class="history-meta">
+                            <span>${date}</span>
+                            <span class="history-tag">${h.model}</span>
+                        </div>
+                        <div class="history-text">${h.text}</div>
+                        <div class="history-meta">
+                            <span>${h.chars} characters</span>
+                            <span>${h.duration}s</span>
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<p style="text-align:center; color:rgba(255,255,255,0.2); margin-top:40px;">No history yet.</p>';
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text);
+            // Simple toast/visual feedback could be added here
+        }
+
+        let currentActiveModeId = 'general';
+        let allModes = [];
+
+        async function loadModes() {
+            const res = await fetch(API + '/modes');
+            allModes = await res.json();
+            const list = document.getElementById('modes-list');
+            
+            list.innerHTML = allModes.map((m, i) => `
+                <div class="stat-card ${m.id === currentActiveModeId ? 'active-mode-card' : ''}" 
+                     style="cursor:pointer; border-color: ${m.id === currentActiveModeId ? 'var(--accent)' : 'var(--border)'};"
+                     onclick="selectMode('${m.id}')">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div class="stat-label" style="color:${m.id === currentActiveModeId ? 'var(--accent)' : ''}">${m.name}</div>
+                        <button class="btn-delete" style="padding:0; font-size:11px;" onclick="event.stopPropagation(); editMode(${i})">Edit</button>
+                    </div>
+                    <div style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:8px; line-height:1.4;">${m.description || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectMode(id) {
+            currentActiveModeId = id;
+            loadModes();
+        }
+
+        function editMode(index) {
+            const m = allModes[index];
+            document.getElementById('mode-editor').style.display = 'block';
+            document.getElementById('edit-mode-index').value = index;
+            document.getElementById('edit-mode-name-title').innerText = m.name;
+            document.getElementById('edit-mode-name').value = m.name;
+            document.getElementById('edit-mode-prompt').value = m.prompt;
+            
+            // Scroll to editor
+            document.getElementById('mode-editor').scrollIntoView({behavior: 'smooth'});
+        }
+
+        async function saveModeEdit() {
+            const index = document.getElementById('edit-mode-index').value;
+            const updatedItem = {
+                ...allModes[index],
+                name: document.getElementById('edit-mode-name').value,
+                prompt: document.getElementById('edit-mode-prompt').value
+            };
+
+            await fetch(API + '/modes', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({action: 'update', index: parseInt(index), item: updatedItem})
+            });
+            
+            document.getElementById('mode-editor').style.display = 'none';
+            loadModes();
+        }
+
+        function relaunchApp() {
+            if (confirm('AuraWhisperを再起動しますか？')) {
+                ipcRenderer.send('relaunch-app');
+            }
+        }
+
+        async function loadConfig() {
+            const res = await fetch(API + '/config');
             const c = await res.json();
             document.getElementById('hotkey').value = c.hotkey;
             document.getElementById('mode').value = c.mode || 'toggle';
@@ -142,7 +624,14 @@
             document.getElementById('size').value = c.model_size;
             document.getElementById('ollama').value = c.use_ollama.toString();
             document.getElementById('ollama-model').value = c.ollama_model || 'gemma2:2b';
+            document.getElementById('window-style').value = c.window_style || 'classic';
+            document.getElementById('auto-punc').value = c.auto_punctuation !== false ? 'true' : 'false';
+            document.getElementById('after-insert').value = c.after_insertion || 'none';
+            document.getElementById('notifications').value = c.notifications !== false ? 'true' : 'false';
+            currentActiveModeId = c.active_mode_id || 'general';
+            loadHome();
         }
+
         document.getElementById('save').onclick = async () => {
             const c = {
                 hotkey: document.getElementById('hotkey').value,
@@ -150,17 +639,61 @@
                 language: document.getElementById('lang').value,
                 model_size: document.getElementById('size').value,
                 use_ollama: document.getElementById('ollama').value === 'true',
-                ollama_model: document.getElementById('ollama-model').value
+                ollama_model: document.getElementById('ollama-model').value,
+                window_style: document.getElementById('window-style').value,
+                auto_punctuation: document.getElementById('auto-punc').value === 'true',
+                after_insertion: document.getElementById('after-insert').value,
+                notifications: document.getElementById('notifications').value === 'true',
+                active_mode_id: currentActiveModeId
             };
-            await fetch('http://127.0.0.1:8000/config', {
-                method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify(c)
-            });
-            ipcRenderer.send('config-updated');
-            window.close();
+            try {
+                const saveBtn = document.getElementById('save');
+                const originalText = saveBtn.innerText;
+                
+                const response = await fetch(API + '/config', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(c)
+                });
+                
+                if (!response.ok) throw new Error('Save failed on server');
+                
+                ipcRenderer.send('config-updated');
+                
+                // Visual Feedback
+                showToast('Settings saved successfully!');
+                saveBtn.innerText = 'Saved!';
+                saveBtn.style.background = '#34c759';
+                
+                setTimeout(() => {
+                    saveBtn.innerText = originalText;
+                    saveBtn.style.background = '';
+                    saveBtn.style.pointerEvents = 'auto';
+                    window.close(); // Close after 2 seconds
+                }, 2000);
+            } catch (err) {
+                console.error(err);
+                alert('Failed to save changes: ' + err.message);
+                const saveBtn = document.getElementById('save');
+                saveBtn.innerText = 'Error';
+                saveBtn.style.background = '#ff3b30';
+                setTimeout(() => {
+                    saveBtn.innerText = 'Save Changes';
+                    saveBtn.style.background = '';
+                }, 2000);
+            }
         }
-        load();
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        loadConfig();
     </script>
 </body>
 </html>

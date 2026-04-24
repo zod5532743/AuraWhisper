@@ -27,7 +27,7 @@
         class AudioFeedback {
             constructor() {
                 this.audioCtx = null;
-                this.unlock(); // Attempt to unlock on load
+                this.unlock();
             }
             unlock() {
                 const unlockHandler = () => {
@@ -35,35 +35,51 @@
                         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     }
                     if (this.audioCtx.state === 'suspended') {
-                        this.audioCtx.resume().then(() => {
-                            // Once resumed, remove handlers
-                            document.removeEventListener('mousedown', unlockHandler);
-                            document.removeEventListener('keydown', unlockHandler);
-                            console.log("Audio unlocked and ready.");
-                        });
+                        this.audioCtx.resume();
                     }
                 };
-                document.addEventListener('mousedown', unlockHandler);
-                document.addEventListener('keydown', unlockHandler);
+                document.addEventListener('mousedown', unlockHandler, { once: true });
             }
-            playBeep(freq, dur, vol) {
-                if (!this.audioCtx || this.audioCtx.state !== 'running') {
-                    console.log("Audio Context not ready. State:", this.audioCtx ? this.audioCtx.state : "null");
-                    return;
+            
+            async playPremiumSound(type) {
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
+                
+                const now = this.audioCtx.currentTime;
+                const masterGain = this.audioCtx.createGain();
+                masterGain.connect(this.audioCtx.destination);
+                masterGain.gain.setValueAtTime(0, now);
+                masterGain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                masterGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+                if (type === 'start') {
+                    // Two-tone rising "ding"
+                    this.createTone(880, now, 0.4, masterGain);
+                    this.createTone(1320, now + 0.05, 0.3, masterGain);
+                } else {
+                    // Two-tone falling "dong"
+                    this.createTone(660, now, 0.4, masterGain);
+                    this.createTone(440, now + 0.05, 0.3, masterGain);
                 }
+            }
+
+            createTone(freq, startTime, duration, target) {
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-                gain.gain.setValueAtTime(vol, this.audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + dur);
+                osc.frequency.setValueAtTime(freq, startTime);
+                
+                gain.gain.setValueAtTime(0.5, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                
                 osc.connect(gain);
-                gain.connect(this.audioCtx.destination);
-                osc.start();
-                osc.stop(this.audioCtx.currentTime + dur);
+                gain.connect(target);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
             }
-            playStart() { this.playBeep(880, 0.1, 0.4); } // Increased volume
-            playStop() { this.playBeep(440, 0.1, 0.4); }  // Increased volume
+
+            playStart() { this.playPremiumSound('start'); }
+            playStop() { this.playPremiumSound('stop'); }
         }
 
         const audioFeedback = new AudioFeedback();
@@ -145,6 +161,10 @@
                 audioFeedback.playStop();
             }
 
+            if (lastStatusType === 'analyzing' && type === 'ready') {
+                showNotification('AuraWhisper', 'Transcription & refinement complete!');
+            }
+
             lastStatus = main;
             lastStatusType = type;
 
@@ -165,6 +185,14 @@
                 appContainer.classList.remove('recording-active');
             }
         }
+
+        async function showNotification(title, body) {
+            const confRes = await fetch('http://127.0.0.1:8000/config');
+            const config = await confRes.json();
+            if (config.notifications === false) return;
+
+            new Notification(title, { body, silent: true });
+        }
         
         async function updateStatus() {
             try {
@@ -180,6 +208,17 @@
                 } else if (data.status === 'ready') {
                     const confRes = await fetch('http://127.0.0.1:8000/config');
                     const config = await confRes.json();
+                    
+                    // Apply window style
+                    const container = document.getElementById('app-container');
+                    if (config.window_style === 'mini') {
+                        container.classList.add('container-mini');
+                        ipcRenderer.send('resize-window', { width: 240, height: 60 });
+                    } else {
+                        container.classList.remove('container-mini');
+                        ipcRenderer.send('resize-window', { width: 400, height: 150 });
+                    }
+
                     setStatus('Ready', `Press ${config.hotkey || 'Alt+Shift+U'}`, 'ready');
                     visualizer.setVolume(0.02);
                 } else if (data.status === 'loading') {
