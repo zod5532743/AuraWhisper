@@ -1,5 +1,14 @@
 [
     {
+        "id": 1777107534981,
+        "timestamp": "2026-04-25T17:58:54.981730",
+        "model": "small",
+        "original": "また文字が重なっています",
+        "text": "また文字が重なっています。\n",
+        "chars": 14,
+        "duration": 0.44
+    },
+    {
         "id": 1777107463029,
         "timestamp": "2026-04-25T17:57:43.029272",
         "model": "small",
@@ -889,14 +898,5 @@
         "text": "Cloude Codeかな。\n",
         "chars": 15,
         "duration": 0.61
-    },
-    {
-        "id": 1777088546769,
-        "timestamp": "2026-04-25T12:42:26.769357",
-        "model": "small",
-        "original": "Cloude Code",
-        "text": "Cloude Code。\n",
-        "chars": 13,
-        "duration": 2.73
     }
 ]
