@@ -150,8 +150,8 @@ let hasNotifiedReady = false;
 let consecutiveFailures = 0;
 let restartCount = 0;
 let pollingTimer = null;
-const MAX_RESTARTS = 3;
-const FAILURE_THRESHOLD = 5;
+const MAX_RESTARTS = 5;
+const FAILURE_THRESHOLD = 15;
 
 // Function to poll backend status for notifications
 function pollStatusForNotification() {
@@ -160,7 +160,7 @@ function pollStatusForNotification() {
     console.log('Starting backend status polling...');
     pollingTimer = setInterval(async () => {
         try {
-            const res = await axios.get('http://127.0.0.1:8000/status');
+            const res = await axios.get('http://127.0.0.1:8000/status', { timeout: 3000 });
             consecutiveFailures = 0; // Reset on success
 
             if (res.data.status === 'ready' && !hasNotifiedReady) {
@@ -203,7 +203,7 @@ function pollStatusForNotification() {
 
 function startPythonBackend() {
     // Check if backend is already alive before spawning
-    axios.get('http://127.0.0.1:8000/status')
+    axios.get('http://127.0.0.1:8000/status', { timeout: 2000 })
         .then(() => {
             console.log('Backend is already running. Skipping spawn.');
             pollStatusForNotification();
@@ -257,6 +257,12 @@ function startPythonBackend() {
 
 
 function stopPythonBackend() {
+    if (pollingTimer) {
+        clearInterval(pollingTimer);
+        pollingTimer = null;
+    }
+    consecutiveFailures = 0;
+
     if (pythonProcess) {
         pythonProcess.kill();
         pythonProcess = null;
