@@ -255,6 +255,15 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
                 <span data-i18n="nav_general">General</span>
             </div>
+            
+            <div style="flex: 1;"></div>
+            
+            <div class="donation-container" style="padding: 10px 10px 20px 10px;">
+                <button class="btn btn-s" style="width: 100%; font-size: 11px; background: rgba(255, 221, 0, 0.1); color: #FFDD00; border: 1px solid rgba(255, 221, 0, 0.2); padding: 8px;" onclick="openDonation()">
+                    ☕ Buy me a coffee
+                </button>
+            </div>
+
             <div class="lang-switch">
                 <div class="lang-btn" id="lang-ja" onclick="setUILang('ja')">JA</div>
                 <div class="lang-btn" id="lang-en" onclick="setUILang('en')">EN</div>
@@ -502,7 +511,14 @@
     </div>
 
     <script>
-        const { ipcRenderer } = require('electron');
+        const { ipcRenderer, shell } = require('electron');
+        
+        function openDonation() {
+            // あなたのドネーションリンク（Buy Me a Coffee等）をここに設定してください
+            // 現時点ではプレースホルダーとして GitHub リポジトリ等を開くようにできます
+            shell.openExternal('https://github.com/zod5532743/AuraWhisper');
+        }
+
         const TRANSLATIONS = {
             ja: {
                 nav_home: "ホーム", nav_history: "履歴", nav_vocab: "辞書", nav_modes: "モード", nav_ai: "AI設定", nav_general: "一般設定",
