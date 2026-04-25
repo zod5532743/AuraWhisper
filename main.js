@@ -20,8 +20,8 @@ ipcMain.on('relaunch-app', () => {
 ipcMain.on('show-mode-menu', async (event) => {
     try {
         const [cRes, mRes] = await Promise.all([
-            axios.get('http://127.0.0.1:8000/config'),
-            axios.get('http://127.0.0.1:8000/modes')
+            axios.get('http://127.0.0.1:8240/config'),
+            axios.get('http://127.0.0.1:8240/modes')
         ]);
         const config = cRes.data;
         const modes = mRes.data;
@@ -32,7 +32,7 @@ ipcMain.on('show-mode-menu', async (event) => {
             checked: m.id === config.active_mode_id,
             click: async () => {
                 config.active_mode_id = m.id;
-                await axios.post('http://127.0.0.1:8000/config', config);
+                await axios.post('http://127.0.0.1:8240/config', config);
                 if (mainWindow) mainWindow.webContents.send('mode-updated', m);
             }
         })));
@@ -46,9 +46,9 @@ ipcMain.on('show-mode-menu', async (event) => {
 ipcMain.on('show-context-menu', async (event) => {
     try {
         const [cRes, hRes, mRes] = await Promise.all([
-            axios.get('http://127.0.0.1:8000/config'),
-            axios.get('http://127.0.0.1:8000/history'),
-            axios.get('http://127.0.0.1:8000/modes')
+            axios.get('http://127.0.0.1:8240/config'),
+            axios.get('http://127.0.0.1:8240/history'),
+            axios.get('http://127.0.0.1:8240/modes')
         ]);
         const config = cRes.data;
         const history = hRes.data.slice(0, 5);
@@ -60,7 +60,7 @@ ipcMain.on('show-context-menu', async (event) => {
                 label: `Re-process Last (${activeMode ? activeMode.name : 'Current Mode'})`,
                 click: async () => {
                     try {
-                        await axios.post('http://127.0.0.1:8000/reprocess_last');
+                        await axios.post('http://127.0.0.1:8240/reprocess_last');
                     } catch (e) {
                         console.error('Reprocess failed:', e);
                     }
@@ -73,7 +73,7 @@ ipcMain.on('show-context-menu', async (event) => {
                     label: h.text.length > 30 ? h.text.substring(0, 30) + '...' : h.text,
                     click: async () => {
                         try {
-                            await axios.post('http://127.0.0.1:8000/paste', { text: h.text });
+                            await axios.post('http://127.0.0.1:8240/paste', { text: h.text });
                         } catch (e) {
                             console.error('Quick paste failed:', e);
                         }
@@ -87,7 +87,7 @@ ipcMain.on('show-context-menu', async (event) => {
                 checked: config.use_ollama,
                 click: async (item) => {
                     config.use_ollama = item.checked;
-                    await axios.post('http://127.0.0.1:8000/config', config);
+                    await axios.post('http://127.0.0.1:8240/config', config);
                 }
             },
             {
@@ -96,7 +96,7 @@ ipcMain.on('show-context-menu', async (event) => {
                 checked: config.auto_punctuation,
                 click: async (item) => {
                     config.auto_punctuation = item.checked;
-                    await axios.post('http://127.0.0.1:8000/config', config);
+                    await axios.post('http://127.0.0.1:8240/config', config);
                 }
             },
             { type: 'separator' },
@@ -122,12 +122,12 @@ ipcMain.on('show-context-menu', async (event) => {
 
         async function updateLang(l) {
             config.language = l;
-            await axios.post('http://127.0.0.1:8000/config', config);
+            await axios.post('http://127.0.0.1:8240/config', config);
             if (mainWindow) mainWindow.webContents.send('config-updated');
         }
         async function updateStyle(s) {
             config.window_style = s;
-            await axios.post('http://127.0.0.1:8000/config', config);
+            await axios.post('http://127.0.0.1:8240/config', config);
             if (mainWindow) mainWindow.webContents.send('config-updated');
         }
 
@@ -154,17 +154,19 @@ const MAX_RESTARTS = 5;
 const FAILURE_THRESHOLD = 20; // 20 * 2s = 40s
 
 // Function to poll backend status for notifications
+let isPollingActive = false;
 function pollStatusForNotification() {
-    if (pollingTimer) {
-        clearInterval(pollingTimer);
-        pollingTimer = null;
-    }
+    if (isPollingActive) return;
+    isPollingActive = true;
     
-    console.log('Starting backend status polling...');
-    pollingTimer = setInterval(async () => {
+    console.log('Starting backend status polling (recursive)...');
+    
+    async function checkStatus() {
+        if (!isPollingActive) return;
+
         try {
-            const res = await axios.get('http://127.0.0.1:8000/status', { timeout: 3000 });
-            consecutiveFailures = 0; // Reset on success
+            const res = await axios.get('http://127.0.0.1:8240/status', { timeout: 4000 });
+            consecutiveFailures = 0;
 
             if (res.data.status === 'ready' && !hasNotifiedReady) {
                 const config = loadConfig();
@@ -185,35 +187,40 @@ function pollStatusForNotification() {
             console.log(`Backend offline... (${consecutiveFailures}/${FAILURE_THRESHOLD}) - Reason: ${errorType}`);
             
             if (consecutiveFailures >= FAILURE_THRESHOLD) {
-                // If process is still running, it might just be extremely slow or loading a huge model
-                if (pythonProcess && consecutiveFailures < FAILURE_THRESHOLD * 2) {
-                    console.log('Backend is non-responsive but process is still ALIVE. Waiting longer...');
-                    return; 
+                // If process is still running, be extremely patient (wait up to 2 minutes)
+                if (pythonProcess && consecutiveFailures < 60) { // 60 * 2s = 120s
+                    console.log('Backend is non-responsive but process is still ALIVE. Being patient...');
+                } else {
+                    console.error('Backend recovery triggered.');
+                    consecutiveFailures = 0;
+                    hasNotifiedReady = false;
+                    
+                    stopPythonBackend();
+                    setTimeout(() => {
+                        startPythonBackend();
+                        new Notification({
+                            title: 'AuraWhisper Recovery',
+                            body: 'Service is restarting to ensure stability...',
+                            silent: false
+                        }).show();
+                    }, 2000);
+                    return; // Stop this recursion, the new start will spin up a new one
                 }
-
-                console.error('Backend lost connection or failed to start. Attempting auto-restart...');
-                consecutiveFailures = 0;
-                hasNotifiedReady = false;
-                
-                // Stop and restart
-                stopPythonBackend();
-                setTimeout(() => {
-                    startPythonBackend();
-                    new Notification({
-                        title: 'AuraWhisper Recovery',
-                        body: 'Attempting to recover backend service...',
-                        silent: false
-                    }).show();
-                }, 2000);
             }
         }
-    }, 2000);
+        
+        if (isPollingActive) {
+            setTimeout(checkStatus, 2000);
+        }
+    }
+    
+    checkStatus();
 }
 
 
 function startPythonBackend() {
     // Check if backend is already alive before spawning
-    axios.get('http://127.0.0.1:8000/status', { timeout: 2000 })
+    axios.get('http://127.0.0.1:8240/status', { timeout: 2000 })
         .then(() => {
             console.log('Backend is already running. Skipping spawn.');
             pollStatusForNotification();
@@ -280,10 +287,7 @@ function startPythonBackend() {
 
 
 function stopPythonBackend() {
-    if (pollingTimer) {
-        clearInterval(pollingTimer);
-        pollingTimer = null;
-    }
+    isPollingActive = false;
     consecutiveFailures = 0;
 
     if (pythonProcess) {
@@ -419,7 +423,7 @@ function registerHotkey() {
             if (!isRecording) {
                 try {
                     console.log('Sending start recording request to backend...');
-                    await axios.post('http://127.0.0.1:8000/start');
+                    await axios.post('http://127.0.0.1:8240/start');
                     isRecording = true;
                     if (mainWindow) mainWindow.showInactive();
                 } catch (err) {
@@ -429,7 +433,7 @@ function registerHotkey() {
             } else {
                 try {
                     console.log('Sending stop recording request to backend...');
-                    await axios.post('http://127.0.0.1:8000/stop');
+                    await axios.post('http://127.0.0.1:8240/stop');
                     if (mainWindow) mainWindow.hide();
                     isRecording = false;
                 } catch (err) {
@@ -485,7 +489,7 @@ app.whenReady().then(() => {
     ipcMain.on('config-updated', () => {
         console.log('Config updated signal received.');
         registerHotkey();
-        axios.post('http://127.0.0.1:8000/config/reload').catch(e => console.error(e));
+        axios.post('http://127.0.0.1:8240/config/reload').catch(e => console.error(e));
     });
 
     ipcMain.on('set-autostart', (event, enable) => {
