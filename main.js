@@ -306,6 +306,7 @@ function createWindow() {
         fs.writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 4));
     });
 
+    mainWindow.setMenu(null);
     mainWindow.loadFile('ui/index.html');
 }
 
@@ -337,6 +338,7 @@ function createSettingsWindow() {
         settingsWindow.center();
     }
 
+    settingsWindow.setMenu(null);
     settingsWindow.loadFile('ui/settings.html');
 
     settingsWindow.on('closed', () => {
