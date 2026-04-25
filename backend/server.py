@@ -516,6 +516,18 @@ async def get_status():
     status = app_state.copy()
     if app_state.get("is_reloading"):
         status["status"] = "reloading"
+    
+    # Check Ollama connectivity
+    ollama_connected = False
+    try:
+        base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{base_url}/api/tags", timeout=0.5)
+            ollama_connected = (resp.status_code == 200)
+    except:
+        pass
+    status["ollama_connected"] = ollama_connected
+
     # Explicitly cast to float to avoid numpy JSON serialization error
     status["volume"] = float(recorder.current_volume) if recorder else 0.0
     return status
