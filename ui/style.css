@@ -81,6 +81,51 @@ html, body {
     transform: translateY(-1px);
 }
 
+/* AI Toggle Pill */
+.ai-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(0, 113, 227, 0.1);
+    border: 1px solid rgba(0, 113, 227, 0.3);
+    padding: 1px 8px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s var(--ease-out-expo);
+    -webkit-app-region: no-drag;
+}
+.ai-pill:hover {
+    background: rgba(0, 113, 227, 0.2);
+    transform: scale(1.05);
+}
+.pill-dot {
+    width: 6px;
+    height: 6px;
+    background: #0071e3;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0, 113, 227, 0.8);
+    transition: 0.3s;
+}
+.pill-label {
+    font-size: 8px;
+    font-weight: 700;
+    color: #0071e3;
+    letter-spacing: 0.05em;
+}
+
+/* AI OFF State */
+.ai-pill.ai-off {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+.ai-pill.ai-off .pill-dot {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: none;
+}
+.ai-pill.ai-off .pill-label {
+    color: rgba(255, 255, 255, 0.4);
+}
+
 .recording-active {
     background: rgba(255, 45, 85, 0.1);
     border-color: rgba(255, 45, 85, 0.3);

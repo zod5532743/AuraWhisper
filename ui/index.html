@@ -13,7 +13,13 @@
             <div id="recording-indicator" class="pulse hide"></div>
             
             <div class="text-container" style="display:flex; flex-direction:column; justify-content:center; margin-left:12px; flex:1;">
-                <div id="mode-badge" class="mode-badge-inline">General</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <div id="mode-badge" class="mode-badge-inline">General</div>
+                    <div id="ai-toggle" class="ai-pill" title="Toggle AI Refinement">
+                        <span class="pill-dot"></span>
+                        <span class="pill-label">AI ON</span>
+                    </div>
+                </div>
                 <div id="status-text" class="fade-up">Ready</div>
                 <div id="sub-status" class="fade-up">Detecting...</div>
             </div>
@@ -215,8 +221,35 @@
                 
                 const activeMode = allModes.find(m => m.id === currentConfig.active_mode_id) || allModes[0];
                 document.getElementById('mode-badge').innerText = activeMode ? activeMode.name : 'Default';
+                
+                updateAIPillUI(currentConfig.use_ollama);
             } catch (e) {}
         }
+
+        function updateAIPillUI(enabled) {
+            const pill = document.getElementById('ai-toggle');
+            if (enabled) {
+                pill.classList.remove('ai-off');
+                pill.querySelector('.pill-label').innerText = 'AI ON';
+            } else {
+                pill.classList.add('ai-off');
+                pill.querySelector('.pill-label').innerText = 'AI OFF';
+            }
+        }
+
+        async function toggleAI() {
+            currentConfig.use_ollama = !currentConfig.use_ollama;
+            updateAIPillUI(currentConfig.use_ollama);
+            
+            await fetch('http://127.0.0.1:8000/config', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(currentConfig)
+            });
+            ipcRenderer.send('config-updated');
+        }
+
+        document.getElementById('ai-toggle').onclick = toggleAI;
 
         async function cycleMode() {
             if (allModes.length === 0) return;
