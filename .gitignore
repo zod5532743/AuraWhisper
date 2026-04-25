@@ -17,4 +17,4 @@ config.json
 # IDE
 .vscode/
 .idea/
-.DS_Store
+.DS_Storebuild/

@@ -19,9 +19,8 @@
     "files": [
       "**/*.js",
       "**/*.json",
-      "backend/server.exe",
-      "backend/audio_recorder.py",
-      "backend/gui.py"
+      "backend/*.py",
+      "backend/requirements.txt"
     ],
     "win": {
       "target": "nsis",

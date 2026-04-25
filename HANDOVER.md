@@ -24,6 +24,15 @@
   - 通信タイムアウトの導入により、モデルロード中の誤作動を防止。
   - プロセス停止時のタイマー競合を解消。
 
+## ビルド・配布手順 (v1.0.1)
+現在の環境制限により `electron-builder` の自動 ZIP 化が失敗するため、手動でパッケージングを行っています。
+1.  **Python バックエンドのビルド**:
+    `.\backend\venv\Scripts\pyinstaller --onedir --name "server" .\backend\server.py`
+2.  **配布フォルダの作成**:
+    `dist\win-unpacked` の内容をベースに、`resources\app.asar` を削除し、ソースコードと `server_dist` を `resources\app` および `resources\backend` に配置。
+3.  **圧縮**:
+    `Compress-Archive` を使用して `dist\AuraWhisper-v1.0.1-Portable.zip` を作成。
+
 ## 今後の展望
 - モバイルアプリ（リモート録音）との連携。
 - マルチ言語の同時翻訳モードの強化。

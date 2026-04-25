@@ -209,21 +209,34 @@ function startPythonBackend() {
             pollStatusForNotification();
         })
         .catch(() => {
-            const pythonExe = path.join(__dirname, 'backend', 'venv', 'Scripts', 'python.exe');
-            const scriptPath = path.join(__dirname, 'backend', 'server.py');
+            let pythonExe;
+            let scriptPath;
+            let cwd;
+
+            if (app.isPackaged) {
+                // When packaged, app files are in resources/app
+                cwd = path.join(process.resourcesPath, 'app', 'backend');
+                pythonExe = path.join(cwd, 'venv', 'Scripts', 'python.exe');
+                scriptPath = path.join(cwd, 'server.py');
+            } else {
+                cwd = path.join(__dirname, 'backend');
+                pythonExe = path.join(cwd, 'venv', 'Scripts', 'python.exe');
+                scriptPath = path.join(cwd, 'server.py');
+            }
+
+            // Fallback to system python if venv is missing (though venv is recommended)
+            if (!fs.existsSync(pythonExe)) {
+                pythonExe = 'python'; 
+                console.log('[INFO] venv not found. Falling back to system python.');
+            }
 
             console.log(`[DEBUG] Attempting to spawn backend:`);
             console.log(`[DEBUG] Python Path: ${pythonExe}`);
             console.log(`[DEBUG] Script Path: ${scriptPath}`);
-            console.log(`[DEBUG] Working Dir: ${path.join(__dirname, 'backend')}`);
-
-            if (!fs.existsSync(pythonExe)) {
-                console.error(`[ERROR] Python executable not found at: ${pythonExe}`);
-                return;
-            }
+            console.log(`[DEBUG] Working Dir: ${cwd}`);
 
             pythonProcess = spawn(pythonExe, [scriptPath], {
-                cwd: path.join(__dirname, 'backend'),
+                cwd: cwd,
                 env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
             });
 

@@ -5,9 +5,15 @@ Thank you for choosing AuraWhisper. This tool is a premium voice input assistant
 ---
 
 ## 1. Startup and Preparation
-
-1.  **Launch the App**: Run the installed `AuraWhisper.exe`.
-2.  **Verify Readiness**: A floating bar will appear on your desktop. After a few seconds, a notification saying "AI Engine is ready!" indicates you are good to go.
+ 
+AuraWhisper runs AI locally on your PC to ensure 100% privacy. The following one-time preparation is required:
+ 
+1.  **Install Python**:
+    *   Download and install Python 3.10+ from [python.org](https://www.python.org/downloads/).
+    *   **Crucial**: Check the box **"Add Python to PATH"** during installation.
+2.  **Launch the App**: 
+    *   Run `AuraWhisper.exe` from the extracted folder.
+3.  **Verify Readiness**: A floating bar will appear. After a few seconds, a notification saying "AI Engine is ready!" will appear.
 
 ## 2. Basic Usage
 
