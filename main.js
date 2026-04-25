@@ -278,20 +278,32 @@ function loadConfig() {
 }
 
 function createWindow() {
+    const config = loadConfig();
     mainWindow = new BrowserWindow({
-        width: 450,
-        height: 200,
+        width: config.window_style === 'mini' ? 320 : 450,
+        height: config.window_style === 'mini' ? 120 : 200,
+        x: config.window_x,
+        y: config.window_y,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
         skipTaskbar: true,
-        resizable: false,
+        resizable: true, // Required for dragging in some cases
         focusable: false,
         show: false,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         }
+    });
+
+    // Save position when moved
+    mainWindow.on('move', () => {
+        const [x, y] = mainWindow.getPosition();
+        const currentConfig = loadConfig();
+        currentConfig.window_x = x;
+        currentConfig.window_y = y;
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 4));
     });
 
     mainWindow.loadFile('ui/index.html');

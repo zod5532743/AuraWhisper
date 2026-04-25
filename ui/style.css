@@ -45,6 +45,11 @@ html, body {
     overflow: hidden; /* Prevent inner artifacts from leaking */
     position: relative;
     transition: all 0.6s var(--ease-out-expo);
+    -webkit-app-region: drag; /* Allow dragging the window */
+    cursor: grab;
+}
+.container:active {
+    cursor: grabbing;
 }
 
 /* Mode Badge */
@@ -64,6 +69,7 @@ html, body {
     cursor: pointer;
     transition: 0.2s;
     backdrop-filter: blur(10px);
+    -webkit-app-region: no-drag;
 }
 .mode-badge-inline:hover {
     background: var(--accent-bg);
@@ -158,6 +164,7 @@ html, body {
     align-items: center;
     justify-content: center;
     z-index: 30;
+    -webkit-app-region: no-drag;
 }
 
 .settings-btn:hover {
