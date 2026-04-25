@@ -5,13 +5,13 @@ AuraWhisper は、プライバシーを最優先に考えた、完全ローカ�
 
 ---
 
-## 🚀 Download & Install (v1.0.0)
-
-今すぐ AuraWhisper を使い始めるには、以下のリンクから最新版をダウンロードしてください。
-
-👉 **[AuraWhisper v1.0.0 をダウンロード](https://github.com/zod5532743/AuraWhisper/releases/latest)**
-
-*   `AuraWhisper-v1.0.0-Portable.zip` をダウンロードし、解凍して `aurawhisper.exe` を実行するだけです。
+## 🚀 Download & Install (v1.0.1)
+ 
+今すぐ AuraWhisper を使い始めるには、GitHub リポジトリから最新のコードを取得するか、リリースセクションを確認してください。
+ 
+👉 **[AuraWhisper リリース一覧](https://github.com/zod5532743/AuraWhisper/releases)**
+ 
+*   `AuraWhisper-v1.0.1` (最新の安定性修正版)
 *   詳細は [日本語取扱説明書 (USER_GUIDE.md)](./USER_GUIDE.md) または [English User Guide (USER_GUIDE_EN.md)](./USER_GUIDE_EN.md) をご覧ください。
 
 ---
