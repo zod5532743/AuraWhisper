@@ -218,7 +218,7 @@
         }
 
         async function showNotification(title, body) {
-            const confRes = await fetch('http://127.0.0.1:8000/config');
+            const confRes = await fetch('http://127.0.0.1:8240/config');
             const config = await confRes.json();
             if (config.notifications === false) return;
 
@@ -231,8 +231,8 @@
         async function fetchModesAndConfig() {
             try {
                 const [cRes, mRes] = await Promise.all([
-                    fetch('http://127.0.0.1:8000/config'),
-                    fetch('http://127.0.0.1:8000/modes')
+                    fetch('http://127.0.0.1:8240/config'),
+                    fetch('http://127.0.0.1:8240/modes')
                 ]);
                 currentConfig = await cRes.json();
                 allModes = await mRes.json();
@@ -259,7 +259,7 @@
             // Check Ollama status if trying to turn ON
             if (!currentConfig.use_ollama) {
                 try {
-                    const res = await fetch('http://127.0.0.1:8000/status');
+                    const res = await fetch('http://127.0.0.1:8240/status');
                     const data = await res.json();
                     if (!data.ollama_connected) {
                         document.getElementById('ollama-guide').classList.remove('hide');
@@ -273,7 +273,7 @@
             currentConfig.use_ollama = !currentConfig.use_ollama;
             updateAIPillUI(currentConfig.use_ollama);
             
-            await fetch('http://127.0.0.1:8000/config', {
+            await fetch('http://127.0.0.1:8240/config', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify(currentConfig)
@@ -294,7 +294,7 @@
             document.getElementById('mode-badge').innerText = nextMode.name;
             
             // Save to backend
-            await fetch('http://127.0.0.1:8000/config', {
+            await fetch('http://127.0.0.1:8240/config', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify(currentConfig)
@@ -321,7 +321,7 @@
 
         async function updateStatus(force = false) {
             try {
-                const res = await fetch('http://127.0.0.1:8000/status');
+                const res = await fetch('http://127.0.0.1:8240/status');
                 const data = await res.json();
                 
                 if (data.status === 'recording') {

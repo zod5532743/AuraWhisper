@@ -12,7 +12,11 @@ class Transcriber:
             # CPU 'int8' can be unstable on some Windows setups, using 'float32' for safety
             compute_type = "float16" if device == "cuda" else "float32"
         logger.info(f"Loading Whisper model: {model_size} on {device} ({compute_type})...")
-        self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
+        try:
+            self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
+        except Exception as e:
+            logger.error(f"Failed to initialize CUDA: {e}. Falling back to CPU...")
+            self.model = WhisperModel(model_size, device="cpu", compute_type="float32")
 
 
         logger.info("Model loaded successfully.")

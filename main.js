@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification, shell } = require('electron');
+const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification, shell, screen } = require('electron');
 
 // Disable hardware acceleration to fix transparency issues on some Windows systems
 app.disableHardwareAcceleration();
@@ -241,32 +241,48 @@ function startPythonBackend() {
                 scriptPath = path.join(cwd, 'server.py');
             }
 
-            // Fallback to system python if venv is missing (though venv is recommended)
+            // Fallback to system python if venv is missing
             if (!fs.existsSync(pythonExe)) {
                 pythonExe = 'python'; 
                 console.log('[INFO] venv not found. Falling back to system python.');
             }
 
-            console.log(`[DEBUG] Attempting to spawn backend:`);
-            console.log(`[DEBUG] Python Path: ${pythonExe}`);
-            console.log(`[DEBUG] Script Path: ${scriptPath}`);
-            console.log(`[DEBUG] Working Dir: ${cwd}`);
+            // Final check: if neither venv nor system python works, alert user
+            try {
+                const { execSync } = require('child_process');
+                execSync(`${pythonExe} --version`);
+            } catch (e) {
+                const { dialog } = require('electron');
+                dialog.showErrorBox(
+                    'Python Not Found',
+                    'AuraWhisper requires Python to run.\n\nPlease install Python from python.org and ensure "Add to PATH" is checked during installation.'
+                );
+                return;
+            }
 
+            const logStream = fs.createWriteStream(path.join(app.getPath('userData'), 'backend.log'), { flags: 'a' });
+            
             pythonProcess = spawn(pythonExe, [scriptPath], {
                 cwd: cwd,
                 env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
             });
 
             pythonProcess.stdout.on('data', (data) => {
-                console.log(`Py stdout: ${data}`);
+                const msg = `[${new Date().toISOString()}] STDOUT: ${data}\n`;
+                console.log(msg);
+                logStream.write(msg);
             });
 
             pythonProcess.stderr.on('data', (data) => {
-                console.error(`Py stderr: ${data}`);
+                const msg = `[${new Date().toISOString()}] STDERR: ${data}\n`;
+                console.error(msg);
+                logStream.write(msg);
             });
 
             pythonProcess.on('error', (err) => {
-                console.error(`[ERROR] Failed to start backend process: ${err.message}`);
+                const msg = `[${new Date().toISOString()}] SPAWN ERROR: ${err.message}\n`;
+                console.error(msg);
+                logStream.write(msg);
             });
 
             pythonProcess.on('close', (code) => {
@@ -312,16 +328,41 @@ function loadConfig() {
 
 function createWindow() {
     const config = loadConfig();
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+    
+    console.log(`[INFO] Detected Screen Resolution: ${screenWidth}x${screenHeight}`);
+
+    const winWidth = config.window_style === 'mini' ? 320 : 450;
+    const winHeight = config.window_style === 'mini' ? 120 : 200;
+
+    // Use saved coordinates or default to center
+    let x = config.window_x;
+    let y = config.window_y;
+
+    // If coordinates are missing or completely invalid, center it
+    if (x === undefined || y === undefined) {
+        x = Math.floor((screenWidth - winWidth) / 2);
+        y = Math.floor((screenHeight - winHeight) / 2);
+    } else {
+        // Safety: Clamp coordinates to be within the current screen boundaries
+        // This ensures the window is visible even if the user changed resolution or disconnected a monitor
+        x = Math.max(0, Math.min(x, screenWidth - winWidth));
+        y = Math.max(0, Math.min(y, screenHeight - winHeight));
+    }
+
+    console.log(`[INFO] Positioning window at: x=${x}, y=${y}`);
+
     mainWindow = new BrowserWindow({
-        width: config.window_style === 'mini' ? 320 : 450,
-        height: config.window_style === 'mini' ? 120 : 200,
-        x: config.window_x,
-        y: config.window_y,
+        width: winWidth,
+        height: winHeight,
+        x: x,
+        y: y,
         frame: false,
-        transparent: true,
+        transparent: true, // Re-enable transparency for v1.0.5
         alwaysOnTop: true,
         skipTaskbar: true,
-        resizable: true, // Required for dragging in some cases
+        resizable: true,
         focusable: false,
         show: false,
         webPreferences: {
@@ -425,10 +466,21 @@ function registerHotkey() {
                     console.log('Sending start recording request to backend...');
                     await axios.post('http://127.0.0.1:8240/start');
                     isRecording = true;
-                    if (mainWindow) mainWindow.showInactive();
+                    
+                    if (!mainWindow || mainWindow.isDestroyed()) {
+                        createWindow();
+                    }
+                    
+                    if (mainWindow) {
+                        mainWindow.setAlwaysOnTop(true, 'screen-saver');
+                        mainWindow.show();
+                        // Optional: Ensure it's not minimized
+                        if (mainWindow.isMinimized()) mainWindow.restore();
+                    }
                 } catch (err) {
                     console.error('Error starting recording:', err.message);
-                    showWindow();
+                    if (!mainWindow || mainWindow.isDestroyed()) createWindow();
+                    if (mainWindow) mainWindow.show();
                 }
             } else {
                 try {

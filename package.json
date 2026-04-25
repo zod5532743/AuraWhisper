@@ -1,6 +1,6 @@
 {
   "name": "aurawhisper",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Premium dictation tool for Windows",
   "main": "main.js",
   "scripts": {
@@ -16,11 +16,13 @@
   },
   "build": {
     "appId": "com.yourcompany.aurawhisper",
+    "asar": false,
     "files": [
       "**/*.js",
       "**/*.json",
       "backend/*.py",
-      "backend/requirements.txt"
+      "backend/requirements.txt",
+      "backend/*.bat"
     ],
     "win": {
       "target": "nsis",

@@ -98,12 +98,72 @@ def save_vocabulary(data):
     with open(VOCAB_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
+DEFAULT_MODES = [
+    {
+        "id": "general",
+        "name": "General",
+        "description": "標準的な校正。フィラーを除去し、自然な日本語に整えます。",
+        "prompt": "提供されたテキストからフィラー（えー、あの、その等）や不要な言い直しを取り除き、自然な日本語として校正してください。修正後のテキストのみを出力してください。",
+        "icon": "home"
+    },
+    {
+        "id": "slack",
+        "name": "Slack / Chat",
+        "description": "チャット向けの簡潔な表現。フィラーを除去し、テンポを重視します。",
+        "prompt": "提供されたテキストからフィラーを除去し、Slackやチャット向けの簡潔でリズムの良い表現に校正してください。修正後のテキストのみを出力してください。",
+        "icon": "message-circle"
+    },
+    {
+        "id": "email",
+        "name": "Professional Email",
+        "description": "丁寧なビジネス敬語。フィラーを除去し、ビジネス文書に整えます。",
+        "prompt": "提供されたテキストからフィラーを除去し、ビジネスメールとしてそのまま使える丁寧な敬語表現に書き換えてください。修正後のテキストのみを出力してください。",
+        "icon": "mail"
+    },
+    {
+        "id": "summary",
+        "name": "Summary",
+        "description": "内容を簡潔に要約します。重要なポイントを抽出します。",
+        "prompt": "提供されたテキストの内容を理解し、重要なポイントを簡潔に要約してください。要約後のテキストのみを出力してください。",
+        "icon": "align-left"
+    },
+    {
+        "id": "translate-en",
+        "name": "JP to EN",
+        "description": "日本語から英語へ翻訳します。自然な英語表現に変換します。",
+        "prompt": "提供された日本語のテキストを、自然で流暢な英語に翻訳してください。翻訳後の英語テキストのみを出力してください。",
+        "icon": "globe"
+    },
+    {
+        "id": "bullets",
+        "name": "Bullet Points",
+        "description": "内容を整理し、箇条書きで構造化します。",
+        "prompt": "提供されたテキストからフィラーを取り除き、内容を整理して、重要なポイントを箇条書きで構造化して出力してください。修正後のテキストのみを出力してください。",
+        "icon": "list"
+    },
+    {
+        "id": "code",
+        "name": "Code Assistant",
+        "description": "プログラミングや技術用語に最適化。コードのみ、または技術解説を出力します。",
+        "prompt": "提供されたテキストを技術的な文脈で理解し、プログラミングコードが含まれる場合は適切なコードブロックとして出力してください。解説が必要な場合は簡潔に行い、技術用語の綴り（キャメルケース等）を正確に保ってください。修正後のテキストのみを出力してください。",
+        "icon": "code"
+    },
+    {
+        "id": "markdown",
+        "name": "Markdown Doc",
+        "description": "見出しや太字を活用。Markdown形式のドキュメントを作成します。",
+        "prompt": "提供されたテキストの内容を整理し、Markdown形式（#で見出し、**で強調等）を使って構造化されたドキュメントとして出力してください。読みやすさを重視し、適切な改行やリストを活用してください。修正後のテキストのみを出力してください。",
+        "icon": "type"
+    }
+]
+
 def load_modes():
     try:
-        if not os.path.exists(MODES_PATH): return []
+        if not os.path.exists(MODES_PATH): return DEFAULT_MODES
         with open(MODES_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except: return []
+            data = json.load(f)
+            return data if data else DEFAULT_MODES
+    except: return DEFAULT_MODES
 
 def save_modes(data):
     with open(MODES_PATH, "w", encoding="utf-8") as f:
@@ -117,7 +177,11 @@ def init_app_globals():
     # Initialize history and vocabulary files if they don't exist
     if not os.path.exists(HISTORY_PATH): save_history([])
     if not os.path.exists(VOCAB_PATH): save_vocabulary([])
-    if not os.path.exists(MODES_PATH): save_modes([])
+    
+    # Ensure modes are initialized with defaults if file is missing or empty
+    current_modes = load_modes()
+    if not os.path.exists(MODES_PATH) or os.path.getsize(MODES_PATH) < 5:
+        save_modes(DEFAULT_MODES)
     # Transcriber is initialized later in background thread
 
 
