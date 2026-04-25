@@ -16,6 +16,6 @@
     "ai_provider": "ollama",
     "ollama_base_url": "http://localhost:11434",
     "api_key": "",
-    "window_x": 1431,
-    "window_y": 1241
+    "window_x": 1292,
+    "window_y": 1158
 }
