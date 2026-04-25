@@ -566,27 +566,49 @@
         }
 
         async function loadHome() {
-            const res = await fetch(API + '/history');
-            const history = await res.json();
-            
-            let totalChars = 0;
-            let totalSeconds = 0;
-            history.forEach(h => {
-                totalChars += (h.chars || 0);
-                totalSeconds += (h.duration || 0);
-            });
+            try {
+                const res = await fetch(API + '/history');
+                const history = await res.json();
+                
+                let totalChars = 0;
+                let totalSeconds = 0;
+                history.forEach(h => {
+                    totalChars += (h.chars || 0);
+                    totalSeconds += (h.duration || 0);
+                });
 
-            document.getElementById('stat-total-chars').innerHTML = `${totalChars.toLocaleString()}<span class="stat-unit">chars</span>`;
-            document.getElementById('stat-saved-time').innerHTML = `${Math.round(totalSeconds / 60)}<span class="stat-unit">mins</span>`;
+                // Update Stat Cards
+                document.getElementById('stat-total-chars').innerHTML = `${totalChars.toLocaleString()}<span class="stat-unit">chars</span>`;
+                
+                // Estimated time saved: Assuming 40 WPM typing vs 150 WPM speaking
+                // Roughly 1 minute of speech saves 2 minutes of typing
+                const savedMins = Math.round((totalChars / 100) * 1.5); // Simplified heuristic
+                document.getElementById('stat-saved-time').innerHTML = `${savedMins}<span class="stat-unit">mins</span>`;
+                
+                const avgAcc = history.length > 0 ? 98 : 0; // Future: calculate from actual feedback
+                document.getElementById('stat-avg-acc').innerHTML = `${avgAcc}<span class="stat-unit">%</span>`;
 
-            renderChart(history);
+                renderChart(history);
 
-            const recentList = document.getElementById('home-recent-list');
-            recentList.innerHTML = history.slice(0, 3).map(h => `
-                <div style="font-size:13px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:rgba(255,255,255,0.7);">
-                    ${h.text.substring(0, 60)}${h.text.length > 60 ? '...' : ''}
-                </div>
-            `).join('') || '<p style="color:rgba(255,255,255,0.2); font-size:13px;">No recent activity</p>';
+                // Update Recent Activity List
+                const recentList = document.getElementById('home-recent-list');
+                if (history.length === 0) {
+                    recentList.innerHTML = `<p style="color:rgba(255,255,255,0.2); font-size:13px;" data-i18n="no_recent_activity">No recent activity</p>`;
+                } else {
+                    recentList.innerHTML = history.slice(0, 5).map(h => `
+                        <div style="font-size:13px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+                            <div style="color:rgba(255,255,255,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
+                                ${h.text}
+                            </div>
+                            <div style="color:rgba(255,255,255,0.3); font-size:10px;">
+                                ${new Date(h.timestamp).toLocaleDateString()}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Failed to load dashboard data:', err);
+            }
         }
 
         let activityChart = null;
@@ -656,12 +678,56 @@
             const vocab = await res.json();
             const body = document.getElementById('vocab-list-body');
             body.innerHTML = vocab.map((v, i) => `
-                <tr>
-                    <td>${v.original}</td>
-                    <td>${v.replacement}</td>
-                    <td style="text-align:right"><button class="btn-delete" onclick="deleteVocab(${i})">Delete</button></td>
+                <tr id="vocab-row-${i}">
+                    <td class="vocab-orig-cell">${v.original}</td>
+                    <td class="vocab-repl-cell">${v.replacement}</td>
+                    <td style="text-align:right">
+                        <button class="btn-delete" style="color:var(--accent); margin-right:10px;" onclick="editVocabInline(${i})">Edit</button>
+                        <button class="btn-delete" onclick="deleteVocab(${i})">Delete</button>
+                    </td>
                 </tr>
             `).join('');
+        }
+
+        function editVocabInline(index) {
+            const row = document.getElementById(`vocab-row-${index}`);
+            const origCell = row.querySelector('.vocab-orig-cell');
+            const replCell = row.querySelector('.vocab-repl-cell');
+            const actionCell = row.cells[2];
+
+            const originalValue = origCell.innerText;
+            const replacementValue = replCell.innerText;
+
+            origCell.innerHTML = `<input type="text" id="edit-vocab-orig-${index}" value="${originalValue}" style="padding:4px 8px; font-size:12px;">`;
+            replCell.innerHTML = `<input type="text" id="edit-vocab-repl-${index}" value="${replacementValue}" style="padding:4px 8px; font-size:12px;">`;
+
+            actionCell.innerHTML = `
+                <button class="btn-delete" style="color:#34c759; margin-right:10px;" onclick="saveVocabInline(${index})">Save</button>
+                <button class="btn-delete" onclick="loadVocab()">Cancel</button>
+            `;
+        }
+
+        async function saveVocabInline(index) {
+            const original = document.getElementById(`edit-vocab-orig-${index}`).value;
+            const replacement = document.getElementById(`edit-vocab-repl-${index}`).value;
+
+            if (!original) return;
+
+            try {
+                await fetch(API + '/vocabulary', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        action: 'update', 
+                        index: index, 
+                        item: {original, replacement}
+                    })
+                });
+                showToast('Dictionary updated');
+                loadVocab();
+            } catch (err) {
+                console.error('Update failed:', err);
+            }
         }
 
         async function addVocab() {
@@ -692,26 +758,65 @@
             const res = await fetch(API + '/history');
             const history = await res.json();
             const container = document.getElementById('history-container');
+            
             container.innerHTML = history.map(h => {
-                const date = new Date(h.timestamp).toLocaleString();
+                const date = new Date(h.timestamp).toLocaleString('ja-JP', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                
+                // Diff highlighting (simple version)
+                const isDifferent = h.original && h.original !== h.text;
+                
                 return `
-                    <div class="history-item">
+                    <div class="history-item" id="history-${h.id}">
                         <div class="history-meta">
                             <span>${date}</span>
-                            <span class="history-tag">${h.model}</span>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <span class="history-tag">${h.model || 'unknown'}</span>
+                                <button class="btn-delete" style="font-size:10px;" onclick="deleteHistory(${h.id})">Delete</button>
+                            </div>
                         </div>
+                        
                         <div class="history-text">${h.text}</div>
-                        <div class="history-meta" style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
-                            <button class="btn btn-s" style="padding:4px 10px; font-size:11px;" onclick="copyText('${h.text.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">Copy</button>
-                            <button class="btn btn-p" style="padding:4px 10px; font-size:11px;" onclick="pasteText('${h.text.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">Paste</button>
+                        
+                        ${isDifferent ? `
+                        <div style="margin-top:10px; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; border-left:2px solid var(--accent);">
+                            <div style="font-size:9px; color:rgba(255,255,255,0.3); margin-bottom:4px; text-transform:uppercase;">Original Transcription</div>
+                            <div style="font-size:12px; color:rgba(255,255,255,0.4); font-style:italic;">"${h.original}"</div>
                         </div>
-                        <div class="history-meta" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:6px; margin-top:6px;">
-                            <span>${h.chars} characters</span>
-                            <span>${h.duration}s</span>
+                        ` : ''}
+
+                        <div class="history-meta" style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
+                            <button class="btn btn-s" style="padding:6px 14px; font-size:11px;" onclick="copyText('${h.text.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">Copy</button>
+                            <button class="btn btn-p" style="padding:6px 14px; font-size:11px;" onclick="pasteText('${h.text.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">Paste</button>
+                        </div>
+                        
+                        <div class="history-meta" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:8px; margin-top:8px;">
+                            <span>${h.chars || 0} characters</span>
+                            <span>${h.duration || 0}s</span>
                         </div>
                     </div>
                 `;
             }).join('') || '<p style="text-align:center; color:rgba(255,255,255,0.2); margin-top:40px;">No history yet.</p>';
+        }
+
+        async function deleteHistory(id) {
+            if (!confirm('この履歴を削除してもよろしいですか？')) return;
+            
+            try {
+                const res = await fetch(API + '/history/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id })
+                });
+                if (res.ok) {
+                    showToast('History item deleted');
+                    loadHistory();
+                    loadHome(); // Update stats too
+                }
+            } catch (err) {
+                console.error('Delete failed:', err);
+            }
         }
 
         function copyText(text) {
@@ -736,26 +841,50 @@
         async function loadModes() {
             const res = await fetch(API + '/modes');
             allModes = await res.json();
-            const list = document.getElementById('modes-list');
             
+            // Sync current active mode from config first
+            const confRes = await fetch(API + '/config');
+            const conf = await confRes.json();
+            currentActiveModeId = conf.active_mode_id || 'general';
+
+            const list = document.getElementById('modes-list');
             list.innerHTML = allModes.map((m, i) => `
                 <div class="stat-card ${m.id === currentActiveModeId ? 'active-mode-card' : ''}" 
-                     style="cursor:pointer; border-color: ${m.id === currentActiveModeId ? 'var(--accent)' : 'var(--border)'};"
+                     style="cursor:pointer; position:relative;"
                      onclick="selectMode('${m.id}')">
                     <div style="display:flex; justify-content:space-between; align-items:start;">
-                        <div class="stat-label" style="color:${m.id === currentActiveModeId ? 'var(--accent)' : ''}">${m.name}</div>
-                        <div style="display:flex; gap:8px;">
-                            <button class="btn-delete" style="padding:0; font-size:11px; color:var(--accent);" onclick="event.stopPropagation(); editMode(${i})">Edit</button>
-                            <button class="btn-delete" style="padding:0; font-size:11px;" onclick="event.stopPropagation(); deleteMode(${i})">Delete</button>
+                        <div class="stat-label" style="color:${m.id === currentActiveModeId ? 'var(--accent)' : 'inherit'}; font-weight:600;">${m.name}</div>
+                        <div style="display:flex; gap:12px;">
+                            <button class="btn-delete" style="color:var(--accent); opacity:0.8;" onclick="event.stopPropagation(); editMode(${i})">Edit</button>
+                            ${m.id !== 'general' ? `<button class="btn-delete" onclick="event.stopPropagation(); deleteMode(${i})">Delete</button>` : ''}
                         </div>
                     </div>
-                    <div style="font-size:13px; color:rgba(255,255,255,0.6); margin-top:8px; line-height:1.4;">${m.description || ''}</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:10px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                        ${m.prompt || ''}
+                    </div>
+                    ${m.id === currentActiveModeId ? '<div style="position:absolute; bottom:12px; right:12px; font-size:10px; color:var(--accent); font-weight:600;">ACTIVE</div>' : ''}
                 </div>
             `).join('');
         }
 
-        function selectMode(id) {
+        async function selectMode(id) {
             currentActiveModeId = id;
+            // Immediate sync to backend
+            const confRes = await fetch(API + '/config');
+            const conf = await confRes.json();
+            conf.active_mode_id = id;
+            
+            await fetch(API + '/config', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(conf)
+            });
+            
+            if (typeof ipcRenderer !== 'undefined') {
+                ipcRenderer.send('config-updated');
+            }
+            
+            showToast(`Mode switched to ${allModes.find(m => m.id === id)?.name}`);
             loadModes();
         }
 

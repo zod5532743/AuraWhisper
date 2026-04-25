@@ -39,11 +39,9 @@ html, body {
     height: 84px;
     background: #1a1a1f; /* Use a solid-ish background instead of blur to fix Windows artifacts */
     border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    display: flex;
     align-items: center;
     padding: 0 28px;
-    box-shadow: none;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     overflow: hidden; /* Prevent inner artifacts from leaking */
     position: relative;
     transition: all 0.6s var(--ease-out-expo);
@@ -185,9 +183,9 @@ html, body {
     background: var(--glass-bg);
     backdrop-filter: blur(40px) saturate(210%);
     border-radius: 32px;
-    border: 1px solid var(--border-glass);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 32px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
 }
 
 .section-title {

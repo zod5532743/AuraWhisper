@@ -49,6 +49,7 @@ except Exception as e:
 app_state = {
     "is_recording": False,
     "status": "loading",
+    "is_reloading": False,
     "error_message": None
 }
 
@@ -340,10 +341,12 @@ def process_and_paste_task():
         if final_text:
             # Auto-Punctuation
             if config.get("auto_punctuation", True):
-                punc_marks = (".", "!", "?", "。", "！", "？")
+                punc_marks = (".", "!", "?", "。", "！", "？", ",", "、")
                 if not final_text.endswith(punc_marks):
                     if config.get("language") == "ja":
-                        final_text += "。"
+                        # For Japanese, check if it looks like a complete sentence
+                        if len(final_text) > 3:
+                            final_text += "。"
                     else:
                         final_text += "."
             
@@ -473,7 +476,7 @@ def send_paste_command():
         else:
             user32.SetForegroundWindow(current_target)
         
-        time.sleep(0.5) # Give it a moment to stabilize
+        time.sleep(0.3) # Slightly reduced but optimized for stability
     
     # Reset all modifiers to prevent interference
     for m_key in [Key.ctrl, Key.shift, Key.alt, Key.cmd]:
@@ -511,6 +514,8 @@ app.add_middleware(
 @app.get("/status")
 async def get_status():
     status = app_state.copy()
+    if app_state.get("is_reloading"):
+        status["status"] = "reloading"
     # Explicitly cast to float to avoid numpy JSON serialization error
     status["volume"] = float(recorder.current_volume) if recorder else 0.0
     return status
@@ -547,11 +552,16 @@ async def save_config(new_config: dict):
 @app.post("/config/reload")
 async def config_reload():
     logger.info("Reloading config signal received from main process")
-    global config, recorder
-    config = load_config()
-    # Update recorder if device changed
-    recorder = AudioRecorder(device_index=config.get("device_index"))
-    return {"status": "ok"}
+    app_state["is_reloading"] = True
+    try:
+        global config, recorder
+        config = load_config()
+        # Update recorder if device changed
+        recorder = AudioRecorder(device_index=config.get("device_index"))
+        time.sleep(0.5) # Give a small buffer for sync
+        return {"status": "ok"}
+    finally:
+        app_state["is_reloading"] = False
 
 @app.post("/start")
 async def api_start():
@@ -566,6 +576,21 @@ async def api_stop():
 @app.get("/history")
 async def get_history():
     return load_history()
+
+@app.post("/history/delete")
+async def delete_history(payload: dict):
+    history_id = payload.get("id")
+    if history_id is None:
+        raise HTTPException(400, "History ID required")
+    
+    history = load_history()
+    new_history = [h for h in history if h.get("id") != history_id]
+    
+    if len(new_history) == len(history):
+        raise HTTPException(404, "History item not found")
+        
+    save_history(new_history)
+    return {"status": "ok"}
 
 @app.get("/vocabulary")
 async def get_vocabulary():
@@ -584,6 +609,11 @@ async def update_vocabulary(payload: dict):
         idx = payload.get("index")
         if idx is not None and 0 <= idx < len(vocab):
             vocab.pop(idx)
+    elif action == "update":
+        idx = payload.get("index")
+        item = payload.get("item")
+        if idx is not None and 0 <= idx < len(vocab) and item:
+            vocab[idx] = item
     save_vocabulary(vocab)
     return {"status": "ok", "vocabulary": vocab}
 
@@ -601,7 +631,12 @@ async def update_modes(payload: dict):
     elif action == "delete":
         idx = payload.get("index")
         if idx is not None and 0 <= idx < len(modes):
-            modes.pop(idx)
+            deleted_mode = modes.pop(idx)
+            # Fallback if active mode was deleted
+            global config
+            if config.get("active_mode_id") == deleted_mode.get("id"):
+                config["active_mode_id"] = "general"
+                save_config_file(config)
     elif action == "update":
         idx = payload.get("index")
         item = payload.get("item")

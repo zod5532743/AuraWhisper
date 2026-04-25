@@ -329,6 +329,10 @@ function createSettingsWindow() {
 
     settingsWindow.on('closed', () => {
         settingsWindow = null;
+        // Notify main window to refresh after settings close
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('config-updated');
+        }
         // If we're in settings mode and no other windows are open, quit
         if (isSettingsMode && !mainWindow) {
             app.quit();

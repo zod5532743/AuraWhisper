@@ -12,7 +12,7 @@
     "notifications": true,
     "autostart": true,
     "active_mode_id": "general",
-    "ui_lang": "ja",
+    "ui_lang": "en",
     "ai_provider": "ollama",
     "ollama_base_url": "http://localhost:11434",
     "api_key": ""

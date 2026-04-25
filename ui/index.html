@@ -153,6 +153,7 @@
         
         let lastStatus = '';
         let lastStatusType = '';
+        let offlineCount = 0;
 
         function setStatus(main, sub, type) {
             if (lastStatus === main && lastStatusType === type) return;
@@ -242,26 +243,35 @@
         });
 
         ipcRenderer.on('config-updated', () => {
+            console.log('Config update detected, refreshing...');
             fetchModesAndConfig();
+            updateStatus(true); // Force immediate update
         });
 
         fetchModesAndConfig();
 
-        async function updateStatus() {
+        async function updateStatus(force = false) {
             try {
                 const res = await fetch('http://127.0.0.1:8000/status');
                 const data = await res.json();
                 
                 if (data.status === 'recording') {
+                    offlineCount = 0;
                     document.getElementById('retry-btn').classList.add('hide');
                     setStatus('Listening...', 'Speak naturally', 'recording');
                     visualizer.setVolume(data.volume || 0.1);
                 } else if (data.status === 'analyzing') {
+                    offlineCount = 0;
                     setStatus('Refining...', 'AI is polishing your text', 'analyzing');
                     visualizer.setVolume(0.05);
+                } else if (data.status === 'reloading') {
+                    offlineCount = 0;
+                    setStatus('Synchronizing...', 'Applying new settings', 'loading');
+                    visualizer.setVolume(0.02);
                 } else if (data.status === 'ready') {
+                    offlineCount = 0;
                     // Update current mode name in case it changed in settings
-                    fetchModesAndConfig();
+                    // fetchModesAndConfig(); // Already handled by config-updated listener
                     
                     const config = currentConfig;
                     
@@ -269,22 +279,30 @@
                     const container = document.getElementById('app-container');
                     if (config.window_style === 'mini') {
                         container.classList.add('container-mini');
-                        ipcRenderer.send('resize-window', { width: 320, height: 120 }); // Larger than actual content
+                        ipcRenderer.send('resize-window', { width: 320, height: 120 });
                     } else {
                         container.classList.remove('container-mini');
-                        ipcRenderer.send('resize-window', { width: 450, height: 200 }); // Larger than actual content
+                        ipcRenderer.send('resize-window', { width: 450, height: 200 });
                     }
 
-                    setStatus('Ready', `Press ${config.hotkey || 'Alt+Shift+U'}`, 'ready');
+                    setStatus('Ready', `Press ${config.hotkey || 'Alt+Shift+S'}`, 'ready');
                     visualizer.setVolume(0.02);
                 } else if (data.status === 'loading') {
+                    offlineCount = 0;
                     setStatus('Initializing...', 'Loading AI models', 'loading');
                     visualizer.setVolume(0.02);
                 }
             } catch (err) {
-                setStatus('Offline', 'Backend not connected', 'error');
-                document.getElementById('retry-btn').classList.remove('hide');
-                visualizer.setVolume(0);
+                offlineCount++;
+                // Only show offline if it persists for more than 3 checks (~1.2s)
+                if (offlineCount > 3 || force) {
+                    setStatus('Offline', 'Backend not connected', 'error');
+                    document.getElementById('retry-btn').classList.remove('hide');
+                    visualizer.setVolume(0);
+                } else {
+                    // Temporary glitch, show syncing
+                    setStatus('Synchronizing...', 'Reconnecting to AI engine', 'loading');
+                }
             }
         }
 
@@ -292,7 +310,7 @@
             ipcRenderer.send('relaunch-app');
         };
 
-        setInterval(updateStatus, 400);
+        let statusTimer = setInterval(updateStatus, 400);
 
         document.getElementById('open-settings-btn').onclick = () => {
             ipcRenderer.send('open-settings');
