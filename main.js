@@ -151,11 +151,14 @@ let consecutiveFailures = 0;
 let restartCount = 0;
 let pollingTimer = null;
 const MAX_RESTARTS = 5;
-const FAILURE_THRESHOLD = 15;
+const FAILURE_THRESHOLD = 20; // 20 * 2s = 40s
 
 // Function to poll backend status for notifications
 function pollStatusForNotification() {
-    if (pollingTimer) return; // Already polling
+    if (pollingTimer) {
+        clearInterval(pollingTimer);
+        pollingTimer = null;
+    }
     
     console.log('Starting backend status polling...');
     pollingTimer = setInterval(async () => {
@@ -178,10 +181,17 @@ function pollStatusForNotification() {
             }
         } catch (e) {
             consecutiveFailures++;
-            console.log(`Backend offline... (${consecutiveFailures}/${FAILURE_THRESHOLD})`);
+            const errorType = e.code || e.message;
+            console.log(`Backend offline... (${consecutiveFailures}/${FAILURE_THRESHOLD}) - Reason: ${errorType}`);
             
             if (consecutiveFailures >= FAILURE_THRESHOLD) {
-                console.error('Backend lost connection. Attempting auto-restart...');
+                // If process is still running, it might just be extremely slow or loading a huge model
+                if (pythonProcess && consecutiveFailures < FAILURE_THRESHOLD * 2) {
+                    console.log('Backend is non-responsive but process is still ALIVE. Waiting longer...');
+                    return; 
+                }
+
+                console.error('Backend lost connection or failed to start. Attempting auto-restart...');
                 consecutiveFailures = 0;
                 hasNotifiedReady = false;
                 
