@@ -1,5 +1,19 @@
 const { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, Notification, shell, screen } = require('electron');
 
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    app.quit();
+    process.exit(0);
+} else {
+    app.on('second-instance', () => {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.show();
+            mainWindow.focus();
+        }
+    });
+}
+
 // Disable hardware acceleration to fix transparency issues on some Windows systems
 app.disableHardwareAcceleration();
 
@@ -187,8 +201,19 @@ function pollStatusForNotification() {
             console.log(`Backend offline... (${consecutiveFailures}/${FAILURE_THRESHOLD}) - Reason: ${errorType}`);
             
             if (consecutiveFailures >= FAILURE_THRESHOLD) {
-                // If process is still running, be extremely patient (wait up to 2 minutes)
-                if (pythonProcess && consecutiveFailures < 60) { // 60 * 2s = 120s
+                const fs = require('fs');
+                let venvPython;
+                if (app.isPackaged) {
+                    const rootDir = path.dirname(app.getPath('exe'));
+                    venvPython = path.join(rootDir, 'backend', 'venv', 'Scripts', 'python.exe');
+                } else {
+                    venvPython = path.join(__dirname, 'backend', 'venv', 'Scripts', 'python.exe');
+                }
+                
+                if (!fs.existsSync(venvPython)) {
+                    console.log('Virtual environment not found. Skipping recovery.');
+                    consecutiveFailures = 0;
+                } else if (pythonProcess && consecutiveFailures < 60) { // 60 * 2s = 120s
                     console.log('Backend is non-responsive but process is still ALIVE. Being patient...');
                 } else {
                     console.error('Backend recovery triggered.');
@@ -230,15 +255,20 @@ function startPythonBackend() {
             let scriptPath;
             let cwd;
 
-            if (app.isPackaged) {
-                // When packaged, app files are in resources/app
-                cwd = path.join(process.resourcesPath, 'app', 'backend');
-                pythonExe = path.join(cwd, 'venv', 'Scripts', 'python.exe');
-                scriptPath = path.join(cwd, 'server.py');
-            } else {
-                cwd = path.join(__dirname, 'backend');
-                pythonExe = path.join(cwd, 'venv', 'Scripts', 'python.exe');
-                scriptPath = path.join(cwd, 'server.py');
+            // Use __dirname for simple, reliable path resolution in development and NSIS installation
+            cwd = path.join(__dirname, 'backend');
+            pythonExe = path.join(cwd, 'venv', 'Scripts', 'python.exe');
+            scriptPath = path.join(cwd, 'server.py');
+
+            // Fallback for portable layouts where backend is directly in app.getPath('exe') parent directory
+            if (!fs.existsSync(pythonExe)) {
+                const portableDir = path.join(path.dirname(app.getPath('exe')), 'backend');
+                const portablePython = path.join(portableDir, 'venv', 'Scripts', 'python.exe');
+                if (fs.existsSync(portablePython)) {
+                    cwd = portableDir;
+                    pythonExe = portablePython;
+                    scriptPath = path.join(cwd, 'server.py');
+                }
             }
 
             // Fallback to system python if venv is missing
@@ -260,29 +290,30 @@ function startPythonBackend() {
                 return;
             }
 
-            const logStream = fs.createWriteStream(path.join(app.getPath('userData'), 'backend.log'), { flags: 'a' });
+            console.log(`Spawning backend: ${pythonExe} ${scriptPath}`);
             
+            const debugLogPath = path.join(app.getPath('userData'), 'backend_debug.log');
+            fs.writeFileSync(debugLogPath, `Backend start attempt: ${new Date().toLocaleString()}\n`);
+
             pythonProcess = spawn(pythonExe, [scriptPath], {
                 cwd: cwd,
                 env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
             });
 
             pythonProcess.stdout.on('data', (data) => {
-                const msg = `[${new Date().toISOString()}] STDOUT: ${data}\n`;
-                console.log(msg);
-                logStream.write(msg);
+                const msg = data.toString();
+                fs.appendFileSync(debugLogPath, `[STDOUT] ${msg}`);
             });
 
             pythonProcess.stderr.on('data', (data) => {
-                const msg = `[${new Date().toISOString()}] STDERR: ${data}\n`;
-                console.error(msg);
-                logStream.write(msg);
+                const msg = data.toString();
+                fs.appendFileSync(debugLogPath, `[STDERR] ${msg}`);
             });
 
             pythonProcess.on('error', (err) => {
                 const msg = `[${new Date().toISOString()}] SPAWN ERROR: ${err.message}\n`;
                 console.error(msg);
-                logStream.write(msg);
+                fs.appendFileSync(debugLogPath, msg);
             });
 
             pythonProcess.on('close', (code) => {
@@ -367,7 +398,8 @@ function createWindow() {
         show: false,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            webSecurity: false
         }
     });
 
@@ -401,7 +433,8 @@ function createSettingsWindow() {
         alwaysOnTop: true, // Ensure it's above the recorder
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            webSecurity: false
         }
     });
 
@@ -428,6 +461,24 @@ function createSettingsWindow() {
     });
 }
 
+ipcMain.on('open-settings', () => {
+    createSettingsWindow();
+});
+
+ipcMain.handle('get-local-config', () => {
+    return loadConfig();
+});
+
+ipcMain.handle('save-local-config', (event, newConfig) => {
+    try {
+        const mergedConfig = { ...loadConfig(), ...newConfig };
+        fs.writeFileSync(CONFIG_PATH, JSON.stringify(mergedConfig, null, 2), 'utf-8');
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: e.message };
+    }
+});
+
 function showWindow() {
     if (mainWindow) {
         mainWindow.show();
@@ -444,18 +495,12 @@ function registerHotkey() {
             return;
         }
 
-        // Use Alt+Shift+S as fallback if hotkey is missing or empty
+        // Fallback
         let hotkey = config.hotkey || 'Alt+Shift+S';
-        
-        // Final fallback if empty string was passed
         if (hotkey.trim() === '') hotkey = 'Alt+Shift+S';
 
-        // Normalize hotkey string to ensure consistency (Alt+Shift+U format)
-        hotkey = hotkey.split('+').map(part => {
-            const p = part.trim().toLowerCase();
-            if (!p) return '';
-            return p.charAt(0).toUpperCase() + p.slice(1);
-        }).filter(p => p !== '').join('+').replace('Ctrl', 'CommandOrControl');
+        // Ensure proper Electron format
+        hotkey = hotkey.replace('Control', 'CommandOrControl').replace('Ctrl', 'CommandOrControl');
 
         console.log(`Attempting to register global hotkey: [${hotkey}]`);
 
@@ -497,13 +542,14 @@ function registerHotkey() {
 
         if (!ret) {
             console.error(`CRITICAL ERROR: Hotkey registration failed for [${hotkey}]. It might be used by another application.`);
-            // Try default as last resort
-            if (hotkey !== 'Alt+Shift+S') {
-                console.log('Attempting to register default Alt+Shift+S...');
-                globalShortcut.register('Alt+Shift+S', () => { /* same logic or call registerHotkey with force default */ });
-            }
-        } else {
-            console.log(`SUCCESS: Global hotkey [${hotkey}] is now ACTIVE.`);
+            const { dialog } = require('electron');
+            dialog.showMessageBox({
+                type: 'error',
+                title: 'Shortcut Conflict',
+                message: `Failed to register global hotkey: ${hotkey}`,
+                detail: 'The shortcut is already being used by another application (like Snipping Tool or another recorder).\n\nPlease try changing the hotkey in the AuraWhisper settings.',
+                buttons: ['OK']
+            });
         }
     } catch (e) {
         console.error('Error in registerHotkey:', e.message);
@@ -540,8 +586,9 @@ app.whenReady().then(() => {
 
     ipcMain.on('config-updated', () => {
         console.log('Config updated signal received.');
+        // Notify backend to reload config as well
+        axios.post('http://127.0.0.1:8240/config/reload').catch(e => console.error('Failed to notify backend:', e.message));
         registerHotkey();
-        axios.post('http://127.0.0.1:8240/config/reload').catch(e => console.error(e));
     });
 
     ipcMain.on('set-autostart', (event, enable) => {
@@ -564,7 +611,44 @@ app.whenReady().then(() => {
                 }
             },
             { type: 'separator' },
-            { label: 'Quit', click: () => app.quit() }
+            {
+                label: 'Check Backend Status', click: async () => {
+                    try {
+                        const res = await axios.get('http://127.0.0.1:8240/status', { timeout: 2000 });
+                        new Notification({
+                            title: 'AuraWhisper Status',
+                            body: `Backend is running! Status: ${res.data.status}`,
+                            silent: false
+                        }).show();
+                    } catch (e) {
+                        new Notification({
+                            title: 'AuraWhisper Status',
+                            body: `Backend seems offline. Error: ${e.message}`,
+                            silent: false
+                        }).show();
+                    }
+                }
+            },
+            {
+                label: 'Restart Backend', click: () => {
+                    stopPythonBackend();
+                    setTimeout(() => {
+                        startPythonBackend();
+                        new Notification({
+                            title: 'AuraWhisper Status',
+                            body: 'Restarting Backend Server...',
+                            silent: false
+                        }).show();
+                    }, 1000);
+                }
+            },
+            { type: 'separator' },
+            { 
+                label: 'Force Quit & Close All', click: () => {
+                    stopPythonBackend();
+                    app.quit();
+                } 
+            }
         ]);
         tray.setToolTip('AuraWhisper');
         tray.setContextMenu(contextMenu);
@@ -584,4 +668,93 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
     stopPythonBackend();
+});
+
+ipcMain.on('start-engine-setup', (event, type) => {
+    console.log(`Starting engine setup via IPC (type: ${type})`);
+    
+    const { exec } = require('child_process');
+    const fs = require('fs');
+    const path = require('path');
+
+    let appRoot = __dirname;
+    if (appRoot.endsWith('app') || appRoot.endsWith('app.asar')) {
+        appRoot = path.dirname(appRoot);
+    }
+    const backendDir = path.join(__dirname, 'backend');
+    
+    event.reply('setup-progress', { percent: 10, status: 'Checking Python installation...' });
+    
+    exec('python --version', (err, stdout, stderr) => {
+        if (err) {
+            console.error('Global Python not found:', err);
+            event.reply('setup-error', 'Global Python is not found on your system. Please install Python to continue.');
+            return;
+        }
+
+        event.reply('setup-progress', { percent: 20, status: 'Creating Python virtual environment...' });
+
+        try {
+            if (fs.existsSync(path.join(backendDir, 'venv'))) {
+                fs.rmSync(path.join(backendDir, 'venv'), { recursive: true, force: true });
+            }
+        } catch (e) {
+            console.error('Failed to clean old venv:', e);
+        }
+
+        exec(`python -m venv "${path.join(backendDir, 'venv')}"`, (err, stdout, stderr) => {
+            if (err) {
+                console.error('Failed to create venv:', err);
+                event.reply('setup-error', 'Failed to create venv: ' + err.message);
+                return;
+            }
+
+            event.reply('setup-progress', { percent: 40, status: 'Upgrading pip in venv...' });
+
+            const venvPython = path.join(backendDir, 'venv', 'Scripts', 'python.exe');
+
+            exec(`"${venvPython}" -m pip install --upgrade pip`, (err, stdout, stderr) => {
+                event.reply('setup-progress', { percent: 50, status: 'Installing base libraries (faster-whisper, fastapi)...' });
+
+                let reqFile = path.join(backendDir, 'requirements.txt');
+                if (!fs.existsSync(reqFile)) {
+                    reqFile = path.join(backendDir, 'requirements-base.txt');
+                }
+
+                const installCmd = fs.existsSync(reqFile) 
+                    ? `"${venvPython}" -m pip install --ignore-installed -r "${reqFile}"`
+                    : `"${venvPython}" -m pip install --ignore-installed faster-whisper fastapi uvicorn pynput pyperclip pydantic httpx ctypes-callable sounddevice numpy scipy`;
+
+                exec(installCmd, (err, stdout, stderr) => {
+                    if (err) {
+                        console.error('Failed to install base dependencies:', err);
+                        event.reply('setup-error', 'Failed to install base dependencies: ' + err.message);
+                        return;
+                    }
+
+                    if (type === 'gpu') {
+                        event.reply('setup-progress', { percent: 70, status: 'Installing GPU libraries (CUDA)...' });
+                        exec(`"${venvPython}" -m pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`, (err, stdout, stderr) => {
+                            event.reply('setup-progress', { percent: 90, status: 'Finalizing installation...' });
+                            event.reply('setup-complete');
+                        });
+                    } else {
+                        event.reply('setup-progress', { percent: 90, status: 'Finalizing installation...' });
+                        event.reply('setup-complete');
+                    }
+                });
+            });
+        });
+    });
+});
+
+ipcMain.on('relaunch-app', () => {
+    try {
+        const { globalShortcut } = require('electron');
+        globalShortcut.unregisterAll();
+    } catch (e) {
+        console.error('Failed to unregister shortcuts during relaunch:', e);
+    }
+    app.relaunch();
+    app.exit(0);
 });

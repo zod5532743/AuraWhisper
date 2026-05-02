@@ -4,6 +4,7 @@
     "language": "ja",
     "model_size": "small",
     "device": "auto",
+    "device_index": 15,
     "use_ollama": false,
     "ollama_model": "gemma2:2b",
     "window_style": "classic",
@@ -15,5 +16,7 @@
     "ui_lang": "en",
     "ai_provider": "ollama",
     "ollama_base_url": "http://localhost:11434",
-    "api_key": ""
+    "api_key": "",
+    "window_x": 1293,
+    "window_y": 919
 }

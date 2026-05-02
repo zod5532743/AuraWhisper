@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 class AudioRecorder:
     def __init__(self, sample_rate=16000, device_index=None):
         self.sample_rate = sample_rate
-        self.device_index = device_index
+        # In UI, -1 represents "Auto" (default device), but sounddevice expects None
+        self.device_index = None if device_index == -1 else device_index
         self.recording = []
         self.is_recording = False
         self.current_volume = 0.0
@@ -31,7 +32,10 @@ class AudioRecorder:
         return input_devices
 
     def start_recording(self):
-        logger.info(f"Starting recording on device {self.device_index}...")
+        # Double check device index normalization
+        actual_device = None if self.device_index == -1 else self.device_index
+        logger.info(f"Starting recording on device: {actual_device if actual_device is not None else 'Default'}")
+        
         self.recording = []
         self.is_recording = True
         
@@ -46,8 +50,9 @@ class AudioRecorder:
                 # Scale RMS to 0.0 - 1.0 roughly
                 v = min(1.0, rms * 50.0)
                 self.current_volume = v
-                if v > 0.05:
-                    logger.info(f"🎤 Mic Level: {v:.4f}")
+                # Lower log level for volume to avoid flooding logs
+                # if v > 0.05:
+                #     logger.debug(f"🎤 Mic Level: {v:.4f}")
 
 
         try:
@@ -55,13 +60,24 @@ class AudioRecorder:
                 samplerate=self.sample_rate, 
                 channels=1, 
                 callback=callback,
-                device=self.device_index
+                device=actual_device
             )
             self.stream.start()
         except Exception as e:
-            logger.error(f"Failed to start recording stream: {e}")
-            self.is_recording = False
-            raise e
+            logger.error(f"Failed to start recording stream on device {actual_device}: {e}. Falling back to default device...")
+            try:
+                self.stream = sd.InputStream(
+                    samplerate=self.sample_rate, 
+                    channels=1, 
+                    callback=callback,
+                    device=None
+                )
+                self.stream.start()
+            except Exception as e2:
+                logger.error(f"Critical error on default device fallback: {e2}")
+                self.is_recording = False
+                raise e2
+
 
     def stop_recording(self):
         logger.info("Stopping recording...")

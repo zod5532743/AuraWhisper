@@ -4,6 +4,7 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from pydantic import BaseModel
 from typing import Optional
@@ -15,43 +16,93 @@ import ctypes
 from pynput.keyboard import Controller, Key, Listener, KeyCode
 
 # Setup logging
-logging.basicConfig(level=logging.INFO)
+log_file = os.path.join(os.path.dirname(__file__), "..", "aurawhisper_backend.log")
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file, encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
-
-# Suppress uvicorn access logs to avoid terminal spam from status polling
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 # Add NVIDIA DLL directories to path on Windows
 if os.name == 'nt':
-    venv_site_packages = os.path.join(os.path.dirname(__file__), "venv", "Lib", "site-packages")
-    nvidia_base = os.path.join(venv_site_packages, "nvidia")
-    if os.path.exists(nvidia_base):
-        for root, dirs, files in os.walk(nvidia_base):
-            if 'bin' in dirs:
-                bin_path = os.path.normpath(os.path.join(root, 'bin'))
-                os.add_dll_directory(bin_path)
-                os.environ["PATH"] = bin_path + os.pathsep + os.environ["PATH"]
+    import sys
+    # Search in multiple possible site-packages locations
+    possible_paths = []
+    # 1. Current sys.path (active Python environment)
+    for p in sys.path:
+        if "site-packages" in p:
+            possible_paths.append(p)
+    # 2. Local backend/venv
+    possible_paths.append(os.path.join(os.path.dirname(__file__), "venv", "Lib", "site-packages"))
+    
+    for site_pkg in possible_paths:
+        nvidia_base = os.path.join(site_pkg, "nvidia")
+        if os.path.exists(nvidia_base):
+            logger.info(f"Checking for NVIDIA DLLs in: {nvidia_base}")
+            for root, dirs, files in os.walk(nvidia_base):
+                if 'bin' in dirs:
+                    bin_path = os.path.normpath(os.path.join(root, 'bin'))
+                    try:
+                        os.add_dll_directory(bin_path)
+                        os.environ["PATH"] = bin_path + os.pathsep + os.environ["PATH"]
+                        logger.info(f"Added NVIDIA DLL directory: {bin_path}")
+                    except Exception as e:
+                        logger.warning(f"Failed to add DLL directory {bin_path}: {e}")
 
-from transcriber import Transcriber
-from audio_recorder import AudioRecorder
+
+try:
+    from transcriber import Transcriber
+    from audio_recorder import AudioRecorder
+    engine_ready = True
+except ImportError as e:
+    logger.error(f"Engine libraries missing: {e}")
+    engine_ready = False
 
 # Check for CUDA availability
-try:
-    import ctranslate2
-    cuda_available = ctranslate2.get_cuda_device_count() > 0
-    logger.info(f"CUDA detected: {cuda_available} (Count: {ctranslate2.get_cuda_device_count()})")
-except Exception as e:
-    logger.warning(f"Failed to check CUDA availability: {e}")
-    cuda_available = False
+cuda_available = False
+if engine_ready:
+    try:
+        import ctranslate2
+        cuda_available = ctranslate2.get_cuda_device_count() > 0
+        logger.info(f"CUDA detected: {cuda_available} (Count: {ctranslate2.get_cuda_device_count()})")
+    except Exception as e:
+        logger.warning(f"Failed to check CUDA availability: {e}")
+        cuda_available = False
 
 # Global state and instances
 
 app_state = {
     "is_recording": False,
     "status": "loading",
+    "status_message": "Initializing...",
     "is_reloading": False,
-    "error_message": None
+    "error_message": None,
+    "setup_progress": 0,
+    "setup_status": "idle" # idle, downloading, installing, finished, error
 }
+
+def check_full_environment():
+    """Returns detailed info about current libraries and hardware"""
+    info = {
+        "engine_ready": engine_ready,
+        "cuda_available": cuda_available,
+        "has_whisper": False,
+        "has_pynput": False,
+        "has_fastapi": True # Obviously
+    }
+    try:
+        import faster_whisper
+        info["has_whisper"] = True
+    except: pass
+    try:
+        import pynput
+        info["has_pynput"] = True
+    except: pass
+    return info
 
 user32 = ctypes.windll.user32
 target_hwnd = None
@@ -59,10 +110,60 @@ keyboard_controller = Controller()
 transcriber = None
 recorder = None
 config = {}
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config.json")
-HISTORY_PATH = os.path.join(os.path.dirname(__file__), "..", "history.json")
-VOCAB_PATH = os.path.join(os.path.dirname(__file__), "..", "vocabulary.json")
-MODES_PATH = os.path.join(os.path.dirname(__file__), "..", "modes.json")
+# Define paths relative to this script
+BASE_DIR = Path(__file__).resolve().parent
+# If running inside a backend folder, APP_ROOT is parent. 
+# If running as a standalone script in root, APP_ROOT is BASE_DIR.
+if BASE_DIR.name == "backend":
+    APP_ROOT = BASE_DIR.parent
+else:
+    APP_ROOT = BASE_DIR
+
+CONFIG_PATH = APP_ROOT / "config.json"
+HISTORY_PATH = APP_ROOT / "history.json"
+VOCAB_PATH = APP_ROOT / "vocabulary.json"
+MODES_PATH = APP_ROOT / "modes.json"
+MODELS_DIR = (APP_ROOT / "models").resolve()
+TRANSCRIPTIONS_DIR = (APP_ROOT / "transcriptions").resolve()
+
+# Ensure directories exist
+os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(TRANSCRIPTIONS_DIR, exist_ok=True)
+
+# Important for modular distribution: redirect model cache to the models dir
+os.environ["HF_HOME"] = str(MODELS_DIR)
+os.environ["XDG_CACHE_HOME"] = str(MODELS_DIR)
+os.environ["HF_HUB_CACHE"] = str(MODELS_DIR) # Add more specific hub cache env
+
+logger.info(f"App Root initialized at: {APP_ROOT}")
+logger.info(f"Config Path: {CONFIG_PATH}")
+logger.info(f"Models Directory (Resolved): {MODELS_DIR}")
+
+# Ensure critical files exist with defaults if missing
+def ensure_file_exists(path, default_content):
+    if not os.path.exists(path):
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(default_content, f, indent=4, ensure_ascii=False)
+            logger.info(f"Created default file at: {path}")
+        except Exception as e:
+            logger.error(f"Failed to create default file {path}: {e}")
+
+ensure_file_exists(CONFIG_PATH, {
+    "hotkey": "Alt+Shift+S",
+    "mode": "toggle",
+    "language": "ja",
+    "model_size": "small",
+    "device": "auto",
+    "use_ollama": False,
+    "ollama_model": "gemma2:2b",
+    "window_style": "classic"
+})
+ensure_file_exists(HISTORY_PATH, [])
+ensure_file_exists(VOCAB_PATH, [])
+
+logger.info(f"App Root: {APP_ROOT}")
+logger.info(f"Config Path: {CONFIG_PATH}")
 
 def load_config():
     try:
@@ -77,26 +178,36 @@ def save_config_file(new_config):
         json.dump(new_config, f, indent=4, ensure_ascii=False)
 
 def load_history():
+    if not HISTORY_PATH.exists(): return []
     try:
-        if not os.path.exists(HISTORY_PATH): return []
         with open(HISTORY_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
-    except: return []
+    except Exception as e:
+        logger.error(f"Error loading history: {e}")
+        return []
 
 def save_history(data):
-    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    try:
+        with open(HISTORY_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"Failed to save history: {e}")
 
 def load_vocabulary():
+    if not VOCAB_PATH.exists(): return []
     try:
-        if not os.path.exists(VOCAB_PATH): return []
         with open(VOCAB_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
-    except: return []
+    except Exception as e:
+        logger.error(f"Error loading vocabulary: {e}")
+        return []
 
 def save_vocabulary(data):
-    with open(VOCAB_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    try:
+        with open(VOCAB_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"Failed to save vocabulary: {e}")
 
 DEFAULT_MODES = [
     {
@@ -158,16 +269,23 @@ DEFAULT_MODES = [
 ]
 
 def load_modes():
+    if not MODES_PATH.exists():
+        logger.warning(f"Modes file not found at {MODES_PATH}. Using defaults.")
+        return DEFAULT_MODES
     try:
-        if not os.path.exists(MODES_PATH): return DEFAULT_MODES
         with open(MODES_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
             return data if data else DEFAULT_MODES
-    except: return DEFAULT_MODES
+    except Exception as e:
+        logger.error(f"Error loading modes: {e}")
+        return DEFAULT_MODES
 
 def save_modes(data):
-    with open(MODES_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+    try:
+        with open(MODES_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"Failed to save modes: {e}")
 
 def init_app_globals():
     global config, recorder, transcriber
@@ -175,12 +293,11 @@ def init_app_globals():
     recorder = AudioRecorder(device_index=config.get("device_index"))
     
     # Initialize history and vocabulary files if they don't exist
-    if not os.path.exists(HISTORY_PATH): save_history([])
-    if not os.path.exists(VOCAB_PATH): save_vocabulary([])
+    if not HISTORY_PATH.exists(): save_history([])
+    if not VOCAB_PATH.exists(): save_vocabulary([])
     
     # Ensure modes are initialized with defaults if file is missing or empty
-    current_modes = load_modes()
-    if not os.path.exists(MODES_PATH) or os.path.getsize(MODES_PATH) < 5:
+    if not MODES_PATH.exists() or MODES_PATH.stat().st_size < 5:
         save_modes(DEFAULT_MODES)
     # Transcriber is initialized later in background thread
 
@@ -193,16 +310,31 @@ def init_transcriber_task():
         if device == "auto":
             device = "cuda" if cuda_available else "cpu"
         
-        logger.info(f"Initializing transcriber on {device}...")
+        current_model = config.get("model_size", "small")
+        logger.info(f"Preparing transcriber: {current_model} on {device}...")
+        app_state["status"] = "loading"
+        app_state["status_message"] = f"Switching to {current_model}..."
+
+        # If we already have a transcriber, its _load_model will now handle cleanup
+        if transcriber is None:
+            transcriber = Transcriber(
+                model_size=current_model,
+                device=device,
+                compute_type=config.get("compute_type")
+            )
+        else:
+            # Update parameters for existing instance
+            transcriber.model_size = current_model
+            transcriber.device = device
+            transcriber.compute_type = config.get("compute_type")
         
-        transcriber = Transcriber(
-            model_size=config.get("model_size", "small"),
-            device=device,
-            compute_type=config.get("compute_type")
-        )
+        # This will trigger the cleanup of old model and load of new one
+        transcriber._load_model()
+        
         app_state["status"] = "ready"
+        app_state["status_message"] = f"Whisper {current_model} Ready"
         app_state["error_message"] = None
-        logger.info("Transcriber initialized successfully")
+        logger.info("Transcriber re-initialized successfully")
     except Exception as e:
         error_msg = f"Transcriber init error: {str(e)}"
         logger.error(error_msg)
@@ -239,62 +371,70 @@ active_keys = set()
 hotkey_listener = None
 
 def parse_hotkey(hotkey_str):
-    """Pars               nse a hotkey string like 'Alt+Shift+S' into a set of pynput keys."""
+    """Parse a hotkey string like 'Alt+Shift+S' or 'F1' into a set of pynput keys."""
     if not hotkey_str:
         return set()
     
-    parts = [p.strip().lower() for p in hotkey_str.split('+')]
+    # Electron uses '+' as separator, pynput often uses '+' too. 
+    # Ensure we handle various formats.
+    parts = [p.strip().lower() for p in hotkey_str.replace('+', ' ').split()]
     keys = set()
     for p in parts:
+        # 1. Check our defined map (ctrl, alt, shift, f1, f2...)
         if p in KEY_MAP:
             keys.add(KEY_MAP[p])
+        # 2. Check if it's a single character (A, B, C...)
         elif len(p) == 1:
             try:
+                # pynput expects uppercase for chars in some cases, 
+                # but KeyCode.from_char handles lowercase fine for virtual keys
                 keys.add(KeyCode.from_char(p))
             except Exception:
                 pass
+        # 3. Last resort fallback
         else:
-            # Fallback for strings that might not be in KEY_MAP but are valid
-            # This is a safety net
-            pass
+            try:
+                # Maybe it's a pynput key name we missed
+                keys.add(getattr(Key, p))
+            except:
+                pass
     return keys
 
 def on_press(key):
-    global config
-    if config.get("mode") != "hold": return
-    
-    target_keys = parse_hotkey(config.get("hotkey", "Alt+Shift+S"))
-    
-    # Add the pressed key to the set of active keys
-    # We normalize the key to handle both Key and KeyCode
-    active_keys.add(key)
-    
-    # Check if all target keys are currently pressed
-    # Using issubset for elegant and efficient set comparison
-    if target_keys and target_keys.issubset(active_keys):
-        if not app_state["is_recording"]:
-            logger.info(f"Push-to-Talk Triggered: Start (Keys: {config.get('hotkey')})")
-            trigger_start_sync()
+    try:
+        global config
+        if config.get("mode", "toggle") != "hold":
+            return
+        target_keys = parse_hotkey(config.get("hotkey", "Alt+Shift+S"))
+        
+        # Add the pressed key to the set of active keys
+        active_keys.add(key)
+        
+        # Check if all target keys are currently pressed
+        if target_keys and target_keys.issubset(active_keys):
+            # Toggle logic
+            if not app_state["is_recording"]:
+                logger.info(f"Toggle-to-Talk: Start (Keys: {config.get('hotkey')})")
+                trigger_start_sync()
+            else:
+                logger.info(f"Toggle-to-Talk: Stop (Keys: {config.get('hotkey')})")
+                trigger_stop_sync()
+            
+            # Clear active keys to prevent rapid repeated toggles while holding down
+            active_keys.clear()
+    except Exception as e:
+        logger.error(f"Error in on_press: {e}")
 
 def on_release(key):
-    global config
-    if config.get("mode") != "hold": return
-    
-    target_keys = parse_hotkey(config.get("hotkey", "Alt+Shift+S"))
-    
-    # Remove the released key from active_keys
-    # We use a list to avoid 'Set size changed during iteration' error
-    to_remove = [ak for ak in active_keys if ak == key]
-    for r in to_remove:
-        active_keys.remove(r)
-    
-    # If any of the target keys (the ones we care about) are released, stop recording
-    if app_state["is_recording"]:
-        # Check if the intersection of released target keys and required keys is non-empty
-        # Or more simply: if any key in target_keys is no longer in active_keys
-        if not target_keys.issubset(active_keys):
-            logger.info(f"Push-to-Talk Triggered: Stop (Key Released)")
-            trigger_stop_sync()
+    try:
+        global config
+        if config.get("mode", "toggle") != "hold":
+            return
+        # Normalize key removal
+        if key in active_keys:
+            active_keys.remove(key)
+    except Exception as e:
+        logger.error(f"Error in on_release: {e}")
 
 
 
@@ -302,31 +442,43 @@ def trigger_start_sync():
     global target_hwnd
     if transcriber is None or app_state["is_recording"]: return
     
-    # Try multiple times to get the correct foreground window 
-    # (incase focus is transitioning)
-    max_retries = 3
-    for _ in range(max_retries):
-        hwnd = user32.GetForegroundWindow()
-        title_len = user32.GetWindowTextLengthW(hwnd)
-        if title_len > 0: # If window has a title, it's likely a real app (not desktop/shell)
-            target_hwnd = hwnd
-            logger.info(f"Target window captured: HWND={target_hwnd}")
-            break
-        time.sleep(0.05)
-    else:
-        target_hwnd = user32.GetForegroundWindow() # Fallback
+    try:
+        # Try multiple times to get the correct foreground window 
+        # (incase focus is transitioning)
+        max_retries = 3
+        for _ in range(max_retries):
+            hwnd = user32.GetForegroundWindow()
+            title_len = user32.GetWindowTextLengthW(hwnd)
+            if title_len > 0: # If window has a title, it's likely a real app (not desktop/shell)
+                target_hwnd = hwnd
+                logger.info(f"Target window captured: HWND={target_hwnd}")
+                break
+            time.sleep(0.05)
+        else:
+            target_hwnd = user32.GetForegroundWindow() # Fallback
 
-    recorder.start_recording()
-    app_state["is_recording"] = True
-    app_state["status"] = "recording"
-    app_state["error_message"] = None
+        recorder.start_recording()
+        app_state["is_recording"] = True
+        app_state["status"] = "recording"
+        app_state["error_message"] = None
+    except Exception as e:
+        logger.error(f"Failed to start recording: {e}")
+        app_state["is_recording"] = False
+        app_state["status"] = "error"
+        app_state["error_message"] = f"Start recording failed: {str(e)}"
 
 
 def trigger_stop_sync():
-    if not app_state["is_recording"]: return
-    app_state["is_recording"] = False
-    app_state["status"] = "analyzing"
-    threading.Thread(target=process_and_paste_task).start()
+    try:
+        if not app_state["is_recording"]: return
+        app_state["is_recording"] = False
+        app_state["status"] = "analyzing"
+        threading.Thread(target=process_and_paste_task).start()
+    except Exception as e:
+        logger.error(f"Failed to stop recording or launch task: {e}")
+        app_state["is_recording"] = False
+        app_state["status"] = "ready"
+
 
 def process_and_paste_task():
     audio_path = recorder.stop_recording()
@@ -392,7 +544,7 @@ def process_and_paste_task():
                         if resp.status_code == 200:
                             refined_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
 
-                    logger.info(f"Refined via {provider} ({active_mode_id}): [{refined_text}]")
+                    logger.info(f"Refined via {provider} ({active_mode_id})")
             except Exception as e:
                 logger.error(f"AI Refinement failed: {e}")
                 refined_text = raw_text
@@ -400,9 +552,10 @@ def process_and_paste_task():
             refined_text = raw_text
         
         # Final cleanup and Smart Insertion
-        final_text = refined_text.strip()
+        final_text = str(refined_text).strip()
         
         if final_text:
+            logger.info(f"Final text for paste (len: {len(final_text)})")
             # Auto-Punctuation
             if config.get("auto_punctuation", True):
                 punc_marks = (".", "!", "?", "。", "！", "？", ",", "、")
@@ -521,36 +674,43 @@ def refine_and_paste(raw_text):
         app_state["status"] = "ready"
 
 def send_paste_command():
-    # If target_hwnd is not set, try to get current foreground window as fallback
-    current_target = target_hwnd if target_hwnd else user32.GetForegroundWindow()
-    
-    if current_target:
-        # Get the thread IDs
-        foreground_thread = user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), None)
-        target_thread = user32.GetWindowThreadProcessId(current_target, None)
+    try:
+        # If target_hwnd is not set, try to get current foreground window as fallback
+        current_target = target_hwnd if target_hwnd else user32.GetForegroundWindow()
         
-        # Try to attach thread input to bypass focus restrictions
-        if foreground_thread != target_thread:
-            try:
-                user32.AttachThreadInput(foreground_thread, target_thread, True)
+        if current_target:
+            # Get the thread IDs
+            foreground_thread = user32.GetWindowThreadProcessId(user32.GetForegroundWindow(), None)
+            target_thread = user32.GetWindowThreadProcessId(current_target, None)
+            
+            # Try to attach thread input to bypass focus restrictions
+            if foreground_thread != target_thread:
+                try:
+                    user32.AttachThreadInput(foreground_thread, target_thread, True)
+                    user32.SetForegroundWindow(current_target)
+                    user32.SetFocus(current_target)
+                    user32.AttachThreadInput(foreground_thread, target_thread, False)
+                except Exception as e:
+                    logger.warning(f"AttachThreadInput/SetFocus failed: {e}")
+            else:
                 user32.SetForegroundWindow(current_target)
-                user32.SetFocus(current_target)
-                user32.AttachThreadInput(foreground_thread, target_thread, False)
-            except: pass
-        else:
-            user32.SetForegroundWindow(current_target)
+            
+            time.sleep(0.3)
         
-        time.sleep(0.3) # Slightly reduced but optimized for stability
-    
-    # Reset all modifiers to prevent interference
-    for m_key in [Key.ctrl, Key.shift, Key.alt, Key.cmd]:
-        keyboard_controller.release(m_key)
-    
-    # Send Paste command
-    with keyboard_controller.pressed(Key.ctrl):
-        keyboard_controller.tap('v')
-    
-    logger.info("Paste command sent.")
+        # Send Paste command
+        with keyboard_controller.pressed(Key.ctrl):
+            keyboard_controller.tap('v')
+        
+        logger.info("Paste command sent successfully.")
+    except Exception as e:
+        logger.error(f"send_paste_command critical error: {e}")
+    finally:
+        # ABSOLUTELY ENSURE all modifiers are released no matter what
+        for m_key in [Key.ctrl, Key.shift, Key.alt, Key.cmd]:
+            try:
+                keyboard_controller.release(m_key)
+            except: pass
+        logger.debug("All modifier keys released safely.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -580,6 +740,10 @@ async def get_status():
     status = app_state.copy()
     if app_state.get("is_reloading"):
         status["status"] = "reloading"
+    
+    # Add engine readiness info
+    status["engine_ready"] = engine_ready
+    status["cuda_available"] = cuda_available
     
     # Check Ollama connectivity
     ollama_connected = False
@@ -612,14 +776,34 @@ async def get_config():
 
 @app.post("/config")
 async def save_config(new_config: dict):
-    logger.info(f"Saving new config: {new_config}")
+    global config, recorder
+    logger.info(f"Saving new config")
     try:
+        old_config = config.copy()
         save_config_file(new_config)
-        global config, recorder
         config = load_config()
-        # Update recorder if device changed
-        recorder = AudioRecorder(device_index=config.get("device_index"))
-        logger.info("Config saved and reloaded successfully")
+        
+        # 1. Update recorder ONLY if device_index actually changed
+        if old_config.get("device_index") != config.get("device_index"):
+            logger.info("Audio device changed. Updating recorder...")
+            recorder = AudioRecorder(device_index=config.get("device_index"))
+        
+        # 2. Reload transcriber ONLY if model or device settings actually changed
+        needs_model_reload = (
+            old_config.get("model_size") != config.get("model_size") or 
+            old_config.get("device") != config.get("device") or
+            old_config.get("compute_type") != config.get("compute_type")
+        )
+        
+        if needs_model_reload:
+            logger.info("Model settings changed. Re-initializing transcriber in background...")
+            threading.Thread(target=init_transcriber_task).start()
+        else:
+            # If model didn't change, we stay ready (no need for Loading state)
+            if app_state["status"] == "loading" and not needs_model_reload:
+                app_state["status"] = "ready"
+            
+        logger.info("Config saved successfully (Fast update applied)")
         return {"status": "saved"}
     except Exception as e:
         logger.error(f"Error saving config: {e}")
@@ -629,6 +813,7 @@ async def save_config(new_config: dict):
 async def config_reload():
     logger.info("Reloading config signal received from main process")
     app_state["is_reloading"] = True
+    app_state["status_message"] = "Reloading Configuration..."
     try:
         global config, recorder
         config = load_config()
@@ -641,8 +826,12 @@ async def config_reload():
 
 @app.post("/start")
 async def api_start():
-    trigger_start_sync()
-    return {"status": "ok"}
+    try:
+        trigger_start_sync()
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"API /start failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/stop")
 async def api_stop():
@@ -692,6 +881,41 @@ async def update_vocabulary(payload: dict):
             vocab[idx] = item
     save_vocabulary(vocab)
     return {"status": "ok", "vocabulary": vocab}
+
+from fastapi import Request
+
+@app.post("/vocabulary/import")
+async def import_vocabulary(request: Request):
+    try:
+        new_vocab = await request.json()
+        if not isinstance(new_vocab, list):
+            # If the JSON is an object with a 'rules' or 'vocabulary' key, extract it
+            if isinstance(new_vocab, dict):
+                new_vocab = new_vocab.get("rules") or new_vocab.get("vocabulary") or []
+            else:
+                new_vocab = []
+
+        existing_vocab = load_vocabulary()
+        merged = {str(item["original"]): item["replacement"] for item in existing_vocab if isinstance(item, dict) and "original" in item}
+        
+        added_count = 0
+        for item in new_vocab:
+            if not isinstance(item, dict): continue
+            orig = item.get("original") or item.get("orig") # Support common aliases
+            repl = item.get("replacement") or item.get("repl")
+            if orig and repl:
+                orig_str = str(orig)
+                if orig_str not in merged:
+                    added_count += 1
+                merged[orig_str] = repl
+        
+        final_vocab = [{"original": k, "replacement": v} for k, v in merged.items()]
+        save_vocabulary(final_vocab)
+        logger.info(f"Vocabulary import successful: {added_count} rules added. Total: {len(final_vocab)}")
+        return {"status": "ok", "added": added_count, "total": len(final_vocab)}
+    except Exception as e:
+        logger.error(f"Error importing vocabulary: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/modes")
 async def get_modes():
@@ -781,6 +1005,64 @@ async def api_reprocess_last():
         raise HTTPException(400, "Last history item has no original text")
     
     threading.Thread(target=refine_and_paste, args=(last_original,)).start()
+    return {"status": "started"}
+
+@app.get("/engine/check")
+async def api_engine_check():
+    return {
+        "info": check_full_environment(),
+        "setup_status": app_state["setup_status"],
+        "setup_progress": app_state["setup_progress"]
+    }
+
+@app.post("/engine/setup")
+async def api_engine_setup(payload: dict):
+    type = payload.get("type", "base") # base or gpu
+    
+    if app_state["setup_status"] != "idle" and app_state["setup_status"] != "finished":
+        return {"status": "error", "message": "Setup already in progress"}
+
+    def setup_task():
+        try:
+            app_state["setup_status"] = "installing"
+            app_state["setup_progress"] = 10
+            logger.info(f"Starting Engine Setup: {type}")
+            
+            import subprocess
+            import sys
+            
+            # Determine which requirements to use
+            req_file = "requirements-base.txt" if type == "base" else "requirements-gpu.txt"
+            req_path = os.path.join(os.path.dirname(__file__), req_file)
+            
+            app_state["setup_progress"] = 30
+            # Run pip install
+            cmd = [sys.executable, "-m", "pip", "install", "-r", req_path]
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            
+            for line in process.stdout:
+                logger.info(f"[PIP] {line.strip()}")
+                # Basic progress simulation
+                if app_state["setup_progress"] < 90:
+                    app_state["setup_progress"] += 1
+            
+            process.wait()
+            
+            if process.returncode == 0:
+                app_state["setup_status"] = "finished"
+                app_state["setup_progress"] = 100
+                logger.info("Engine Setup Finished Successfully")
+                # Trigger a reload after a short delay
+                time.sleep(2)
+                os._exit(0) # Restart server to pick up new libraries
+            else:
+                app_state["setup_status"] = "error"
+                logger.error(f"Engine Setup Failed with code {process.returncode}")
+        except Exception as e:
+            app_state["setup_status"] = "error"
+            logger.error(f"Setup error: {e}")
+
+    threading.Thread(target=setup_task).start()
     return {"status": "started"}
 
 if __name__ == "__main__":

@@ -324,24 +324,32 @@
                 const res = await fetch('http://127.0.0.1:8240/status');
                 const data = await res.json();
                 
+                // Prioritize backend message if available
+                const backendMsg = data.status_message;
+
+                // CHECK ENGINE READINESS
+                if (data.engine_ready === false) {
+                    offlineCount = 0;
+                    setStatus('Setup Required', 'Click to install AI Engine', 'error');
+                    visualizer.setVolume(0);
+                    return;
+                }
+
                 if (data.status === 'recording') {
                     offlineCount = 0;
                     document.getElementById('retry-btn').classList.add('hide');
-                    setStatus('Listening...', 'Speak naturally', 'recording');
+                    setStatus('Listening...', backendMsg || 'Speak naturally', 'recording');
                     visualizer.setVolume(data.volume || 0.1);
                 } else if (data.status === 'analyzing') {
                     offlineCount = 0;
-                    setStatus('Refining...', 'AI is polishing your text', 'analyzing');
+                    setStatus('Refining...', backendMsg || 'AI is polishing your text', 'analyzing');
                     visualizer.setVolume(0.05);
                 } else if (data.status === 'reloading') {
                     offlineCount = 0;
-                    setStatus('Synchronizing...', 'Applying new settings', 'loading');
+                    setStatus('Synchronizing...', backendMsg || 'Applying new settings', 'loading');
                     visualizer.setVolume(0.02);
                 } else if (data.status === 'ready') {
                     offlineCount = 0;
-                    // Update current mode name in case it changed in settings
-                    // fetchModesAndConfig(); // Already handled by config-updated listener
-                    
                     const config = currentConfig;
                     
                     // Apply window style
@@ -354,11 +362,11 @@
                         ipcRenderer.send('resize-window', { width: 450, height: 200 });
                     }
 
-                    setStatus('Ready', `Press ${config.hotkey || 'Alt+Shift+S'}`, 'ready');
+                    setStatus('Ready', backendMsg || `Press ${config.hotkey || 'Alt+Shift+S'}`, 'ready');
                     visualizer.setVolume(0.02);
                 } else if (data.status === 'loading') {
                     offlineCount = 0;
-                    setStatus('Initializing...', 'Loading AI models', 'loading');
+                    setStatus('Loading...', backendMsg || 'Loading AI models', 'loading');
                     visualizer.setVolume(0.02);
                 }
             } catch (err) {
@@ -388,6 +396,13 @@
         appContainer.oncontextmenu = (e) => {
             e.preventDefault();
             ipcRenderer.send('show-context-menu');
+        };
+
+        // Double click to open settings anywhere on the bar
+        appContainer.ondblclick = (e) => {
+            // Don't trigger if clicking AI pill or Mode badge
+            if (e.target.closest('#ai-toggle') || e.target.closest('#mode-badge')) return;
+            ipcRenderer.send('open-settings');
         };
     </script>
 </body>

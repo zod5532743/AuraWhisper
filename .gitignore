@@ -18,3 +18,13 @@ config.json
 .vscode/
 .idea/
 .DS_Storebuild/
+
+# Cache and Large files
+models/
+*.zip
+*.bin
+*.exe
+
+*.bin
+*.zip
+models/

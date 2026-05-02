@@ -1,0 +1,122 @@
+[
+    {
+        "original": "ビジネス",
+        "replacement": "Business"
+    },
+    {
+        "original": "サービス",
+        "replacement": "Service"
+    },
+    {
+        "original": "サポート",
+        "replacement": "Support"
+    },
+    {
+        "original": "デザイン",
+        "replacement": "Design"
+    },
+    {
+        "original": "メッセージ",
+        "replacement": "Message"
+    },
+    {
+        "original": "ニュース",
+        "replacement": "News"
+    },
+    {
+        "original": "イベント",
+        "replacement": "Event"
+    },
+    {
+        "original": "チーム",
+        "replacement": "Team"
+    },
+    {
+        "original": "メンバー",
+        "replacement": "Member"
+    },
+    {
+        "original": "オフィス",
+        "replacement": "Office"
+    },
+    {
+        "original": "カレンダー",
+        "replacement": "Calendar"
+    },
+    {
+        "original": "ガイド",
+        "replacement": "Guide"
+    },
+    {
+        "original": "ルール",
+        "replacement": "Rule"
+    },
+    {
+        "original": "チェック",
+        "replacement": "Check"
+    },
+    {
+        "original": "レビュー",
+        "replacement": "Review"
+    },
+    {
+        "original": "キャンセル",
+        "replacement": "Cancel"
+    },
+    {
+        "original": "スケジュール",
+        "replacement": "Schedule"
+    },
+    {
+        "original": "ミーティング",
+        "replacement": "Meeting"
+    },
+    {
+        "original": "コミュニケーション",
+        "replacement": "Communication"
+    },
+    {
+        "original": "インターネット",
+        "replacement": "Internet"
+    },
+    {
+        "original": "スマートフォン",
+        "replacement": "Smartphone"
+    },
+    {
+        "original": "カメラ",
+        "replacement": "Camera"
+    },
+    {
+        "original": "ビデオ",
+        "replacement": "Video"
+    },
+    {
+        "original": "ミュージック",
+        "replacement": "Music"
+    },
+    {
+        "original": "ストア",
+        "replacement": "Store"
+    },
+    {
+        "original": "ショッピング",
+        "replacement": "Shopping"
+    },
+    {
+        "original": "カード",
+        "replacement": "Card"
+    },
+    {
+        "original": "チケット",
+        "replacement": "Ticket"
+    },
+    {
+        "original": "キャンペーン",
+        "replacement": "Campaign"
+    },
+    {
+        "original": "スタート",
+        "replacement": "Start"
+    }
+]

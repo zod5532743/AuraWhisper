@@ -1,0 +1,122 @@
+[
+    {
+        "original": "インストール",
+        "replacement": "Install"
+    },
+    {
+        "original": "アプリケーション",
+        "replacement": "Application"
+    },
+    {
+        "original": "ディレクトリ",
+        "replacement": "Directory"
+    },
+    {
+        "original": "ファイル",
+        "replacement": "File"
+    },
+    {
+        "original": "アップデート",
+        "replacement": "Update"
+    },
+    {
+        "original": "デバッグ",
+        "replacement": "Debug"
+    },
+    {
+        "original": "エラー",
+        "replacement": "Error"
+    },
+    {
+        "original": "ユーザー",
+        "replacement": "User"
+    },
+    {
+        "original": "システム",
+        "replacement": "System"
+    },
+    {
+        "original": "データベース",
+        "replacement": "Database"
+    },
+    {
+        "original": "サーバー",
+        "replacement": "Server"
+    },
+    {
+        "original": "クライアント",
+        "replacement": "Client"
+    },
+    {
+        "original": "ネットワーク",
+        "replacement": "Network"
+    },
+    {
+        "original": "ブラウザ",
+        "replacement": "Browser"
+    },
+    {
+        "original": "ログイン",
+        "replacement": "Login"
+    },
+    {
+        "original": "コンポーネント",
+        "replacement": "Component"
+    },
+    {
+        "original": "インターフェース",
+        "replacement": "Interface"
+    },
+    {
+        "original": "ライブラリ",
+        "replacement": "Library"
+    },
+    {
+        "original": "フレームワーク",
+        "replacement": "Framework"
+    },
+    {
+        "original": "デプロイ",
+        "replacement": "Deploy"
+    },
+    {
+        "original": "ビルド",
+        "replacement": "Build"
+    },
+    {
+        "original": "パラメータ",
+        "replacement": "Parameter"
+    },
+    {
+        "original": "プロパティ",
+        "replacement": "Property"
+    },
+    {
+        "original": "メソッド",
+        "replacement": "Method"
+    },
+    {
+        "original": "オブジェクト",
+        "replacement": "Object"
+    },
+    {
+        "original": "プロジェクト",
+        "replacement": "Project"
+    },
+    {
+        "original": "バージョン",
+        "replacement": "Version"
+    },
+    {
+        "original": "コミット",
+        "replacement": "Commit"
+    },
+    {
+        "original": "リポジトリ",
+        "replacement": "Repository"
+    },
+    {
+        "original": "ソフトウェア",
+        "replacement": "Software"
+    }
+]

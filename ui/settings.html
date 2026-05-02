@@ -302,7 +302,14 @@
 
             <!-- Vocabulary Section -->
             <div id="sec-vocab" class="section">
-                <h1>Vocabulary</h1>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h1 data-i18n="nav_vocab">Vocabulary</h1>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn btn-s" onclick="exportVocab()">Export JSON</button>
+                        <button class="btn btn-s" onclick="document.getElementById('import-file').click()">Import JSON</button>
+                        <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importVocab(event)">
+                    </div>
+                </div>
                 <div class="card">
                     <h3>Add New Rule</h3>
                     <div class="form-grid">
@@ -365,6 +372,15 @@
             <!-- AI Engine Section -->
             <div id="sec-ai" class="section">
                 <h1 data-i18n="nav_ai">AI Engine</h1>
+                
+                <div style="background: rgba(0, 113, 227, 0.08); border: 1px solid rgba(0, 113, 227, 0.3); border-radius: 12px; padding: 14px; margin-bottom: 24px; display: flex; gap: 14px; align-items: center;">
+                    <div style="font-size: 20px;">ℹ️</div>
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.5;">
+                        <b style="color: white; display: block; margin-bottom: 4px;">モデルの切り替えについて</b>
+                        WhisperモデルやAIプロバイダーを変更して保存すると、AIエンジンの再初期化に数秒〜数十秒かかります。その間、音声認識は一時的に利用できなくなりますが、完了すると自動的に「Ready」状態に戻ります。
+                    </div>
+                </div>
+
                 <div class="card">
                     <h3 data-i18n="nav_ai">Whisper Transcription</h3>
                     <div class="form-grid">
@@ -376,6 +392,7 @@
                                 <option value="small">Small (Balanced)</option>
                                 <option value="medium">Medium</option>
                                 <option value="large-v3">Large v3 (Most Accurate)</option>
+                                <option value="large-v3-turbo">Large v3 Turbo (Fast & Accurate)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -386,47 +403,79 @@
                                 <option value="cpu">CPU (Standard)</option>
                             </select>
                         </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3 data-i18n="lbl_provider">AI Provider</h3>
-                    <div class="form-grid">
-                        <div class="form-group switch-container">
-                            <label data-i18n="lbl_provider">Enable Ollama Post-processing</label>
-                            <label class="switch">
-                                <input type="checkbox" id="ollama">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
                         <div class="form-group">
-                            <label data-i18n="lbl_provider">Active Ollama Model</label>
-                            <select id="ollama-model" onchange="checkOllamaModelStatus()">
+                            <label>Microphone (Input Device)</label>
+                            <select id="mic-device">
+                                <option value="-1">System Default</option>
                                 <!-- Dynamically populated -->
                             </select>
                         </div>
                     </div>
                 </div>
                 <div class="card">
-                    <h3>Connection & API</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; font-size: 13px; color: #0071e3; letter-spacing: 0.05em;">AI REFINEMENT (POST-PROCESSING)</h3>
+                        <label class="switch">
+                            <input type="checkbox" id="ollama">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label id="lbl-model-select">Active AI Model</label>
+                        <select id="ollama-model" onchange="checkOllamaModelStatus()">
+                            <!-- Dynamically populated -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card" id="card-connection">
+                    <h3 style="margin-bottom: 20px; font-size: 13px; color: #0071e3; letter-spacing: 0.05em;">CONNECTION SETTINGS</h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>AI Provider</label>
+                            <label>AI Provider Service</label>
                             <select id="ai-provider" onchange="toggleProviderFields()">
-                                <option value="ollama">Ollama (Local / LAN)</option>
-                                <option value="openai">OpenAI / Compatible API</option>
+                                <option value="ollama">Ollama (Local AI)</option>
+                                <option value="openai">OpenAI API</option>
                                 <option value="gemini">Google Gemini</option>
                             </select>
                         </div>
                         <div class="form-group" id="field-base-url">
-                            <label>Base URL</label>
+                            <label>API Base URL</label>
                             <input type="text" id="ollama-base-url" placeholder="http://localhost:11434">
                         </div>
-                        <div class="form-group" id="field-api-key" style="display:none;">
-                            <label>API Key</label>
+                        <div class="form-group" id="field-api-key" style="display:none; grid-column: span 2;">
+                            <label>API Key / Token</label>
                             <input type="password" id="api-key" placeholder="sk-...">
                         </div>
                     </div>
                 </div>
+                <div class="card" id="engine-setup-card">
+                    <h3 style="color: #0071e3; margin-bottom: 15px;">AURA ENGINE (RUNTIME)</h3>
+                    <div id="engine-status-area" style="margin-bottom: 20px;">
+                        <div id="engine-info-list" style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+
+                    <div id="setup-controls">
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <button class="btn" onclick="startEngineSetup('base')" id="btn-setup-base">Install Standard Engine</button>
+                            <button class="btn btn-primary" onclick="startEngineSetup('gpu')" id="btn-setup-gpu">Install GPU Engine (CUDA)</button>
+                        </div>
+                        
+                        <div id="setup-progress-container" class="hide" style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+                                <span id="setup-phase-text">Installing libraries...</span>
+                                <span id="setup-percent">0%</span>
+                            </div>
+                            <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                <div id="setup-bar" style="width: 0%; height: 100%; background: #0071e3; transition: width 0.3s;"></div>
+                            </div>
+                            <p style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px;">セットアップ完了後、アプリは自動的に再起動します。</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card" id="ollama-library-card">
                     <h3>Model Library</h3>
                     <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:15px;">利用可能な推奨モデルです。インストールして校正の質を向上させましょう。</p>
@@ -816,6 +865,58 @@
             }).join('') || '<p style="text-align:center; color:rgba(255,255,255,0.2); margin-top:40px;">No history yet.</p>';
         }
 
+        async function exportVocab() {
+            try {
+                const res = await fetch(API + '/vocabulary');
+                const data = await res.json();
+                const blob = new Blob([JSON.stringify(data, null, 4)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `AuraWhisper-Vocab-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                showToast('Dictionary exported');
+            } catch (err) {
+                console.error('Export failed:', err);
+                alert('Export failed');
+            }
+        }
+
+        async function importVocab(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!Array.isArray(data)) throw new Error('Invalid format: Must be an array of objects.');
+                    
+                    if (!confirm(`${data.length} 件のルールを現在の辞書に追加（マージ）しますか？`)) return;
+
+                    const resp = await fetch(API + '/vocabulary/import', {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!resp.ok) {
+                        const errText = await resp.text();
+                        throw new Error(`Server returned ${resp.status}: ${errText}`);
+                    }
+                    
+                    const result = await resp.json();
+                    showToast(`Imported ${result.added} new rules! Total: ${result.total}`);
+                    loadVocab();
+                } catch (err) {
+                    console.error('Import failed:', err);
+                    alert('Import failed!\nReason: ' + err.message + '\n\nPossible causes:\n1. Invalid JSON file format.\n2. Backend server needs a restart.\n3. Port 8240 is blocked.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset
+        }
+
         async function deleteHistory(id) {
             if (!confirm('この履歴を削除してもよろしいですか？')) return;
             
@@ -971,7 +1072,7 @@
                 apiKeyField.style.display = 'none';
                 libraryCard.style.display = 'block';
             } else if (provider === 'openai') {
-                baseUrlField.style.display = 'block'; // Can be custom endpoint
+                baseUrlField.style.display = 'none';
                 apiKeyField.style.display = 'block';
                 libraryCard.style.display = 'none';
             } else if (provider === 'gemini') {
@@ -1080,16 +1181,42 @@
             }
         }
 
+        let isLoadingConfig = false;
+        let retryCount = 0;
+        let lastLoadedConfig = {}; // For change detection
+
         async function loadConfig() {
+            if (isLoadingConfig) return;
+            isLoadingConfig = true;
+
+            const errorBanner = document.getElementById('connection-error');
+            const saveBtn = document.getElementById('save');
+
             try {
+                // Check connectivity with a short timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                
+                const statusRes = await fetch(API + '/status', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (errorBanner) errorBanner.style.display = 'none';
+                if (saveBtn) saveBtn.disabled = false;
+                retryCount = 0; // Reset retry count on success
+
+                // Check Ollama models first to populate the select box options
+                await checkOllamaModelStatus();
+
                 const res = await fetch(API + '/config');
                 const c = await res.json();
+                lastLoadedConfig = c; // Save for later comparison
                 
                 document.getElementById('hotkey').value = c.hotkey || '';
                 document.getElementById('lang').value = c.language || 'ja';
                 document.getElementById('size').value = c.model_size || 'small';
                 document.getElementById('device').value = c.device || 'auto';
                 document.getElementById('ollama').checked = !!c.use_ollama;
+                
                 document.getElementById('ollama-model').value = c.ollama_model || 'gemma2:2b';
                 document.getElementById('window-style').value = c.window_style || 'classic';
                 document.getElementById('auto-punc').checked = c.auto_punctuation !== false;
@@ -1097,19 +1224,109 @@
                 document.getElementById('notifications').checked = c.notifications !== false;
                 document.getElementById('autostart').checked = !!c.autostart;
                 
-                // New AI fields
                 document.getElementById('ai-provider').value = c.ai_provider || 'ollama';
                 document.getElementById('ollama-base-url').value = c.ollama_base_url || 'http://localhost:11434';
                 document.getElementById('api-key').value = c.api_key || '';
                 toggleProviderFields();
 
+                await loadDevices(c.device_index);
                 setUILang(c.ui_lang || 'ja');
 
                 currentActiveModeId = c.active_mode_id || 'general';
                 loadHome();
-                checkOllamaModelStatus();
             } catch (err) {
                 console.error('Failed to load config:', err);
+                retryCount++;
+                
+                try {
+                    const localC = await ipcRenderer.invoke('get-local-config');
+                    if (localC) {
+                        document.getElementById('hotkey').value = localC.hotkey || 'Alt+Shift+S';
+                        document.getElementById('lang').value = localC.language || 'ja';
+                        document.getElementById('size').value = localC.model_size || 'small';
+                        document.getElementById('device').value = localC.device || 'auto';
+                        document.getElementById('ollama').checked = !!localC.use_ollama;
+                        document.getElementById('ollama-model').value = localC.ollama_model || 'gemma2:2b';
+                        document.getElementById('window-style').value = localC.window_style || 'classic';
+                        document.getElementById('auto-punc').checked = localC.auto_punctuation !== false;
+                        document.getElementById('after-insert').value = localC.after_insertion || 'none';
+                        document.getElementById('notifications').checked = localC.notifications !== false;
+                        document.getElementById('autostart').checked = !!localC.autostart;
+                        document.getElementById('ai-provider').value = localC.ai_provider || 'ollama';
+                        document.getElementById('ollama-base-url').value = localC.ollama_base_url || 'http://localhost:11434';
+                        document.getElementById('api-key').value = localC.api_key || '';
+                        toggleProviderFields();
+                        
+                        // Fallback to populate available models if empty
+                        const modelSelect = document.getElementById('ollama-model');
+                        if (modelSelect && modelSelect.options.length <= 1) {
+                            modelSelect.innerHTML = `
+                                <option value="gemma2:2b">gemma2:2b</option>
+                                <option value="qwen2.5-coder:7b">qwen2.5-coder:7b</option>
+                                <option value="deepseek-r1:14b">deepseek-r1:14b</option>
+                                <option value="qwen3.5:9b">qwen3.5:9b</option>
+                                <option value="phi4-mini:latest">phi4-mini:latest</option>
+                            `;
+                            modelSelect.value = localC.ollama_model || 'gemma2:2b';
+                        }
+                        
+                        // Populate default modes if empty
+                        if (typeof renderModes === 'function') {
+                            const defaultModes = localC.modes || [
+                                { id: 'general', name: 'General', prompt: 'Please transcribe accurately.' },
+                                { id: 'business', name: 'Business', prompt: 'Transcribe business meeting with correct terminology.' }
+                            ];
+                            renderModes(defaultModes);
+                        }
+
+                        lastLoadedConfig = localC;
+                        currentActiveModeId = localC.active_mode_id || 'general';
+                        loadHome();
+                        if (saveBtn) saveBtn.disabled = false;
+                    }
+                } catch (localErr) {
+                    console.error('IPC get fallback failed:', localErr);
+                    if (saveBtn) saveBtn.disabled = false;
+                }
+
+                // Exponential backoff for retries: 2s, 4s, 8s, up to 30s
+                const delay = Math.min(Math.pow(2, retryCount) * 1000, 30000);
+                setTimeout(() => {
+                    isLoadingConfig = false;
+                    loadConfig();
+                }, delay);
+            } finally {
+                isLoadingConfig = false;
+            }
+        }
+
+        // Periodically check connection if offline
+        setInterval(() => {
+            const errorBanner = document.getElementById('connection-error');
+            if (errorBanner && errorBanner.style.display === 'flex' && !isLoadingConfig) {
+                loadConfig();
+            }
+        }, 10000);
+
+        async function loadDevices(selectedIndex) {
+            try {
+                const res = await fetch(API + '/devices');
+                const devices = await res.json();
+                const select = document.getElementById('mic-device');
+                if (!select) return;
+                
+                // Keep the default option
+                select.innerHTML = '<option value="-1">System Default</option>';
+                
+                devices.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.innerText = d.name;
+                    if (d.id === selectedIndex) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Failed to load devices:', err);
             }
         }
 
@@ -1125,12 +1342,18 @@
                     return el.type === 'checkbox' ? el.checked : el.value;
                 };
 
+                // Detect changes that require heavy reload
+                const currentSize = document.getElementById('size').value;
+                const currentDevice = document.getElementById('device').value;
+                const needsHeavyReload = (lastLoadedConfig.model_size !== currentSize || lastLoadedConfig.device !== currentDevice);
+
                 const configToSave = {
                     hotkey: getV('hotkey') || 'Alt+Shift+S',
                     mode: 'toggle',
                     language: getV('lang'),
-                    model_size: getV('size'),
-                    device: getV('device'),
+                    model_size: currentSize,
+                    device: currentDevice,
+                    device_index: parseInt(getV('mic-device')),
                     use_ollama: getV('ollama'),
                     ollama_model: getV('ollama-model'),
                     window_style: getV('window-style'),
@@ -1149,21 +1372,31 @@
                     configToSave.hotkey = 'Alt+Shift+S';
                 }
 
-                console.log('Sending config to backend:', configToSave);
-                
-                const response = await fetch(API + '/config', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify(configToSave)
-                });
-                
-                if (!response.ok) {
-                    let errorDetail = 'Server Error';
-                    try {
-                        const errData = await response.json();
-                        errorDetail = errData.detail || errorDetail;
-                    } catch (e) {}
-                    throw new Error(errorDetail);
+                let response;
+                try {
+                    response = await fetch(API + '/config', {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify(configToSave)
+                    });
+                    
+                    if (!response.ok) {
+                        let errorDetail = 'Server Error';
+                        try {
+                            const errData = await response.json();
+                            errorDetail = errData.detail || errorDetail;
+                        } catch (e) {}
+                        throw new Error(errorDetail);
+                    }
+                } catch (fetchErr) {
+                    console.warn('Backend unavailable, saving directly via IPC:', fetchErr);
+                    const localRes = await ipcRenderer.invoke('save-local-config', configToSave);
+                    if (localRes && localRes.success) {
+                        showToast('Settings saved successfully (Local Only)!');
+                        ipcRenderer.send('config-updated');
+                        return;
+                    }
+                    throw fetchErr;
                 }
                 
                 console.log('Config saved to backend. Sending IPC signals...');
@@ -1172,8 +1405,14 @@
                     ipcRenderer.send('set-autostart', configToSave.autostart);
                 }
                 
-                showToast('Settings saved successfully!');
-                saveBtn.innerText = 'Saved!';
+                if (needsHeavyReload) {
+                    showToast('Saving... Re-initializing AI engine. Please wait.');
+                    saveBtn.innerText = 'Reloading...';
+                } else {
+                    showToast('Settings saved successfully!');
+                    saveBtn.innerText = 'Saved!';
+                }
+                
                 saveBtn.style.background = '#34c759';
                 
                 setTimeout(() => {
@@ -1209,6 +1448,121 @@
         }
 
         loadConfig();
+
+        // Hotkey recording logic
+        const hotkeyInput = document.getElementById('hotkey');
+        if (hotkeyInput) {
+            hotkeyInput.addEventListener('keydown', (e) => {
+                e.preventDefault();
+                const combo = [];
+                if (e.ctrlKey) combo.push('CommandOrControl');
+                if (e.altKey) combo.push('Alt');
+                if (e.shiftKey) combo.push('Shift');
+                
+                let key = e.key;
+                if (key === 'Control' || key === 'Alt' || key === 'Shift' || key === 'Meta') return;
+                
+                // Handle Function keys (F1-F12) and other special keys
+                if (/^F[1-9][0-2]?$/.test(key)) {
+                    // It's a function key, keep it as is (e.g., F1)
+                } else {
+                    // Capitalize first letter (e.g., 's' -> 'S')
+                    key = key.charAt(0).toUpperCase() + key.slice(1);
+                }
+                
+                if (key === ' ') key = 'Space';
+                
+                combo.push(key);
+                hotkeyInput.value = combo.join('+');
+            });
+        }
+
+        async function startEngineSetup(type) {
+            if (!confirm(`Aura Engine (${type}) のセットアップを開始しますか？\nインターネット環境によっては時間がかかる場合があります。`)) return;
+            
+            try {
+                if (typeof ipcRenderer !== 'undefined') {
+                    ipcRenderer.send('start-engine-setup', type);
+                    document.getElementById('setup-progress-container').classList.remove('hide');
+                    document.getElementById('btn-setup-base').disabled = true;
+                    document.getElementById('btn-setup-gpu').disabled = true;
+
+                    ipcRenderer.on('setup-progress', (event, data) => {
+                        const bar = document.getElementById('setup-bar');
+                        const percent = document.getElementById('setup-percent');
+                        const statusText = document.getElementById('setup-phase-text');
+
+                        if (bar) bar.style.width = data.percent + '%';
+                        if (percent) percent.innerText = data.percent + '%';
+                        if (statusText) statusText.innerText = data.status || 'Setting up...';
+                    });
+
+                    ipcRenderer.on('setup-complete', () => {
+                        const statusText = document.getElementById('setup-phase-text');
+                        if (statusText) statusText.innerText = "Complete! Restarting...";
+                        showToast("Engine setup complete! App will restart.");
+                        setTimeout(() => {
+                            if (typeof ipcRenderer !== 'undefined') {
+                                ipcRenderer.send('relaunch-app');
+                            }
+                        }, 2000);
+                    });
+
+                    ipcRenderer.on('setup-error', (event, err) => {
+                        const statusText = document.getElementById('setup-phase-text');
+                        if (statusText) statusText.innerText = "Error: " + err;
+                        showToast("Error during engine setup: " + err);
+                        document.getElementById('btn-setup-base').disabled = false;
+                        document.getElementById('btn-setup-gpu').disabled = false;
+                    });
+                } else {
+                    showToast("IPC renderer not available.");
+                }
+            } catch (e) {
+                showToast("Setup failed to start: " + e);
+            }
+        }
+
+        async function updateEngineStatus() {
+            let hasPython = false;
+            try {
+                const { execSync } = require('child_process');
+                execSync('python --version');
+                hasPython = true;
+            } catch (e) {
+                hasPython = false;
+            }
+
+            const check = (val) => val ? '<span style="color:#4cd964;">● Found</span>' : '<span style="color:#ff3b30;">○ Missing</span>';
+            const infoList = document.getElementById('engine-info-list');
+            
+            if (infoList) {
+                infoList.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;"><span>Python Runtime:</span> ${check(hasPython)}</div>
+                    <div style="display:flex; justify-content:space-between;"><span>Whisper Library:</span> <span style="color:#ff3b30;">○ Missing</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>CUDA (NVIDIA GPU):</span> <span style="color:#ff3b30;">○ Missing</span></div>
+                `;
+            }
+
+            try {
+                const res = await fetch(API + '/engine/check');
+                const data = await res.json();
+                const info = data.info;
+                
+                if (infoList) {
+                    infoList.innerHTML = `
+                        <div style="display:flex; justify-content:space-between;"><span>Python Runtime:</span> ${check(hasPython)}</div>
+                        <div style="display:flex; justify-content:space-between;"><span>Whisper Library:</span> ${check(info.has_whisper)}</div>
+                        <div style="display:flex; justify-content:space-between;"><span>CUDA (NVIDIA GPU):</span> ${check(info.cuda_available)}</div>
+                        <div style="display:flex; justify-content:space-between;"><span>Global Listener:</span> ${check(info.has_pynput)}</div>
+                    `;
+                }
+            } catch (e) {
+                console.error("Failed to update engine status from backend:", e);
+            }
+        }
+
+        updateEngineStatus();
     </script>
 </body>
 </html>
