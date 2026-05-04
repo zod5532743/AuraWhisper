@@ -17,7 +17,9 @@ config.json
 # IDE
 .vscode/
 .idea/
-.DS_Storebuild/
+.DS_Store
+build/
+!build/installer.nsh
 
 # Cache and Large files
 models/
