@@ -45,8 +45,7 @@ ipcMain.on('show-mode-menu', async (event) => {
             type: 'radio',
             checked: m.id === config.active_mode_id,
             click: async () => {
-                config.active_mode_id = m.id;
-                await axios.post('http://127.0.0.1:8240/config', config);
+                await axios.post('http://127.0.0.1:8240/config', { active_mode_id: m.id });
                 if (mainWindow) mainWindow.webContents.send('mode-updated', m);
             }
         })));
@@ -100,8 +99,7 @@ ipcMain.on('show-context-menu', async (event) => {
                 type: 'checkbox',
                 checked: config.use_ollama,
                 click: async (item) => {
-                    config.use_ollama = item.checked;
-                    await axios.post('http://127.0.0.1:8240/config', config);
+                    await axios.post('http://127.0.0.1:8240/config', { use_ollama: item.checked });
                 }
             },
             {
@@ -109,8 +107,7 @@ ipcMain.on('show-context-menu', async (event) => {
                 type: 'checkbox',
                 checked: config.auto_punctuation,
                 click: async (item) => {
-                    config.auto_punctuation = item.checked;
-                    await axios.post('http://127.0.0.1:8240/config', config);
+                    await axios.post('http://127.0.0.1:8240/config', { auto_punctuation: item.checked });
                 }
             },
             { type: 'separator' },

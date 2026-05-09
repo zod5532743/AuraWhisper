@@ -303,7 +303,7 @@
             await fetch('http://127.0.0.1:8240/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentConfig)
+                body: JSON.stringify({ use_ollama: currentConfig.use_ollama })
             });
             ipcRenderer.send('config-updated');
         }
@@ -324,7 +324,7 @@
             await fetch('http://127.0.0.1:8240/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentConfig)
+                body: JSON.stringify({ active_mode_id: nextMode.id })
             });
             ipcRenderer.send('config-updated');
         }
