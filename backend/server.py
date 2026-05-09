@@ -90,7 +90,9 @@ app_state = {
     "is_reloading": False,
     "error_message": None,
     "setup_progress": 0,
-    "setup_status": "idle" # idle, downloading, installing, finished, error
+    "setup_status": "idle", # idle, downloading, installing, finished, error
+    "last_ai_check_time": 0.0,
+    "last_ai_check_result": False
 }
 
 def check_full_environment():
@@ -774,22 +776,32 @@ async def get_status():
     status["engine_ready"] = engine_ready
     status["cuda_available"] = cuda_available
     
-    # Check AI Provider connectivity
+    # Check AI Provider connectivity with 3-second caching to prevent port exhaustion
     provider_connected = False
     provider = config.get("ai_provider", "ollama")
     base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
-    try:
-        async with httpx.AsyncClient() as client:
-            if provider == "lmstudio":
-                resp = await client.get(f"{base_url}/models", timeout=0.5)
-                provider_connected = (resp.status_code == 200)
-            elif provider in ["openai", "gemini"]:
-                provider_connected = True
-            else:
-                resp = await client.get(f"{base_url}/api/tags", timeout=0.5)
-                provider_connected = (resp.status_code == 200)
-    except:
-        pass
+    
+    current_time = time.time()
+    last_check = app_state.get("last_ai_check_time", 0.0)
+    
+    if current_time - last_check < 3.0:
+        provider_connected = app_state.get("last_ai_check_result", False)
+    else:
+        app_state["last_ai_check_time"] = current_time
+        try:
+            async with httpx.AsyncClient() as client:
+                if provider == "lmstudio":
+                    resp = await client.get(f"{base_url}/models", timeout=0.5)
+                    provider_connected = (resp.status_code == 200)
+                elif provider in ["openai", "gemini"]:
+                    provider_connected = True
+                else:
+                    resp = await client.get(f"{base_url}/api/tags", timeout=0.5)
+                    provider_connected = (resp.status_code == 200)
+        except:
+            pass
+        app_state["last_ai_check_result"] = provider_connected
+    
     status["ollama_connected"] = provider_connected
 
     # Explicitly cast to float to avoid numpy JSON serialization error
