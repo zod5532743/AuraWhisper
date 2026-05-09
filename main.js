@@ -346,10 +346,19 @@ function stopPythonBackend() {
 // Check if we started in settings-only mode
 const isSettingsMode = process.argv.includes('--settings');
 
-const CONFIG_PATH = path.join(__dirname, 'config.json');
+const CONFIG_PATH = path.join(app.getPath('userData'), 'config.json');
 
 function loadConfig() {
     try {
+        if (!fs.existsSync(CONFIG_PATH)) {
+            const defaultPath = path.join(__dirname, 'config.json');
+            if (fs.existsSync(defaultPath)) {
+                fs.copyFileSync(defaultPath, CONFIG_PATH);
+            } else {
+                const defaultConfig = { hotkey: 'Alt+Shift+S', mode: 'toggle', language: 'ja', model_size: 'small', device: 'auto', use_ollama: false };
+                fs.writeFileSync(CONFIG_PATH, JSON.stringify(defaultConfig, null, 4), 'utf-8');
+            }
+        }
         const data = fs.readFileSync(CONFIG_PATH, 'utf-8');
         return JSON.parse(data);
     } catch (e) {
@@ -608,6 +617,28 @@ app.whenReady().then(() => {
                 label: 'Show Recorder', click: () => {
                     if (!mainWindow) createWindow();
                     mainWindow.show();
+                }
+            },
+            {
+                label: 'Reset Window Position', click: () => {
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+                        const primaryDisplay = screen.getPrimaryDisplay();
+                        const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+                        const winWidth = mainWindow.getSize()[0];
+                        const winHeight = mainWindow.getSize()[1];
+                        const cx = Math.floor((screenWidth - winWidth) / 2);
+                        const cy = Math.floor((screenHeight - winHeight) / 2);
+                        mainWindow.setPosition(cx, cy);
+                        mainWindow.show();
+                        
+                        const currentConfig = loadConfig();
+                        currentConfig.window_x = cx;
+                        currentConfig.window_y = cy;
+                        fs.writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 4));
+                    } else {
+                        createWindow();
+                        if (mainWindow) mainWindow.show();
+                    }
                 }
             },
             { type: 'separator' },

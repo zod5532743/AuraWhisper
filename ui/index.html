@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>AuraWhisper</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container" id="app-container">
         <canvas id="waveform-canvas"></canvas>
-        <div class="main-content" style="display:flex; align-items:center; width:100%; height:100%; position:relative; z-index:10;">
+        <div class="main-content"
+            style="display:flex; align-items:center; width:100%; height:100%; position:relative; z-index:10;">
             <div id="recording-indicator" class="pulse hide"></div>
-            
-            <div class="text-container" style="display:flex; flex-direction:column; justify-content:center; margin-left:12px; flex:1;">
+
+            <div class="text-container"
+                style="display:flex; flex-direction:column; justify-content:center; margin-left:12px; flex:1;">
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
                     <div id="mode-badge" class="mode-badge-inline">General</div>
-                    <div id="ai-toggle" class="ai-pill" title="Toggle AI Refinement">
+                    <div id="ai-toggle" class="ai-pill ai-off" title="Toggle AI Refinement">
                         <span class="pill-dot"></span>
-                        <span class="pill-label">AI ON</span>
+                        <span class="pill-label">AI OFF</span>
                     </div>
                 </div>
                 <div id="status-text" class="fade-up">Ready</div>
@@ -25,25 +29,36 @@
             </div>
 
             <div class="settings-btn" id="open-settings-btn" title="Settings">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
             </div>
         </div>
-        
-        <button id="retry-btn" class="hide" style="position:absolute; bottom:4px; right:48px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:2px 10px; border-radius:20px; font-size:10px; z-index:20; cursor:pointer;">Retry Connection</button>
+
+        <button id="retry-btn" class="hide"
+            style="position:absolute; bottom:4px; right:48px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:2px 10px; border-radius:20px; font-size:10px; z-index:20; cursor:pointer;">Retry
+            Connection</button>
 
         <!-- Ollama Guide Modal -->
         <div id="ollama-guide" class="modal-overlay hide">
             <div class="modal-card">
                 <h3>Ollama を活用して、文章を磨き上げる</h3>
                 <p>高度な校正機能（AI ON）を使用するには、無料の AI エンジン <b>Ollama</b> が必要です。インストールすると、驚くほど自然な文章へ自動的に整えてくれるようになります。</p>
-                <div style="margin: 20px 0; background: rgba(0,113,227,0.1); padding: 15px; border-radius: 12px; font-size: 13px;">
+                <div
+                    style="margin: 20px 0; background: rgba(0,113,227,0.1); padding: 15px; border-radius: 12px; font-size: 13px;">
                     <ol style="padding-left: 20px; color: rgba(255,255,255,0.8);">
-                        <li><a href="#" onclick="shell.openExternal('https://ollama.com/download')">Ollama をダウンロード</a> して実行</li>
+                        <li><a href="#" onclick="shell.openExternal('https://ollama.com/download')">Ollama をダウンロード</a>
+                            して実行</li>
                         <li>アプリを再起動、または AI ON を再度クリック</li>
                     </ol>
                 </div>
                 <div style="display:flex; justify-content:center; gap:12px;">
-                    <button class="btn btn-s" onclick="document.getElementById('ollama-guide').classList.add('hide')">後で設定する</button>
+                    <button class="btn btn-s"
+                        onclick="document.getElementById('ollama-guide').classList.add('hide')">後で設定する</button>
                     <button class="btn btn-p" onclick="shell.openExternal('https://ollama.com/download')">今すぐ入手</button>
                 </div>
             </div>
@@ -52,7 +67,7 @@
 
     <script>
         const { ipcRenderer } = require('electron');
-        
+
         // --- Sound Feedback ---
         class AudioFeedback {
             constructor() {
@@ -70,11 +85,11 @@
                 };
                 document.addEventListener('mousedown', unlockHandler, { once: true });
             }
-            
+
             async playPremiumSound(type) {
                 if (!this.audioCtx) return;
                 if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
-                
+
                 const now = this.audioCtx.currentTime;
                 const masterGain = this.audioCtx.createGain();
                 masterGain.connect(this.audioCtx.destination);
@@ -98,10 +113,10 @@
                 const gain = this.audioCtx.createGain();
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, startTime);
-                
+
                 gain.gain.setValueAtTime(0.5, startTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-                
+
                 osc.connect(gain);
                 gain.connect(target);
                 osc.start(startTime);
@@ -139,7 +154,7 @@
                 const w = this.canvas.width / (window.devicePixelRatio || 1);
                 const h = this.canvas.height / (window.devicePixelRatio || 1);
                 this.ctx.clearRect(0, 0, w, h);
-                
+
                 this.volume += (this.targetVolume - this.volume) * 0.1; // More smooth
                 this.phase += 0.04 + (this.volume * 0.05); // Slowed down significantly
 
@@ -147,7 +162,7 @@
                 this.drawWave(w, h, 0.4, '#0071e3', 0.5);
                 this.drawWave(w, h, 0.2, '#af52de', 0.8);
                 this.drawWave(w, h, 0.1, '#ff3b30', 1.0);
-                
+
                 requestAnimationFrame(() => this.animate());
             }
             drawWave(w, h, opacity, color, speed) {
@@ -157,11 +172,11 @@
                 this.ctx.globalAlpha = opacity;
                 this.ctx.lineWidth = 3;
                 this.ctx.lineCap = 'round';
-                
+
                 const amplitude = (h * 0.25) * this.volume; // 振幅を3分の2程度に抑制 (0.4 -> 0.25)
                 for (let x = 0; x <= w; x += 5) {
                     const sine = Math.sin(x * 0.03 + this.phase * speed);
-                    const envelope = Math.sin((x / w) * Math.PI); 
+                    const envelope = Math.sin((x / w) * Math.PI);
                     const y = h / 2 + sine * amplitude * envelope;
                     if (x === 0) this.ctx.moveTo(x, y);
                     else this.ctx.lineTo(x, y);
@@ -178,14 +193,14 @@
         const subStatus = document.getElementById('sub-status');
         const indicator = document.getElementById('recording-indicator');
         const appContainer = document.getElementById('app-container');
-        
+
         let lastStatus = '';
         let lastStatusType = '';
         let offlineCount = 0;
 
         function setStatus(main, sub, type) {
             if (lastStatus === main && lastStatusType === type) return;
-            
+
             if (type === 'recording' && lastStatusType !== 'recording') {
                 audioFeedback.playStart();
             } else if (lastStatusType === 'recording' && type !== 'recording') {
@@ -201,7 +216,7 @@
 
             statusText.classList.remove('fade-up');
             subStatus.classList.remove('fade-up');
-            void statusText.offsetWidth; 
+            void statusText.offsetWidth;
             statusText.classList.add('fade-up');
             subStatus.classList.add('fade-up');
 
@@ -224,9 +239,19 @@
 
             new Notification(title, { body, silent: true });
         }
-        
+
         let allModes = [];
         let currentConfig = {};
+
+        function parseBool(val) {
+            if (typeof val === 'boolean') return val;
+            if (typeof val === 'string') {
+                const s = val.toLowerCase().trim();
+                return s === 'true' || s === '1' || s === 'on' || s === 'yes';
+            }
+            if (typeof val === 'number') return val !== 0;
+            return !!val;
+        }
 
         async function fetchModesAndConfig() {
             try {
@@ -235,13 +260,14 @@
                     fetch('http://127.0.0.1:8240/modes')
                 ]);
                 currentConfig = await cRes.json();
+                currentConfig.use_ollama = parseBool(currentConfig.use_ollama);
                 allModes = await mRes.json();
-                
+
                 const activeMode = allModes.find(m => m.id === currentConfig.active_mode_id) || allModes[0];
                 document.getElementById('mode-badge').innerText = activeMode ? activeMode.name : 'Default';
-                
+
                 updateAIPillUI(currentConfig.use_ollama);
-            } catch (e) {}
+            } catch (e) { }
         }
 
         function updateAIPillUI(enabled) {
@@ -256,8 +282,9 @@
         }
 
         async function toggleAI() {
-            // Check Ollama status if trying to turn ON
-            if (!currentConfig.use_ollama) {
+            currentConfig.use_ollama = parseBool(currentConfig.use_ollama);
+            // Check Ollama status if trying to turn ON and provider is ollama
+            if (!currentConfig.use_ollama && currentConfig.ai_provider === 'ollama') {
                 try {
                     const res = await fetch('http://127.0.0.1:8240/status');
                     const data = await res.json();
@@ -272,10 +299,10 @@
 
             currentConfig.use_ollama = !currentConfig.use_ollama;
             updateAIPillUI(currentConfig.use_ollama);
-            
+
             await fetch('http://127.0.0.1:8240/config', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(currentConfig)
             });
             ipcRenderer.send('config-updated');
@@ -285,18 +312,18 @@
 
         async function cycleMode() {
             if (allModes.length === 0) return;
-            
+
             const currentIndex = allModes.findIndex(m => m.id === currentConfig.active_mode_id);
             const nextIndex = (currentIndex + 1) % allModes.length;
             const nextMode = allModes[nextIndex];
-            
+
             currentConfig.active_mode_id = nextMode.id;
             document.getElementById('mode-badge').innerText = nextMode.name;
-            
+
             // Save to backend
             await fetch('http://127.0.0.1:8240/config', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(currentConfig)
             });
             ipcRenderer.send('config-updated');
@@ -323,7 +350,7 @@
             try {
                 const res = await fetch('http://127.0.0.1:8240/status');
                 const data = await res.json();
-                
+
                 // Prioritize backend message if available
                 const backendMsg = data.status_message;
 
@@ -351,7 +378,7 @@
                 } else if (data.status === 'ready') {
                     offlineCount = 0;
                     const config = currentConfig;
-                    
+
                     // Apply window style
                     const container = document.getElementById('app-container');
                     if (config.window_style === 'mini') {
@@ -406,4 +433,5 @@
         };
     </script>
 </body>
+
 </html>

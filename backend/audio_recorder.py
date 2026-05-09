@@ -20,16 +20,27 @@ class AudioRecorder:
 
     @staticmethod
     def get_input_devices():
-        devices = sd.query_devices()
-        input_devices = []
-        for i, d in enumerate(devices):
-            if d['max_input_channels'] > 0:
-                input_devices.append({
-                    "id": i,
-                    "name": d['name'],
-                    "hostapi": d['hostapi']
-                })
-        return input_devices
+        try:
+            devices = sd.query_devices()
+            input_devices = []
+            for i, d in enumerate(devices):
+                try:
+                    if d.get('max_input_channels', 0) > 0:
+                        name = d.get('name', f"Device {i}")
+                        if isinstance(name, bytes):
+                            name = name.decode('utf-8', errors='ignore')
+                        
+                        input_devices.append({
+                            "id": i,
+                            "name": name,
+                            "hostapi": d.get('hostapi', 0)
+                        })
+                except Exception as e:
+                    logger.warning(f"Error parsing device {i}: {e}")
+            return input_devices
+        except Exception as e:
+            logger.error(f"Failed to query devices from sounddevice: {e}", exc_info=True)
+            return []
 
     def start_recording(self):
         # Double check device index normalization

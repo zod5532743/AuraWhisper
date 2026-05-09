@@ -30,3 +30,8 @@ models/
 *.bin
 *.zip
 models/
+
+# Vocabularies
+custom_vocabulary.json
+standard_vocabulary.json
+it_vocabulary.json

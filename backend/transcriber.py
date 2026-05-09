@@ -45,15 +45,32 @@ class Transcriber:
                 model_to_load, 
                 device=self.device, 
                 compute_type=self.compute_type,
-                download_root=download_root
+                download_root=download_root,
+                local_files_only=False
             )
         except Exception as e:
-            logger.error(f"Failed to load model {model_to_load} from {download_root}: {e}. Falling back to CPU...")
+            logger.warning(f"Failed to load model online, trying offline-only load: {e}")
             try:
-                self.model = WhisperModel(model_to_load, device="cpu", compute_type="float32", download_root=download_root)
-            except Exception as e2:
-                logger.error(f"Critical fallback failure: {e2}")
-                self.model = None
+                self.model = WhisperModel(
+                    model_to_load, 
+                    device=self.device, 
+                    compute_type=self.compute_type,
+                    download_root=download_root,
+                    local_files_only=True
+                )
+            except Exception as e_offline:
+                logger.error(f"Failed to load model {model_to_load} from {download_root}: {e_offline}. Falling back to CPU...")
+                try:
+                    self.model = WhisperModel(
+                        model_to_load, 
+                        device="cpu", 
+                        compute_type="float32", 
+                        download_root=download_root,
+                        local_files_only=True
+                    )
+                except Exception as e2:
+                    logger.error(f"Critical fallback failure: {e2}")
+                    self.model = None
         
         logger.info("Model loaded successfully.")
 

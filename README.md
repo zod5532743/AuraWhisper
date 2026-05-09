@@ -1,17 +1,17 @@
-# 🎙️ AuraWhisper
+﻿# 🎙️ AuraWhisper
 **Your Voice, Your Data, Your Local AI.**
 
 AuraWhisper は、プライバシーを最優先に考えた、完全ローカル完結型の高性能AI音声入力・推敲ツールです。
 
 ---
 
-## 🚀 Download & Install (v1.1.0)
+## 🚀 Download & Install (v1.2.0)
  
 今すぐ AuraWhisper を使い始めるには、GitHub リポジトリから最新のコードを取得するか、リリースセクションを確認してください。
  
 👉 **[AuraWhisper リリース一覧](https://github.com/zod5532743/AuraWhisper/releases)**
  
-*   `AuraWhisper-v1.1.0` (最新リリース版)
+*   `AuraWhisper-v1.2.0` (最新リリース版)
 *   詳細は [日本語取扱説明書 (USER_GUIDE.md)](./USER_GUIDE.md) または [English User Guide (USER_GUIDE_EN.md)](./USER_GUIDE_EN.md) をご覧ください。
 
 ---

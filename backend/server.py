@@ -16,7 +16,15 @@ import ctypes
 from pynput.keyboard import Controller, Key, Listener, KeyCode
 
 # Setup logging
-log_file = os.path.join(os.path.dirname(__file__), "..", "aurawhisper_backend.log")
+appdata = os.getenv('APPDATA')
+if appdata:
+    APP_DATA_DIR = Path(appdata) / "aurawhisper"
+else:
+    APP_DATA_DIR = Path.home() / ".aurawhisper"
+
+os.makedirs(APP_DATA_DIR, exist_ok=True)
+
+log_file = os.path.join(APP_DATA_DIR, "aurawhisper_backend.log")
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -112,19 +120,19 @@ recorder = None
 config = {}
 # Define paths relative to this script
 BASE_DIR = Path(__file__).resolve().parent
+
 # If running inside a backend folder, APP_ROOT is parent. 
-# If running as a standalone script in root, APP_ROOT is BASE_DIR.
 if BASE_DIR.name == "backend":
     APP_ROOT = BASE_DIR.parent
 else:
     APP_ROOT = BASE_DIR
 
-CONFIG_PATH = APP_ROOT / "config.json"
-HISTORY_PATH = APP_ROOT / "history.json"
-VOCAB_PATH = APP_ROOT / "vocabulary.json"
-MODES_PATH = APP_ROOT / "modes.json"
-MODELS_DIR = (APP_ROOT / "models").resolve()
-TRANSCRIPTIONS_DIR = (APP_ROOT / "transcriptions").resolve()
+CONFIG_PATH = APP_DATA_DIR / "config.json"
+HISTORY_PATH = APP_DATA_DIR / "history.json"
+VOCAB_PATH = APP_DATA_DIR / "vocabulary.json"
+MODES_PATH = APP_DATA_DIR / "modes.json"
+MODELS_DIR = (APP_DATA_DIR / "models").resolve()
+TRANSCRIPTIONS_DIR = (APP_DATA_DIR / "transcriptions").resolve()
 
 # Ensure directories exist
 os.makedirs(MODELS_DIR, exist_ok=True)
@@ -290,6 +298,12 @@ def save_modes(data):
 def init_app_globals():
     global config, recorder, transcriber
     config = load_config()
+    # 起動時は常に AI を off にする
+    config["use_ollama"] = False
+    try:
+        save_config_file(config)
+    except Exception as e:
+        logger.error(f"Failed to save config on startup: {e}")
     recorder = AudioRecorder(device_index=config.get("device_index"))
     
     # Initialize history and vocabulary files if they don't exist
@@ -537,6 +551,17 @@ def process_and_paste_task():
                         if resp.status_code == 200:
                             refined_text = resp.json()["choices"][0]["message"]["content"]
 
+                    elif provider == "lmstudio":
+                        url = f"{base_url}/chat/completions"
+                        headers = {"Authorization": "Bearer lm-studio"}
+                        payload = {
+                            "model": model,
+                            "messages": [{"role": "user", "content": prompt}]
+                        }
+                        resp = client.post(url, json=payload, headers=headers, timeout=60.0)
+                        if resp.status_code == 200:
+                            refined_text = resp.json()["choices"][0]["message"]["content"]
+
                     elif provider == "gemini":
                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                         payload = {"contents": [{"parts": [{"text": prompt}]}]}
@@ -638,6 +663,10 @@ def refine_and_paste(raw_text):
                     elif provider == "openai":
                         url = f"{base_url}/v1/chat/completions" if "localhost" not in base_url else "https://api.openai.com/v1/chat/completions"
                         resp = client.post(url, json={"model": model, "messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": f"Bearer {api_key}"}, timeout=60.0)
+                        if resp.status_code == 200: refined_text = resp.json()["choices"][0]["message"]["content"]
+                    elif provider == "lmstudio":
+                        url = f"{base_url}/chat/completions"
+                        resp = client.post(url, json={"model": model, "messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": "Bearer lm-studio"}, timeout=60.0)
                         if resp.status_code == 200: refined_text = resp.json()["choices"][0]["message"]["content"]
                     elif provider == "gemini":
                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
@@ -745,16 +774,23 @@ async def get_status():
     status["engine_ready"] = engine_ready
     status["cuda_available"] = cuda_available
     
-    # Check Ollama connectivity
-    ollama_connected = False
+    # Check AI Provider connectivity
+    provider_connected = False
+    provider = config.get("ai_provider", "ollama")
+    base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
     try:
-        base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
         async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{base_url}/api/tags", timeout=0.5)
-            ollama_connected = (resp.status_code == 200)
+            if provider == "lmstudio":
+                resp = await client.get(f"{base_url}/models", timeout=0.5)
+                provider_connected = (resp.status_code == 200)
+            elif provider in ["openai", "gemini"]:
+                provider_connected = True
+            else:
+                resp = await client.get(f"{base_url}/api/tags", timeout=0.5)
+                provider_connected = (resp.status_code == 200)
     except:
         pass
-    status["ollama_connected"] = ollama_connected
+    status["ollama_connected"] = provider_connected
 
     # Explicitly cast to float to avoid numpy JSON serialization error
     status["volume"] = float(recorder.current_volume) if recorder else 0.0
@@ -763,11 +799,30 @@ async def get_status():
 
 @app.get("/devices")
 async def get_devices():
-    devices = AudioRecorder.get_input_devices()
-    current_device_id = config.get("device_index")
-    for d in devices:
-        d["is_selected"] = (d["id"] == current_device_id)
-    return devices
+    try:
+        devices = AudioRecorder.get_input_devices()
+        current_device_id = config.get("device_index")
+        for d in devices:
+            d["is_selected"] = (d["id"] == current_device_id)
+        return devices
+    except Exception as e:
+        logger.error(f"Error in /devices endpoint: {e}", exc_info=True)
+        return []
+
+
+@app.get("/lmstudio/models")
+async def get_lmstudio_models():
+    base_url = config.get("ollama_base_url", "http://localhost:1234/v1").rstrip('/')
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{base_url}/models", timeout=3.0)
+            if resp.status_code == 200:
+                return resp.json()
+            else:
+                return {"data": []}
+    except Exception as e:
+        logger.error(f"Error fetching LM Studio models: {e}")
+        return {"data": []}
 
 
 @app.get("/config")
@@ -780,7 +835,10 @@ async def save_config(new_config: dict):
     logger.info(f"Saving new config")
     try:
         old_config = config.copy()
-        save_config_file(new_config)
+        # Merge new_config into the existing config to prevent losing fields
+        merged_config = old_config.copy()
+        merged_config.update(new_config)
+        save_config_file(merged_config)
         config = load_config()
         
         # 1. Update recorder ONLY if device_index actually changed

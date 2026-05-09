@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <title>AuraWhisper Dashboard</title>
@@ -14,40 +15,81 @@
             --sidebar-w: 240px;
             --card-bg: rgba(255, 255, 255, 0.04);
         }
+
         body {
-            margin: 0; padding: 0; height: 100vh; overflow: hidden;
-            font-family: 'Outfit', sans-serif; background: transparent; color: white;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+            background: transparent;
+            color: white;
             user-select: none;
         }
+
         .window {
-            display: flex; height: 100vh; background: var(--bg);
-            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-            border: 1px solid var(--border); box-sizing: border-box;
+            display: flex;
+            height: 100vh;
+            background: var(--bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border);
+            box-sizing: border-box;
         }
-        
+
         /* Sidebar */
         .sidebar {
-            width: var(--sidebar-w); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 40px 0;
+            width: var(--sidebar-w);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 0;
             background: rgba(255, 255, 255, 0.02);
         }
+
         .sidebar-brand {
-            padding: 0 30px 40px 30px; font-size: 20px; font-weight: 600;
-            letter-spacing: -0.5px; color: white;
+            padding: 0 30px 40px 30px;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: white;
         }
+
         .nav-item {
-            padding: 12px 30px; color: rgba(255,255,255,0.4); cursor: pointer;
-            font-size: 15px; transition: 0.2s; border-left: 3px solid transparent;
-            display: flex; align-items: center; gap: 12px;
+            padding: 12px 30px;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.2s;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .nav-item svg { width: 18px; height: 18px; opacity: 0.5; }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
-        .nav-item.active { 
-            background: var(--accent-bg); color: white; 
-            border-left-color: var(--accent); font-weight: 600;
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.5;
         }
-        .nav-item.active svg { opacity: 1; stroke: var(--accent); }
-        
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--accent-bg);
+            color: white;
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-item.active svg {
+            opacity: 1;
+            stroke: var(--accent);
+        }
+
         /* Language Toggle */
         .lang-switch {
             margin-top: auto;
@@ -55,16 +97,18 @@
             display: flex;
             gap: 10px;
         }
+
         .lang-btn {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
-            color: rgba(255,255,255,0.4);
+            color: rgba(255, 255, 255, 0.4);
             padding: 4px 10px;
             border-radius: 6px;
             font-size: 10px;
             cursor: pointer;
             transition: 0.2s;
         }
+
         .lang-btn.active {
             background: var(--accent);
             color: white;
@@ -72,75 +116,286 @@
         }
 
         /* Main Content */
-        .main { flex: 1; padding: 30px 45px; overflow-y: auto; display: flex; flex-direction: column; }
-        .section { display: none; animation: fadeIn 0.4s ease-out; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .main {
+            flex: 1;
+            padding: 30px 45px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
 
-        h1 { margin: 0 0 30px 0; font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
-        
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            margin: 0 0 30px 0;
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
         /* Dashboard Cards */
-        .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 30px; }
-        .stat-card { 
-            background: var(--card-bg); border: 1px solid var(--border); 
-            border-radius: 16px; padding: 20px; 
+        .grid-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
             transition: 0.3s;
         }
-        .stat-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.06); }
-        .stat-label { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 24px; font-weight: 600; }
-        .stat-unit { font-size: 12px; color: rgba(255,255,255,0.3); margin-left: 4px; }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .stat-unit {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-left: 4px;
+        }
 
         /* General UI Elements */
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
-        .card h3 { margin: 0 0 16px 0; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-        
-        .form-group { margin-bottom: 14px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        label { display: block; font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
-        
-        input, select {
-            width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border);
-            color: white; padding: 10px 14px; border-radius: 8px; outline: none; box-sizing: border-box;
-            font-size: 13px; transition: 0.2s;
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            margin: 0 0 16px 0;
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 6px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
+            font-size: 13px;
+            transition: 0.2s;
             user-select: auto;
         }
-        select { cursor: pointer; }
-        option { background: #1a1a1f; color: white; }
-        input:focus, select:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
+
+        select {
+            cursor: pointer;
+        }
+
+        option {
+            background: #1a1a1f;
+            color: white;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+        }
 
         /* Vocabulary Table */
-        .vocab-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .vocab-table th { text-align: left; padding: 10px; font-size: 11px; color: rgba(255,255,255,0.3); border-bottom: 1px solid var(--border); }
-        .vocab-table td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
-        .btn-delete { color: #ff453a; cursor: pointer; opacity: 0.6; transition: 0.2s; background: none; border: none; font-size: 11px; }
-        .btn-delete:hover { opacity: 1; }
+        .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .vocab-table th {
+            text-align: left;
+            padding: 10px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .vocab-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .btn-delete {
+            color: #ff453a;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+            background: none;
+            border: none;
+            font-size: 11px;
+        }
+
+        .btn-delete:hover {
+            opacity: 1;
+        }
 
         /* History List */
-        .history-item { 
-            background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; 
-            padding: 16px; margin-bottom: 10px; cursor: pointer; transition: 0.2s;
-            display: flex; flex-direction: column; gap: 6px;
+        .history-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
-        .history-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); }
-        .history-meta { display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.3); }
-        .history-text { font-size: 14px; line-height: 1.4; color: rgba(255,255,255,0.9); }
-        .history-tag { background: rgba(255,255,255,0.05); padding: 1px 6px; border-radius: 4px; }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .history-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .history-tag {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
 
         /* Buttons */
-        .footer { margin-top: auto; display: flex; justify-content: flex-end; gap: 10px; padding-top: 16px; }
-        .btn { padding: 10px 24px; border-radius: 8px; cursor: pointer; border: none; font-weight: 600; font-size: 13px; transition: 0.2s; }
-        .btn-p { background: var(--accent); color: white; }
-        .btn-p:hover { background: #007aff; box-shadow: 0 4px 12px rgba(0,113,227,0.3); }
-        .btn-s { background: rgba(255,255,255,0.06); color: white; }
-        .btn-s:hover { background: rgba(255,255,255,0.1); }
-        .btn-danger { background: rgba(255, 69, 58, 0.08); color: #ff453a; border: 1px solid rgba(255, 69, 58, 0.15); padding: 8px 20px; font-size: 12px; }
-        .btn-danger:hover { background: rgba(255, 69, 58, 0.15); border-color: #ff453a; }
+        .footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 16px;
+        }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .btn-p {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-p:hover {
+            background: #007aff;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+        }
+
+        .btn-s {
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+        }
+
+        .btn-s:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-danger {
+            background: rgba(255, 69, 58, 0.08);
+            color: #ff453a;
+            border: 1px solid rgba(255, 69, 58, 0.15);
+            padding: 8px 20px;
+            font-size: 12px;
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 69, 58, 0.15);
+            border-color: #ff453a;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
         .active-mode-card {
             background: var(--accent-bg) !important;
@@ -155,17 +410,20 @@
             align-items: center;
             margin-bottom: 14px;
         }
+
         .switch {
             position: relative;
             display: inline-block;
             width: 46px;
             height: 26px;
         }
+
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
+
         .slider {
             position: absolute;
             cursor: pointer;
@@ -173,11 +431,12 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(255,255,255,0.08);
+            background-color: rgba(255, 255, 255, 0.08);
             transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 34px;
             border: 1px solid var(--border);
         }
+
         .slider:before {
             position: absolute;
             content: "";
@@ -188,13 +447,15 @@
             background-color: white;
             transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
-        input:checked + .slider {
+
+        input:checked+.slider {
             background-color: var(--accent);
             border-color: var(--accent);
         }
-        input:checked + .slider:before {
+
+        input:checked+.slider:before {
             transform: translateX(20px);
         }
 
@@ -210,7 +471,7 @@
             border-radius: 40px;
             font-weight: 600;
             font-size: 14px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             z-index: 9999;
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             opacity: 0;
@@ -218,48 +479,69 @@
             align-items: center;
             gap: 12px;
         }
+
         #toast.show {
             transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
-        #toast svg { width: 18px; height: 18px; }
+
+        #toast svg {
+            width: 18px;
+            height: 18px;
+        }
     </style>
     <!-- Script consolidated to the bottom for better reliability -->
 
 </head>
+
 <body>
     <div class="window">
-            <div class="sidebar">
+        <div class="sidebar">
             <div class="sidebar-brand">AuraWhisper</div>
             <div class="nav-item active" id="nav-home" onclick="tab('home')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
                 <span data-i18n="nav_home">Home</span>
             </div>
             <div class="nav-item" id="nav-vocab" onclick="tab('vocab')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                </svg>
                 <span data-i18n="nav_vocab">Vocabulary</span>
             </div>
             <div class="nav-item" id="nav-history" onclick="tab('history')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                </svg>
                 <span data-i18n="nav_history">History</span>
             </div>
             <div class="nav-item" id="nav-modes" onclick="tab('modes')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                </svg>
                 <span data-i18n="nav_modes">Modes</span>
             </div>
             <div class="nav-item" id="nav-ai" onclick="tab('ai')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v4" />
+                </svg>
                 <span data-i18n="nav_ai">AI Engine</span>
             </div>
             <div class="nav-item" id="nav-gen" onclick="tab('gen')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                </svg>
                 <span data-i18n="nav_general">General</span>
             </div>
-            
+
             <div style="flex: 1;"></div>
-            
+
             <div class="donation-container" style="padding: 10px 10px 20px 10px;">
-                <button class="btn btn-s" style="width: 100%; font-size: 11px; background: rgba(255, 221, 0, 0.1); color: #FFDD00; border: 1px solid rgba(255, 221, 0, 0.2); padding: 8px;" onclick="openDonation()">
+                <button class="btn btn-s"
+                    style="width: 100%; font-size: 11px; background: rgba(255, 221, 0, 0.1); color: #FFDD00; border: 1px solid rgba(255, 221, 0, 0.2); padding: 8px;"
+                    onclick="openDonation()">
                     ☕ Buy me a coffee
                 </button>
             </div>
@@ -306,23 +588,34 @@
                     <h1 data-i18n="nav_vocab">Vocabulary</h1>
                     <div style="display:flex; gap:12px;">
                         <button class="btn btn-s" onclick="exportVocab()">Export JSON</button>
-                        <button class="btn btn-s" onclick="document.getElementById('import-file').click()">Import JSON</button>
-                        <input type="file" id="import-file" style="display:none;" accept=".json" onchange="importVocab(event)">
+                        <button class="btn btn-s" onclick="document.getElementById('import-file').click()">Import
+                            JSON</button>
+                        <input type="file" id="import-file" style="display:none;" accept=".json"
+                            onchange="importVocab(event)">
                     </div>
                 </div>
                 <div class="card">
                     <h3>Add New Rule</h3>
                     <div class="form-grid">
-                        <div class="form-group"><label>Original Text</label><input type="text" id="vocab-orig" placeholder="e.g. あいがた"></div>
-                        <div class="form-group"><label>Replacement</label><input type="text" id="vocab-repl" placeholder="e.g. Antigravity"></div>
+                        <div class="form-group"><label>Original Text</label><input type="text" id="vocab-orig"
+                                placeholder="e.g. あいがた"></div>
+                        <div class="form-group"><label>Replacement</label><input type="text" id="vocab-repl"
+                                placeholder="e.g. Antigravity"></div>
                     </div>
-                    <div style="display:flex; justify-content:flex-end;"><button class="btn btn-p" onclick="addVocab()">Add Rule</button></div>
+                    <div style="display:flex; justify-content:flex-end;"><button class="btn btn-p"
+                            onclick="addVocab()">Add Rule</button></div>
                 </div>
                 <div class="card">
                     <h3>Your Dictionary</h3>
                     <div style="max-height: 300px; overflow-y: auto;">
                         <table class="vocab-table">
-                            <thead><tr><th>Original</th><th>Replacement</th><th></th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Original</th>
+                                    <th>Replacement</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
                             <tbody id="vocab-list-body">
                                 <!-- Dynamically populated -->
                             </tbody>
@@ -345,9 +638,11 @@
                     <h1 data-i18n="nav_modes">Modes</h1>
                     <button class="btn btn-p" onclick="openNewModeEditor()" data-i18n="add_new_mode">+ New Mode</button>
                 </div>
-                <p style="color:rgba(255,255,255,0.4); font-size:14px; margin-bottom:30px;" data-i18n="mode_desc">利用シーンに合わせて、AIの校正プロンプトを切り替えます。</p>
-                
-                <div id="modes-list" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; margin-bottom:40px;">
+                <p style="color:rgba(255,255,255,0.4); font-size:14px; margin-bottom:30px;" data-i18n="mode_desc">
+                    利用シーンに合わせて、AIの校正プロンプトを切り替えます。</p>
+
+                <div id="modes-list"
+                    style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; margin-bottom:40px;">
                     <!-- Dynamically populated cards -->
                 </div>
 
@@ -360,10 +655,12 @@
                     </div>
                     <div class="form-group">
                         <label>System Prompt (Instruction)</label>
-                        <textarea id="edit-mode-prompt" style="width:100%; height:120px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:white; padding:12px; outline:none; font-family:inherit; font-size:14px;"></textarea>
+                        <textarea id="edit-mode-prompt"
+                            style="width:100%; height:120px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px; color:white; padding:12px; outline:none; font-family:inherit; font-size:14px;"></textarea>
                     </div>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button class="btn btn-s" onclick="document.getElementById('mode-editor').style.display='none'">Cancel</button>
+                        <button class="btn btn-s"
+                            onclick="document.getElementById('mode-editor').style.display='none'">Cancel</button>
                         <button class="btn btn-p" onclick="saveModeEdit()">Update Mode</button>
                     </div>
                 </div>
@@ -372,8 +669,9 @@
             <!-- AI Engine Section -->
             <div id="sec-ai" class="section">
                 <h1 data-i18n="nav_ai">AI Engine</h1>
-                
-                <div style="background: rgba(0, 113, 227, 0.08); border: 1px solid rgba(0, 113, 227, 0.3); border-radius: 12px; padding: 14px; margin-bottom: 24px; display: flex; gap: 14px; align-items: center;">
+
+                <div
+                    style="background: rgba(0, 113, 227, 0.08); border: 1px solid rgba(0, 113, 227, 0.3); border-radius: 12px; padding: 14px; margin-bottom: 24px; display: flex; gap: 14px; align-items: center;">
                     <div style="font-size: 20px;">ℹ️</div>
                     <div style="font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.5;">
                         <b style="color: white; display: block; margin-bottom: 4px;">モデルの切り替えについて</b>
@@ -413,8 +711,10 @@
                     </div>
                 </div>
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0; font-size: 13px; color: #0071e3; letter-spacing: 0.05em;">AI REFINEMENT (POST-PROCESSING)</h3>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; font-size: 13px; color: #0071e3; letter-spacing: 0.05em;">AI REFINEMENT
+                            (POST-PROCESSING)</h3>
                         <label class="switch">
                             <input type="checkbox" id="ollama">
                             <span class="slider"></span>
@@ -429,12 +729,14 @@
                 </div>
 
                 <div class="card" id="card-connection">
-                    <h3 style="margin-bottom: 20px; font-size: 13px; color: #0071e3; letter-spacing: 0.05em;">CONNECTION SETTINGS</h3>
+                    <h3 style="margin-bottom: 20px; font-size: 13px; color: #0071e3; letter-spacing: 0.05em;">CONNECTION
+                        SETTINGS</h3>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>AI Provider Service</label>
                             <select id="ai-provider" onchange="toggleProviderFields()">
                                 <option value="ollama">Ollama (Local AI)</option>
+                                <option value="lmstudio">LM Studio (Local AI)</option>
                                 <option value="openai">OpenAI API</option>
                                 <option value="gemini">Google Gemini</option>
                             </select>
@@ -452,33 +754,42 @@
                 <div class="card" id="engine-setup-card">
                     <h3 style="color: #0071e3; margin-bottom: 15px;">AURA ENGINE (RUNTIME)</h3>
                     <div id="engine-status-area" style="margin-bottom: 20px;">
-                        <div id="engine-info-list" style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+                        <div id="engine-info-list"
+                            style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
                             <!-- Dynamically populated -->
                         </div>
                     </div>
 
                     <div id="setup-controls">
                         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                            <button class="btn" onclick="startEngineSetup('base')" id="btn-setup-base">Install Standard Engine</button>
-                            <button class="btn btn-primary" onclick="startEngineSetup('gpu')" id="btn-setup-gpu">Install GPU Engine (CUDA)</button>
+                            <button class="btn" onclick="startEngineSetup('base')" id="btn-setup-base">Install Standard
+                                Engine</button>
+                            <button class="btn btn-primary" onclick="startEngineSetup('gpu')" id="btn-setup-gpu">Install
+                                GPU Engine (CUDA)</button>
                         </div>
-                        
-                        <div id="setup-progress-container" class="hide" style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+
+                        <div id="setup-progress-container" class="hide"
+                            style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px;">
+                            <div
+                                style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
                                 <span id="setup-phase-text">Installing libraries...</span>
                                 <span id="setup-percent">0%</span>
                             </div>
-                            <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                                <div id="setup-bar" style="width: 0%; height: 100%; background: #0071e3; transition: width 0.3s;"></div>
+                            <div
+                                style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                <div id="setup-bar"
+                                    style="width: 0%; height: 100%; background: #0071e3; transition: width 0.3s;"></div>
                             </div>
-                            <p style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px;">セットアップ完了後、アプリは自動的に再起動します。</p>
+                            <p style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px;">
+                                セットアップ完了後、アプリは自動的に再起動します。</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="card" id="ollama-library-card">
                     <h3>Model Library</h3>
-                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:15px;">利用可能な推奨モデルです。インストールして校正の質を向上させましょう。</p>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:15px;">
+                        利用可能な推奨モデルです。インストールして校正の質を向上させましょう。</p>
                     <div id="ollama-library-list" style="display:flex; flex-direction:column; gap:10px;">
                         <!-- Dynamically populated -->
                     </div>
@@ -547,7 +858,8 @@
                 </div>
                 <div class="card">
                     <h3>Maintenance</h3>
-                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:15px;">アプリやAIエンジンの動作が不安定な場合に再起動を試してください。</p>
+                    <p style="font-size:11px; color:rgba(255,255,255,0.3); margin-bottom:15px;">
+                        アプリやAIエンジンの動作が不安定な場合に再起動を試してください。</p>
                     <button class="btn btn-danger" onclick="relaunchApp()">Force Reboot / Relaunch</button>
                 </div>
             </div>
@@ -561,7 +873,7 @@
 
     <script>
         const { ipcRenderer, shell } = require('electron');
-        
+
         function openDonation() {
             // あなたのドネーションリンク（Buy Me a Coffee等）をここに設定してください
             // 現時点ではプレースホルダーとして GitHub リポジトリ等を開くようにできます
@@ -601,7 +913,7 @@
             currentUILang = lang;
             localStorage.setItem('ui_lang', lang);
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.id === 'lang-' + lang));
-            
+
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
@@ -616,10 +928,10 @@
             console.log('Switching to tab:', id);
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
+
             const targetSec = document.getElementById('sec-' + id);
             const targetNav = document.getElementById('nav-' + id);
-            
+
             if (targetSec) targetSec.classList.add('active');
             if (targetNav) targetNav.classList.add('active');
 
@@ -634,7 +946,7 @@
             try {
                 const res = await fetch(API + '/history');
                 const history = await res.json();
-                
+
                 let totalChars = 0;
                 let totalSeconds = 0;
                 history.forEach(h => {
@@ -644,12 +956,12 @@
 
                 // Update Stat Cards
                 document.getElementById('stat-total-chars').innerHTML = `${totalChars.toLocaleString()}<span class="stat-unit">chars</span>`;
-                
+
                 // Estimated time saved: Assuming 40 WPM typing vs 150 WPM speaking
                 // Roughly 1 minute of speech saves 2 minutes of typing
                 const savedMins = Math.round((totalChars / 100) * 1.5); // Simplified heuristic
                 document.getElementById('stat-saved-time').innerHTML = `${savedMins}<span class="stat-unit">mins</span>`;
-                
+
                 const avgAcc = history.length > 0 ? 98 : 0; // Future: calculate from actual feedback
                 document.getElementById('stat-avg-acc').innerHTML = `${avgAcc}<span class="stat-unit">%</span>`;
 
@@ -680,7 +992,7 @@
 
         function renderChart(history) {
             const ctx = document.getElementById('activityChart').getContext('2d');
-            
+
             // Group by date (last 7 days)
             const days = [];
             const counts = [];
@@ -688,12 +1000,12 @@
                 const d = new Date();
                 d.setDate(d.getDate() - i);
                 const dateStr = d.toISOString().split('T')[0];
-                const label = d.toLocaleDateString('ja-JP', {month:'short', day:'numeric'});
-                
+                const label = d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+
                 const charCount = history
                     .filter(h => h.timestamp.startsWith(dateStr))
                     .reduce((sum, h) => sum + (h.chars || 0), 0);
-                
+
                 days.push(label);
                 counts.push(charCount);
             }
@@ -781,11 +1093,11 @@
             try {
                 await fetch(API + '/vocabulary', {
                     method: 'POST',
-                    headers: {'Content-Type':'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'update', 
-                        index: index, 
-                        item: {original, replacement}
+                        action: 'update',
+                        index: index,
+                        item: { original, replacement }
                     })
                 });
                 showToast('Dictionary updated');
@@ -802,8 +1114,8 @@
 
             await fetch(API + '/vocabulary', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({action: 'add', item: {original, replacement}})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'add', item: { original, replacement } })
             });
             document.getElementById('vocab-orig').value = '';
             document.getElementById('vocab-repl').value = '';
@@ -813,8 +1125,8 @@
         async function deleteVocab(index) {
             await fetch(API + '/vocabulary', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({action: 'delete', index})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', index })
             });
             loadVocab();
         }
@@ -823,15 +1135,15 @@
             const res = await fetch(API + '/history');
             const history = await res.json();
             const container = document.getElementById('history-container');
-            
+
             container.innerHTML = history.map(h => {
                 const date = new Date(h.timestamp).toLocaleString('ja-JP', {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 });
-                
+
                 // Diff highlighting (simple version)
                 const isDifferent = h.original && h.original !== h.text;
-                
+
                 return `
                     <div class="history-item" id="history-${h.id}">
                         <div class="history-meta">
@@ -869,7 +1181,7 @@
             try {
                 const res = await fetch(API + '/vocabulary');
                 const data = await res.json();
-                const blob = new Blob([JSON.stringify(data, null, 4)], {type: 'application/json'});
+                const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -891,12 +1203,12 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     if (!Array.isArray(data)) throw new Error('Invalid format: Must be an array of objects.');
-                    
+
                     if (!confirm(`${data.length} 件のルールを現在の辞書に追加（マージ）しますか？`)) return;
 
                     const resp = await fetch(API + '/vocabulary/import', {
                         method: 'POST',
-                        headers: {'Content-Type':'application/json'},
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
 
@@ -904,7 +1216,7 @@
                         const errText = await resp.text();
                         throw new Error(`Server returned ${resp.status}: ${errText}`);
                     }
-                    
+
                     const result = await resp.json();
                     showToast(`Imported ${result.added} new rules! Total: ${result.total}`);
                     loadVocab();
@@ -919,11 +1231,11 @@
 
         async function deleteHistory(id) {
             if (!confirm('この履歴を削除してもよろしいですか？')) return;
-            
+
             try {
                 const res = await fetch(API + '/history/delete', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
                 });
                 if (res.ok) {
@@ -945,8 +1257,8 @@
             showToast('Pasting...');
             await fetch(API + '/paste', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({text})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
             });
             // Close immediately to let OS return focus to the previous app
             window.close();
@@ -958,7 +1270,7 @@
         async function loadModes() {
             const res = await fetch(API + '/modes');
             allModes = await res.json();
-            
+
             // Sync current active mode from config first
             const confRes = await fetch(API + '/config');
             const conf = await confRes.json();
@@ -990,17 +1302,17 @@
             const confRes = await fetch(API + '/config');
             const conf = await confRes.json();
             conf.active_mode_id = id;
-            
+
             await fetch(API + '/config', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(conf)
             });
-            
+
             if (typeof ipcRenderer !== 'undefined') {
                 ipcRenderer.send('config-updated');
             }
-            
+
             showToast(`Mode switched to ${allModes.find(m => m.id === id)?.name}`);
             loadModes();
         }
@@ -1012,9 +1324,9 @@
             document.getElementById('edit-mode-name-title').innerText = m.name;
             document.getElementById('edit-mode-name').value = m.name;
             document.getElementById('edit-mode-prompt').value = m.prompt;
-            
+
             // Scroll to editor
-            document.getElementById('mode-editor').scrollIntoView({behavior: 'smooth'});
+            document.getElementById('mode-editor').scrollIntoView({ behavior: 'smooth' });
         }
 
         function openNewModeEditor() {
@@ -1023,7 +1335,7 @@
             document.getElementById('edit-mode-name-title').innerText = 'New Mode';
             document.getElementById('edit-mode-name').value = 'My Custom Mode';
             document.getElementById('edit-mode-prompt').value = '提供されたテキストを、自分の好みのスタイルに校正してください。';
-            document.getElementById('mode-editor').scrollIntoView({behavior: 'smooth'});
+            document.getElementById('mode-editor').scrollIntoView({ behavior: 'smooth' });
         }
 
         async function saveModeEdit() {
@@ -1038,25 +1350,25 @@
 
             await fetch(API + '/modes', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    action: index === -1 ? 'add' : 'update', 
-                    index: index, 
+                    action: index === -1 ? 'add' : 'update',
+                    index: index,
                     item: updatedItem
                 })
             });
-            
+
             document.getElementById('mode-editor').style.display = 'none';
             loadModes();
         }
 
         async function deleteMode(index) {
             if (!confirm(`Are you sure you want to delete "${allModes[index].name}"?`)) return;
-            
+
             await fetch(API + '/modes', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({action: 'delete', index: index})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', index: index })
             });
             loadModes();
         }
@@ -1066,11 +1378,20 @@
             const baseUrlField = document.getElementById('field-base-url');
             const apiKeyField = document.getElementById('field-api-key');
             const libraryCard = document.getElementById('ollama-library-card');
-            
+            const baseUrlInput = document.getElementById('ollama-base-url');
+
             if (provider === 'ollama') {
                 baseUrlField.style.display = 'block';
                 apiKeyField.style.display = 'none';
                 libraryCard.style.display = 'block';
+                if (baseUrlInput.value === 'http://localhost:1234/v1') baseUrlInput.value = 'http://localhost:11434';
+                baseUrlInput.placeholder = 'http://localhost:11434';
+            } else if (provider === 'lmstudio') {
+                baseUrlField.style.display = 'block';
+                apiKeyField.style.display = 'none';
+                libraryCard.style.display = 'none';
+                if (baseUrlInput.value === 'http://localhost:11434' || !baseUrlInput.value) baseUrlInput.value = 'http://localhost:1234/v1';
+                baseUrlInput.placeholder = 'http://localhost:1234/v1';
             } else if (provider === 'openai') {
                 baseUrlField.style.display = 'none';
                 apiKeyField.style.display = 'block';
@@ -1080,6 +1401,7 @@
                 apiKeyField.style.display = 'block';
                 libraryCard.style.display = 'none';
             }
+            updateModelSelect();
         }
 
         let installedOllamaModels = [];
@@ -1097,7 +1419,7 @@
                 const res = await fetch(API + '/ollama/models');
                 const data = await res.json();
                 installedOllamaModels = (data.models || []).map(m => m.name);
-                
+
                 renderModelLibrary();
                 updateModelSelect();
             } catch (err) {
@@ -1118,53 +1440,114 @@
                             <div style="font-size:10px; color:rgba(255,255,255,0.3);">${m.id}</div>
                         </div>
                         <div>
-                            ${isInstalled ? 
-                                '<span style="font-size:11px; color:#34c759; font-weight:600;">Installed</span>' : 
-                                `<button class="btn btn-s" style="padding:5px 12px; font-size:11px;" onclick="pullModel('${m.id}')">Install</button>`
-                            }
+                            ${isInstalled ?
+                        '<span style="font-size:11px; color:#34c759; font-weight:600;">Installed</span>' :
+                        `<button class="btn btn-s" style="padding:5px 12px; font-size:11px;" onclick="pullModel('${m.id}')">Install</button>`
+                    }
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
+        async function fetchLmStudioModels(select, currentValue) {
+            const baseUrlInput = document.getElementById('ollama-base-url').value || 'http://localhost:1234/v1';
+            try {
+                const baseUrl = baseUrlInput.replace(/\/$/, '');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1500);
+                const res = await fetch(`${baseUrl}/models`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const models = (data.data || []).map(m => m.id);
+                    if (models.length > 0) {
+                        select.innerHTML = models.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                        if (currentValue && models.includes(currentValue)) {
+                            select.value = currentValue;
+                        }
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.log('Failed to fetch LM Studio models dynamically:', err.message);
+            }
+
+            const fallbackModels = [
+                'qwen2.5-coder-7b-instruct',
+                'meta-llama-3-8b-instruct',
+                'gemma-2-9b-it'
+            ];
+            select.innerHTML = fallbackModels.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+            if (currentValue && fallbackModels.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
         function updateModelSelect() {
             const select = document.getElementById('ollama-model');
             if (!select) return;
 
+            const provider = document.getElementById('ai-provider').value;
             const currentValue = select.value;
-            
-            // Combine Recommended and Installed
-            const allOptions = [...RECOMMENDED_MODELS.map(m => m.id)];
-            installedOllamaModels.forEach(m => {
-                const baseName = m.split(':')[0];
-                if (!allOptions.some(opt => opt.startsWith(baseName))) {
-                    allOptions.push(m);
+
+            if (provider === 'ollama') {
+                // Combine Recommended and Installed
+                const allOptions = [...RECOMMENDED_MODELS.map(m => m.id)];
+                installedOllamaModels.forEach(m => {
+                    const baseName = m.split(':')[0];
+                    if (!allOptions.some(opt => opt.startsWith(baseName))) {
+                        allOptions.push(m);
+                    }
+                });
+
+                const uniqueOptions = [...new Set(allOptions)];
+
+                select.innerHTML = uniqueOptions.map(opt => {
+                    const isInstalled = installedOllamaModels.some(im => im.startsWith(opt));
+                    return `<option value="${opt}">${opt} ${isInstalled ? '' : '(Not Installed)'}</option>`;
+                }).join('');
+
+                if (currentValue && uniqueOptions.includes(currentValue)) {
+                    select.value = currentValue;
                 }
-            });
-
-            const uniqueOptions = [...new Set(allOptions)];
-            
-            select.innerHTML = uniqueOptions.map(opt => {
-                const isInstalled = installedOllamaModels.some(im => im.startsWith(opt));
-                return `<option value="${opt}">${opt} ${isInstalled ? '' : '(Not Installed)'}</option>`;
-            }).join('');
-
-            if (currentValue && uniqueOptions.includes(currentValue)) {
-                select.value = currentValue;
+            } else if (provider === 'lmstudio') {
+                fetchLmStudioModels(select, currentValue);
+            } else if (provider === 'openai') {
+                const openAIModels = [
+                    'gpt-4o',
+                    'gpt-4o-mini',
+                    'gpt-4-turbo',
+                    'gpt-3.5-turbo'
+                ];
+                select.innerHTML = openAIModels.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                if (currentValue && openAIModels.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            } else if (provider === 'gemini') {
+                const geminiModels = [
+                    'gemini-1.5-flash',
+                    'gemini-1.5-pro',
+                    'gemini-1.0-pro'
+                ];
+                select.innerHTML = geminiModels.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                if (currentValue && geminiModels.includes(currentValue)) {
+                    select.value = currentValue;
+                }
             }
         }
 
         async function pullModel(modelId) {
             const model = modelId || document.getElementById('ollama-model').value;
             showToast(`Downloading ${model}... This may take a while.`);
-            
+
             await fetch(API + '/ollama/pull', {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({model})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model })
             });
-            
+
             const timer = setInterval(async () => {
                 await checkOllamaModelStatus();
                 const isInstalled = installedOllamaModels.some(m => m.startsWith(model));
@@ -1181,12 +1564,23 @@
             }
         }
 
+        function parseBool(val) {
+            if (typeof val === 'boolean') return val;
+            if (typeof val === 'string') {
+                const s = val.toLowerCase().trim();
+                return s === 'true' || s === '1' || s === 'on' || s === 'yes';
+            }
+            if (typeof val === 'number') return val !== 0;
+            return !!val;
+        }
+
         let isLoadingConfig = false;
+        let isConfigLoadedSuccessfully = false;
         let retryCount = 0;
         let lastLoadedConfig = {}; // For change detection
 
-        async function loadConfig() {
-            if (isLoadingConfig) return;
+        async function loadConfig(force = false) {
+            if (isLoadingConfig || (isConfigLoadedSuccessfully && !force)) return;
             isLoadingConfig = true;
 
             const errorBanner = document.getElementById('connection-error');
@@ -1196,7 +1590,7 @@
                 // Check connectivity with a short timeout
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 2000);
-                
+
                 const statusRes = await fetch(API + '/status', { signal: controller.signal });
                 clearTimeout(timeoutId);
 
@@ -1205,25 +1599,29 @@
                 retryCount = 0; // Reset retry count on success
 
                 // Check Ollama models first to populate the select box options
-                await checkOllamaModelStatus();
+                try {
+                    await checkOllamaModelStatus();
+                } catch (ollamaErr) {
+                    console.warn('Ollama check failed, continuing config load:', ollamaErr);
+                }
 
                 const res = await fetch(API + '/config');
                 const c = await res.json();
                 lastLoadedConfig = c; // Save for later comparison
-                
+
                 document.getElementById('hotkey').value = c.hotkey || '';
                 document.getElementById('lang').value = c.language || 'ja';
                 document.getElementById('size').value = c.model_size || 'small';
                 document.getElementById('device').value = c.device || 'auto';
-                document.getElementById('ollama').checked = !!c.use_ollama;
-                
+                document.getElementById('ollama').checked = parseBool(c.use_ollama);
+
                 document.getElementById('ollama-model').value = c.ollama_model || 'gemma2:2b';
                 document.getElementById('window-style').value = c.window_style || 'classic';
                 document.getElementById('auto-punc').checked = c.auto_punctuation !== false;
                 document.getElementById('after-insert').value = c.after_insertion || 'none';
                 document.getElementById('notifications').checked = c.notifications !== false;
                 document.getElementById('autostart').checked = !!c.autostart;
-                
+
                 document.getElementById('ai-provider').value = c.ai_provider || 'ollama';
                 document.getElementById('ollama-base-url').value = c.ollama_base_url || 'http://localhost:11434';
                 document.getElementById('api-key').value = c.api_key || '';
@@ -1234,10 +1632,11 @@
 
                 currentActiveModeId = c.active_mode_id || 'general';
                 loadHome();
+                isConfigLoadedSuccessfully = true;
             } catch (err) {
                 console.error('Failed to load config:', err);
                 retryCount++;
-                
+
                 try {
                     const localC = await ipcRenderer.invoke('get-local-config');
                     if (localC) {
@@ -1245,7 +1644,7 @@
                         document.getElementById('lang').value = localC.language || 'ja';
                         document.getElementById('size').value = localC.model_size || 'small';
                         document.getElementById('device').value = localC.device || 'auto';
-                        document.getElementById('ollama').checked = !!localC.use_ollama;
+                        document.getElementById('ollama').checked = parseBool(localC.use_ollama);
                         document.getElementById('ollama-model').value = localC.ollama_model || 'gemma2:2b';
                         document.getElementById('window-style').value = localC.window_style || 'classic';
                         document.getElementById('auto-punc').checked = localC.auto_punctuation !== false;
@@ -1256,7 +1655,7 @@
                         document.getElementById('ollama-base-url').value = localC.ollama_base_url || 'http://localhost:11434';
                         document.getElementById('api-key').value = localC.api_key || '';
                         toggleProviderFields();
-                        
+
                         // Fallback to populate available models if empty
                         const modelSelect = document.getElementById('ollama-model');
                         if (modelSelect && modelSelect.options.length <= 1) {
@@ -1269,7 +1668,7 @@
                             `;
                             modelSelect.value = localC.ollama_model || 'gemma2:2b';
                         }
-                        
+
                         // Populate default modes if empty
                         if (typeof renderModes === 'function') {
                             const defaultModes = localC.modes || [
@@ -1282,6 +1681,8 @@
                         lastLoadedConfig = localC;
                         currentActiveModeId = localC.active_mode_id || 'general';
                         loadHome();
+                        await loadDevices(localC.device_index);
+                        isConfigLoadedSuccessfully = true;
                         if (saveBtn) saveBtn.disabled = false;
                     }
                 } catch (localErr) {
@@ -1289,12 +1690,14 @@
                     if (saveBtn) saveBtn.disabled = false;
                 }
 
-                // Exponential backoff for retries: 2s, 4s, 8s, up to 30s
-                const delay = Math.min(Math.pow(2, retryCount) * 1000, 30000);
-                setTimeout(() => {
-                    isLoadingConfig = false;
-                    loadConfig();
-                }, delay);
+                if (!isConfigLoadedSuccessfully) {
+                    // Exponential backoff for retries: 2s, 4s, 8s, up to 30s
+                    const delay = Math.min(Math.pow(2, retryCount) * 1000, 30000);
+                    setTimeout(() => {
+                        isLoadingConfig = false;
+                        loadConfig();
+                    }, delay);
+                }
             } finally {
                 isLoadingConfig = false;
             }
@@ -1314,10 +1717,10 @@
                 const devices = await res.json();
                 const select = document.getElementById('mic-device');
                 if (!select) return;
-                
+
                 // Keep the default option
                 select.innerHTML = '<option value="-1">System Default</option>';
-                
+
                 devices.forEach(d => {
                     const opt = document.createElement('option');
                     opt.value = d.id;
@@ -1333,7 +1736,7 @@
         document.getElementById('save').onclick = async () => {
             const saveBtn = document.getElementById('save');
             const originalText = saveBtn.innerText;
-            
+
             try {
                 console.log('Save initiated...');
                 const getV = (id) => {
@@ -1376,16 +1779,16 @@
                 try {
                     response = await fetch(API + '/config', {
                         method: 'POST',
-                        headers: {'Content-Type':'application/json'},
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(configToSave)
                     });
-                    
+
                     if (!response.ok) {
                         let errorDetail = 'Server Error';
                         try {
                             const errData = await response.json();
                             errorDetail = errData.detail || errorDetail;
-                        } catch (e) {}
+                        } catch (e) { }
                         throw new Error(errorDetail);
                     }
                 } catch (fetchErr) {
@@ -1398,13 +1801,13 @@
                     }
                     throw fetchErr;
                 }
-                
+
                 console.log('Config saved to backend. Sending IPC signals...');
                 if (typeof ipcRenderer !== 'undefined') {
                     ipcRenderer.send('config-updated');
                     ipcRenderer.send('set-autostart', configToSave.autostart);
                 }
-                
+
                 if (needsHeavyReload) {
                     showToast('Saving... Re-initializing AI engine. Please wait.');
                     saveBtn.innerText = 'Reloading...';
@@ -1412,9 +1815,9 @@
                     showToast('Settings saved successfully!');
                     saveBtn.innerText = 'Saved!';
                 }
-                
+
                 saveBtn.style.background = '#34c759';
-                
+
                 setTimeout(() => {
                     saveBtn.innerText = originalText;
                     saveBtn.style.background = '';
@@ -1447,7 +1850,14 @@
             }, 3000);
         }
 
-        loadConfig();
+        loadConfig(true);
+
+        if (typeof ipcRenderer !== 'undefined') {
+            ipcRenderer.on('config-updated', () => {
+                console.log('Config update detected in settings, reloading...');
+                loadConfig(true);
+            });
+        }
 
         // Hotkey recording logic
         const hotkeyInput = document.getElementById('hotkey');
@@ -1458,10 +1868,10 @@
                 if (e.ctrlKey) combo.push('CommandOrControl');
                 if (e.altKey) combo.push('Alt');
                 if (e.shiftKey) combo.push('Shift');
-                
+
                 let key = e.key;
                 if (key === 'Control' || key === 'Alt' || key === 'Shift' || key === 'Meta') return;
-                
+
                 // Handle Function keys (F1-F12) and other special keys
                 if (/^F[1-9][0-2]?$/.test(key)) {
                     // It's a function key, keep it as is (e.g., F1)
@@ -1469,9 +1879,9 @@
                     // Capitalize first letter (e.g., 's' -> 'S')
                     key = key.charAt(0).toUpperCase() + key.slice(1);
                 }
-                
+
                 if (key === ' ') key = 'Space';
-                
+
                 combo.push(key);
                 hotkeyInput.value = combo.join('+');
             });
@@ -1479,7 +1889,7 @@
 
         async function startEngineSetup(type) {
             if (!confirm(`Aura Engine (${type}) のセットアップを開始しますか？\nインターネット環境によっては時間がかかる場合があります。`)) return;
-            
+
             try {
                 if (typeof ipcRenderer !== 'undefined') {
                     ipcRenderer.send('start-engine-setup', type);
@@ -1535,7 +1945,7 @@
 
             const check = (val) => val ? '<span style="color:#4cd964;">● Found</span>' : '<span style="color:#ff3b30;">○ Missing</span>';
             const infoList = document.getElementById('engine-info-list');
-            
+
             if (infoList) {
                 infoList.innerHTML = `
                     <div style="display:flex; justify-content:space-between;"><span>Python Runtime:</span> ${check(hasPython)}</div>
@@ -1548,7 +1958,7 @@
                 const res = await fetch(API + '/engine/check');
                 const data = await res.json();
                 const info = data.info;
-                
+
                 if (infoList) {
                     infoList.innerHTML = `
                         <div style="display:flex; justify-content:space-between;"><span>Python Runtime:</span> ${check(hasPython)}</div>
@@ -1565,4 +1975,5 @@
         updateEngineStatus();
     </script>
 </body>
+
 </html>

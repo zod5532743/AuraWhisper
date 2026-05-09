@@ -1,4 +1,4 @@
-# AuraWhisper v1.1.0 リリースノート
+﻿# AuraWhisper v1.2.0 リリースノート
 
 ## 新機能
 - **ダッシュボード UI**
@@ -27,10 +27,10 @@
   - GPU 利用時の効率化
 
 ## パッケージ
-- `AuraWhisper-v1.1.0.zip` (42 MB) - 単一ファイル版
+- `AuraWhisper-v1.2.0.zip` (42 MB) - 単一ファイル版
 - `backend_cpu.zip` (1.5 GB) - CPU 用バックエンド
 - `backend_cuda.zip` (1.5 GB) - GPU/CUDA 用バックエンド
-- `aurawhisper Setup 1.1.0.exe` (73 MB) - インストーラー
+- `aurawhisper Setup 1.2.0.exe` (73 MB) - インストーラー
 
 ## システム要件
 - **OS**: Windows 10/11

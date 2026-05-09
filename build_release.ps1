@@ -1,8 +1,8 @@
-# Define variables for paths
+﻿# Define variables for paths
 $buildDir = "d:\temp_aurawhisper_release"
 $currentDir = "D:\Users\zod5532743\マイドライブ\Antigravity\AuraWhisper"
 $distDir = Join-Path -Path $currentDir -ChildPath "dist"
-$zipFileName = "AuraWhisper_v1.1.0.zip"
+$zipFileName = "AuraWhisper_v1.2.0.zip"
 
 # Ensure the build directory exists
 if (-Not (Test-Path -Path $buildDir)) {
