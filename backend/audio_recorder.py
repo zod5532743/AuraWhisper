@@ -42,7 +42,7 @@ class AudioRecorder:
             logger.error(f"Failed to query devices from sounddevice: {e}", exc_info=True)
             return []
 
-    def start_recording(self):
+    def start_recording(self, on_audio_data=None):
         # Double check device index normalization
         actual_device = None if self.device_index == -1 else self.device_index
         logger.info(f"Starting recording on device: {actual_device if actual_device is not None else 'Default'}")
@@ -55,7 +55,15 @@ class AudioRecorder:
             if status:
                 logger.warning(status)
             if self.is_recording:
-                self.recording.append(indata.copy())
+                data_copy = indata.copy()
+                self.recording.append(data_copy)
+                
+                # Fire real-time stream callback if provided
+                if on_audio_data:
+                    try:
+                        on_audio_data(data_copy)
+                    except Exception as e:
+                        pass # Suppress to keep audio loop healthy
                 # Calculate RMS for volume visualization
                 rms = np.sqrt(np.mean(indata**2))
                 # Scale RMS to 0.0 - 1.0 roughly

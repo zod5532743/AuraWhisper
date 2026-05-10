@@ -615,8 +615,8 @@ app.whenReady().then(() => {
                     dialog.showMessageBox({
                         type: 'info',
                         title: 'About AuraWhisper',
-                        message: 'AuraWhisper v1.2.2',
-                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.2\nPlatform: ' + process.platform + ' (x64)',
+                        message: 'AuraWhisper v1.2.3',
+                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.3\nPlatform: ' + process.platform + ' (x64)',
                         buttons: ['OK']
                     });
                 }

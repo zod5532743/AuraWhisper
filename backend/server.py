@@ -13,6 +13,8 @@ import threading
 import time
 import pyperclip
 import ctypes
+import queue
+import numpy as np
 from pynput.keyboard import Controller, Key, Listener, KeyCode
 
 # Setup logging
@@ -92,7 +94,8 @@ app_state = {
     "setup_progress": 0,
     "setup_status": "idle", # idle, downloading, installing, finished, error
     "last_ai_check_time": 0.0,
-    "last_ai_check_result": False
+    "last_ai_check_result": False,
+    "partial_transcript": ""
 }
 
 def check_full_environment():
@@ -375,6 +378,51 @@ def init_transcriber_task():
         app_state["error_message"] = error_msg
 
 
+# --- Vosk Integration for Lightweight Real-Time Preview ---
+vosk_model = None
+vosk_ready = False
+vosk_audio_queue = None
+
+def init_vosk_task():
+    global vosk_model, vosk_ready
+    try:
+        import vosk
+        logger.info("Initializing Vosk model for real-time preview...")
+        # Setting explicit logging off to avoid console noise
+        vosk.SetLogLevel(-1)
+        vosk_model = vosk.Model(lang="ja")
+        vosk_ready = True
+        logger.info("Vosk model ready.")
+    except Exception as e:
+        logger.warning(f"Failed to load Vosk model: {e}. Real-time preview will be unavailable.")
+        vosk_ready = False
+
+def vosk_worker_loop(q, model):
+    import vosk
+    import json
+    try:
+        rec = vosk.KaldiRecognizer(model, 16000)
+        while True:
+            item = q.get()
+            if item is None:
+                break
+            
+            # Convert NumPy float32 to int16 bytes
+            pcm_bytes = (item * 32767).astype(np.int16).tobytes()
+            if rec.AcceptWaveform(pcm_bytes):
+                pass
+            
+            partial = json.loads(rec.PartialResult())
+            txt = partial.get("partial", "")
+            if txt:
+                # For Japanese, strip spaces between segments for natural UI rendering
+                if config.get("language") == "ja":
+                    txt = txt.replace(" ", "")
+                app_state["partial_transcript"] = txt
+    except Exception as e:
+        logger.error(f"Vosk worker crash: {e}")
+
+
 # --- Hotkey Configuration Mapping ---
 from pynput.keyboard import Key, KeyCode
 
@@ -490,7 +538,19 @@ def trigger_start_sync():
         else:
             target_hwnd = user32.GetForegroundWindow() # Fallback
 
-        recorder.start_recording()
+        # Set up Vosk live stream
+        global vosk_audio_queue
+        app_state["partial_transcript"] = ""
+        if vosk_ready and vosk_model:
+            vosk_audio_queue = queue.Queue()
+            t = threading.Thread(target=vosk_worker_loop, args=(vosk_audio_queue, vosk_model), daemon=True)
+            t.start()
+
+        def audio_data_callback(data):
+            if vosk_audio_queue is not None:
+                vosk_audio_queue.put(data)
+
+        recorder.start_recording(on_audio_data=audio_data_callback)
         app_state["is_recording"] = True
         app_state["status"] = "recording"
         app_state["error_message"] = None
@@ -505,6 +565,13 @@ def trigger_stop_sync():
     try:
         if not app_state["is_recording"]: return
         app_state["is_recording"] = False
+        
+        # Terminate current Vosk session stream
+        global vosk_audio_queue
+        if vosk_audio_queue is not None:
+            vosk_audio_queue.put(None)
+            vosk_audio_queue = None
+
         app_state["status"] = "analyzing"
         threading.Thread(target=process_and_paste_task).start()
     except Exception as e:
@@ -796,7 +863,8 @@ def send_paste_command():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_app_globals()
-    threading.Thread(target=init_transcriber_task).start()
+    threading.Thread(target=init_transcriber_task, daemon=True).start()
+    threading.Thread(target=init_vosk_task, daemon=True).start()
     global hotkey_listener
     hotkey_listener = Listener(on_press=on_press, on_release=on_release)
     hotkey_listener.start()
