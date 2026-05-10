@@ -397,8 +397,7 @@
 
                 if (data.status === 'recording' && data.partial_transcript) {
                     bubble.classList.add('visible');
-                    // Delay micro-moment to ensure display:block occurred before opacity transition
-                    requestAnimationFrame(() => bubble.classList.add('active'));
+                    setTimeout(() => bubble.classList.add('active'), 20);
                     
                     if (bubble.innerText !== data.partial_transcript) {
                         bubble.innerText = data.partial_transcript;

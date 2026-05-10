@@ -63,10 +63,11 @@ html, body {
     width: fit-content;
     min-width: 100px;
     max-width: 340px;
-    background: rgba(65, 65, 70, 0.55);
-    backdrop-filter: blur(30px) saturate(160%);
-    -webkit-backdrop-filter: blur(30px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(70, 70, 75, 0.9); /* Higher opacity to prevent Electron compositing render bug */
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 9999; /* Extreme layer priority */
     border-radius: 24px;
     padding: 14px 18px;
     margin-bottom: 12px; /* Space above original controller capsule */
