@@ -360,15 +360,18 @@
         ipcRenderer.on('config-updated', () => {
             console.log('Config update detected, refreshing...');
             fetchModesAndConfig();
-            updateStatus(true); // Force immediate update
         });
 
         fetchModesAndConfig();
 
-        async function updateStatus(force = false) {
+        let currentPollDelay = 400;
+        async function updateStatus() {
             try {
                 const res = await fetch('http://127.0.0.1:8240/status');
                 const data = await res.json();
+                
+                // Speed up polling to 150ms during active recording for instant previews
+                currentPollDelay = data.status === 'recording' ? 150 : 400;
 
                 // Prioritize backend message if available
                 const backendMsg = data.status_message;
@@ -452,7 +455,7 @@
             } catch (err) {
                 offlineCount++;
                 // Only show offline if it persists for more than 3 checks (~1.2s)
-                if (offlineCount > 3 || force) {
+                if (offlineCount > 3) {
                     setStatus('Offline', 'Backend not connected', 'error');
                     document.getElementById('retry-btn').classList.remove('hide');
                     visualizer.setVolume(0);
@@ -460,14 +463,19 @@
                     // Temporary glitch, show syncing
                     setStatus('Synchronizing...', 'Reconnecting to AI engine', 'loading');
                 }
+            } finally {
+                // Schedule next poll recursively
+                setTimeout(updateStatus, currentPollDelay);
             }
         }
+        
+        // Start first poll
+        setTimeout(updateStatus, 100);
 
         document.getElementById('retry-btn').onclick = () => {
             ipcRenderer.send('relaunch-app');
         };
 
-        let statusTimer = setInterval(updateStatus, 400);
 
         document.getElementById('open-settings-btn').onclick = () => {
             ipcRenderer.send('open-settings');
