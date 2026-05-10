@@ -9,6 +9,7 @@
 </head>
 
 <body>
+    <div id="transcript-bubble" class="live-transcript-bubble"></div>
     <div class="container" id="app-container">
         <canvas id="waveform-canvas"></canvas>
         <div class="main-content"
@@ -66,7 +67,16 @@
     </div>
 
     <script>
-        const { ipcRenderer } = require('electron');
+        const { ipcRenderer, shell } = require('electron');
+
+        // Forward mouse-ignore commands for overlay transparency to Electron main
+        window.addEventListener('mousemove', event => {
+            if (event.target === document.documentElement) {
+                ipcRenderer.send('set-ignore-mouse-events', true, { forward: true });
+            } else {
+                ipcRenderer.send('set-ignore-mouse-events', false);
+            }
+        });
 
         // --- Sound Feedback ---
         class AudioFeedback {
@@ -371,16 +381,44 @@
                     return;
                 }
 
+                // --- Handle Floating Transcript Bubble ---
+                const bubble = document.getElementById('transcript-bubble');
+                const container = document.getElementById('app-container');
+                
+                // Sync mini class to bubble if exists
+                if (container.classList.contains('container-mini')) {
+                    bubble.classList.add('mini');
+                } else {
+                    bubble.classList.remove('mini');
+                }
+
+                if (data.status === 'recording' && data.partial_transcript) {
+                    bubble.classList.add('visible');
+                    // Delay micro-moment to ensure display:block occurred before opacity transition
+                    requestAnimationFrame(() => bubble.classList.add('active'));
+                    
+                    if (bubble.innerText !== data.partial_transcript) {
+                        bubble.innerText = data.partial_transcript;
+                        // Auto-scroll to keep latest at bottom
+                        bubble.scrollTop = bubble.scrollHeight;
+                    }
+                } else if (data.status !== 'recording' || !data.partial_transcript) {
+                    bubble.classList.remove('active');
+                    // Fully clear content & visibility after fade-out transition finishes
+                    setTimeout(() => {
+                        if (!bubble.classList.contains('active')) {
+                            bubble.classList.remove('visible');
+                            bubble.innerText = '';
+                        }
+                    }, 400);
+                }
+
                 if (data.status === 'recording') {
                     offlineCount = 0;
                     document.getElementById('retry-btn').classList.add('hide');
                     
-                    // Show live partial text if available
-                    let subTxt = data.partial_transcript || backendMsg || 'Speak naturally';
-                    // Cap length to prevent layout breakage
-                    if (subTxt.length > 35) subTxt = '...' + subTxt.slice(-35);
-                    
-                    setStatus('Listening...', subTxt, 'recording');
+                    // Maintain classic capsule cleanliness
+                    setStatus('Listening...', backendMsg || 'Speak naturally', 'recording');
                     visualizer.setVolume(data.volume || 0.1);
                 } else if (data.status === 'analyzing') {
                     offlineCount = 0;

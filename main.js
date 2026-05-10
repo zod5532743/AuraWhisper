@@ -147,6 +147,12 @@ ipcMain.on('show-context-menu', async (event) => {
         console.error('Failed to show context menu:', err.message);
     }
 });
+
+ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.setIgnoreMouseEvents(ignore, options || {});
+});
+
 const { spawn } = require('child_process');
 const path = require('path');
 const axios = require('axios');
@@ -371,7 +377,7 @@ function createWindow() {
     console.log(`[INFO] Detected Screen Resolution: ${screenWidth}x${screenHeight}`);
 
     const winWidth = config.window_style === 'mini' ? 320 : 450;
-    const winHeight = config.window_style === 'mini' ? 120 : 200;
+    const winHeight = config.window_style === 'mini' ? 350 : 500;
 
     // Use saved coordinates or default to center
     let x = config.window_x;
@@ -615,8 +621,8 @@ app.whenReady().then(() => {
                     dialog.showMessageBox({
                         type: 'info',
                         title: 'About AuraWhisper',
-                        message: 'AuraWhisper v1.2.3',
-                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.3\nPlatform: ' + process.platform + ' (x64)',
+                        message: 'AuraWhisper v1.2.4',
+                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.4\nPlatform: ' + process.platform + ' (x64)',
                         buttons: ['OK']
                     });
                 }

@@ -27,10 +27,13 @@ html, body {
     overflow: hidden;
     height: 100vh;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-end; /* Place controller at bottom of the tall bounding box */
     align-items: center;
+    padding-bottom: 15px; /* Space between capsule and edge of logical window */
     -webkit-font-smoothing: antialiased;
     font-family: var(--font-main);
+    pointer-events: none; /* Transparent dead areas do NOT intercept clicks by default */
 }
 
 /* プレミアム・フローティング・コンテナ */
@@ -48,9 +51,53 @@ html, body {
     transition: all 0.6s var(--ease-out-expo);
     -webkit-app-region: drag; /* Allow dragging the window */
     cursor: grab;
+    flex-shrink: 0; /* Preserve height during flex interactions */
+    pointer-events: auto; /* Make interactive */
 }
 .container:active {
     cursor: grabbing;
+}
+
+/* --- Live Transcript Bubble Styles --- */
+.live-transcript-bubble {
+    width: 340px;
+    background: rgba(15, 15, 20, 0.85);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 16px 20px;
+    margin-bottom: 12px; /* Space above original controller capsule */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1.6;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    pointer-events: auto; /* Enable user scrolling/copying if required */
+    display: none; /* Hidden by default */
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: opacity 0.4s var(--ease-out-expo), transform 0.4s var(--ease-out-expo);
+    max-height: 360px;
+    overflow-y: auto;
+    text-align: left;
+    word-break: break-all;
+    scrollbar-width: none; 
+}
+.live-transcript-bubble::-webkit-scrollbar {
+    display: none;
+}
+.live-transcript-bubble.visible {
+    display: block;
+}
+.live-transcript-bubble.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.live-transcript-bubble.mini {
+    width: 260px;
+    font-size: 12px;
 }
 
 /* Mode Badge */

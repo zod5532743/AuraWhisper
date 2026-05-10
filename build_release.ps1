@@ -2,7 +2,7 @@
 $buildDir = "d:\temp_aurawhisper_release"
 $currentDir = $PSScriptRoot
 $distDir = Join-Path -Path $currentDir -ChildPath "dist"
-$zipFileName = "AuraWhisper_v1.2.3.zip"
+$zipFileName = "AuraWhisper_v1.2.4.zip"
 
 # Ensure the build directory exists
 if (-Not (Test-Path -Path $buildDir)) {
