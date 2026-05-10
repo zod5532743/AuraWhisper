@@ -380,11 +380,12 @@ function createWindow() {
     const winHeight = config.window_style === 'mini' ? 350 : 500;
 
     // Use saved coordinates or default to center
-    let x = config.window_x;
-    let y = config.window_y;
+    // FORCED POSITION RECOVERY FOR v1.2.8: Reset window to center to recover from accidental off-screen drift
+    let x = undefined;
+    let y = undefined;
 
     // If coordinates are missing or completely invalid, center it
-    if (x === undefined || y === undefined) {
+    if (true) { // Override to force centering just for this rescue release
         x = Math.floor((screenWidth - winWidth) / 2);
         y = Math.floor((screenHeight - winHeight) / 2);
     } else {
@@ -586,18 +587,16 @@ app.whenReady().then(() => {
         createSettingsWindow();
     });
 
-    ipcMain.on('resize-window', (event, { width, height }) => {
+    ipcMain.on('resize-window', (event, { width }) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
             const bounds = mainWindow.getBounds();
-            if (bounds.width !== width || bounds.height !== height) {
-                // Shift the y position to anchor movement from the bottom up
-                const dy = height - bounds.height;
-                mainWindow.setBounds({
-                    x: bounds.x,
-                    y: bounds.y - dy,
-                    width: width,
-                    height: height
-                }, true);
+            const config = loadConfig();
+            // Hard lock height to config preference to prevent drift cumulative bugs
+            const lockedHeight = config.window_style === 'mini' ? 350 : 500;
+            
+            if (bounds.width !== width || bounds.height !== lockedHeight) {
+                // Use setSize to strictly alter geometry without recalculating global Y bounds
+                mainWindow.setSize(width, lockedHeight, true);
             }
         }
     });
@@ -628,8 +627,8 @@ app.whenReady().then(() => {
                     dialog.showMessageBox({
                         type: 'info',
                         title: 'About AuraWhisper',
-                        message: 'AuraWhisper v1.2.7',
-                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.7\nPlatform: ' + process.platform + ' (x64)',
+                        message: 'AuraWhisper v1.2.8',
+                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.8\nPlatform: ' + process.platform + ' (x64)',
                         buttons: ['OK']
                     });
                 }

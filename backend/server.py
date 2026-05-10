@@ -419,6 +419,8 @@ def vosk_worker_loop(q, model):
                 if config.get("language") == "ja":
                     txt = txt.replace(" ", "")
                 app_state["partial_transcript"] = txt
+                # FORCED DIAGNOSTIC: Ensure text is visible somewhere if bubble fails
+                app_state["status_message"] = txt
     except Exception as e:
         logger.error(f"Vosk worker crash: {e}")
 
