@@ -732,6 +732,7 @@ def process_and_paste_task():
         app_state["is_recording"] = False
         if app_state["status"] != "error":
             app_state["status"] = "ready"
+            app_state["status_message"] = None
         if os.path.exists(audio_path):
             os.remove(audio_path)
 
