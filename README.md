@@ -1,17 +1,17 @@
-﻿# 🎙️ AuraWhisper
+# 🎙️ AuraWhisper
 **Your Voice, Your Data, Your Local AI.**
 
 AuraWhisper は、プライバシーを最優先に考えた、完全ローカル完結型の高性能AI音声入力・推敲ツールです。
 
 ---
 
-## 🚀 Download & Install (v1.2.0)
+## 🚀 Download & Install (v1.2.10)
  
 今すぐ AuraWhisper を使い始めるには、GitHub リポジトリから最新のコードを取得するか、リリースセクションを確認してください。
  
 👉 **[AuraWhisper リリース一覧](https://github.com/zod5532743/AuraWhisper/releases)**
  
-*   `AuraWhisper-v1.2.0` (最新リリース版)
+*   `AuraWhisper-v1.2.10` (最新リリース版)
 *   詳細は [日本語取扱説明書 (USER_GUIDE.md)](./USER_GUIDE.md) または [English User Guide (USER_GUIDE_EN.md)](./USER_GUIDE_EN.md) をご覧ください。
 
 ---
@@ -29,9 +29,10 @@ AuraWhisper の最大の特徴は、**「すべての処理があなたのPC内�
 ## ✨ 主要機能
 
 - **✅ プレミアム・グラスモーフィズム UI**: Superwhisper を彷彿とさせる、OSに溶け込む洗練されたデザイン。
+- **✅ リアルタイム・文字起こしプレビュー (NEW 🔥)**: 話している最中に文字が次々と浮かび上がる、超高速のライブプレビュー機能（Voskエンジン搭載）。
 - **✅ 有機的な流体ウェーブフォーム**: 音声入力を視覚的に楽しむための、滑らかで美しいアニメーション。
 - **✅ シームレスな文字起こし**: OpenAI Whisper を活用した、ローカルでの高精度な音声認識。
-- **✅ AI による自動推敲**: Ollama を通じて、文法ミスや話し言葉を瞬時にビジネスレベルの文章へブラッシュアップ。
+- **✅ AI による自動推敲**: Ollama や LM Studio を通じて、文法ミスや話し言葉を瞬時にビジネスレベルの文章へブラッシュアップ。
 - **✅ グローバル・ホットキー**: `Alt+Shift+S` (初期設定) で、どのアプリからでも即座に録音を開始。
 
 ---
@@ -41,8 +42,9 @@ AuraWhisper の最大の特徴は、**「すべての処理があなたのPC内�
 - **Frontend**: Electron, Javascript (Vanilla ES6+), CSS3 (Modern Glassmorphism)
 - **Backend**: Python 3.10+, FastAPI
 - **AI Core**: 
-  - **Speech-to-Text**: [Whisper](https://github.com/openai/whisper)
-  - **Text Refinement**: [Ollama](https://ollama.com/) (Local LLM)
+  - **Speech-to-Text**: [Whisper](https://github.com/openai/whisper) (Faster-Whisper)
+  - **Real-time Engine**: [Vosk](https://alphacephei.com/vosk/) (Lightweight on-device STT)
+  - **Text Refinement**: [Ollama](https://ollama.com/) / [LM Studio](https://lmstudio.ai/) (Local LLM)
 
 ---
 
