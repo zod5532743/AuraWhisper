@@ -1,4 +1,4 @@
-﻿# AuraWhisper v1.2.0 ユーザーガイド
+# AuraWhisper v1.2.0 ユーザーガイド
 
 ## 概要
 
@@ -169,11 +169,16 @@ AuraWhisper は、AI 搭載の高度なダイクテーションツールです�
 
 ### 辞書の形式
 ```json
-{
-  "word": "synonym",
-  "meaning": "意味の説明",
-  "context": "使用文脈"
-}
+[
+  {
+    "original": "オーラウィスパー",
+    "replacement": "AuraWhisper"
+  },
+  {
+    "original": "ジェイソン",
+    "replacement": "JSON"
+  }
+]
 ```
 
 ---

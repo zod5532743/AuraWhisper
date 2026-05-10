@@ -73,6 +73,16 @@ class Transcriber:
                     self.model = None
         
         logger.info("Model loaded successfully.")
+        
+        # Warmup to prevent first-run lag (Task 4)
+        try:
+            import numpy as np
+            logger.info("Warming up Whisper model with dummy audio...")
+            dummy_audio = np.zeros(16000, dtype=np.float32) # 1 second of silence at 16kHz
+            self.model.transcribe(dummy_audio, beam_size=1, language="ja")
+            logger.info("Whisper model warmup completed.")
+        except Exception as e:
+            logger.warning(f"Failed to warmup Whisper model: {e}")
 
     def transcribe(self, audio_path, language="ja"):
         if self.model is None:

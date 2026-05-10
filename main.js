@@ -352,7 +352,7 @@ function loadConfig() {
             if (fs.existsSync(defaultPath)) {
                 fs.copyFileSync(defaultPath, CONFIG_PATH);
             } else {
-                const defaultConfig = { hotkey: 'Alt+Shift+S', mode: 'toggle', language: 'ja', model_size: 'small', device: 'auto', use_ollama: false };
+                const defaultConfig = { hotkey: 'Alt+Shift+S', mode: 'toggle', language: 'ja', model_size: 'small', device: 'auto', use_ollama: false, ai_provider: 'lmstudio', ollama_base_url: 'http://localhost:1234/v1' };
                 fs.writeFileSync(CONFIG_PATH, JSON.stringify(defaultConfig, null, 4), 'utf-8');
             }
         }
@@ -609,6 +609,19 @@ app.whenReady().then(() => {
     try {
         tray = new Tray(path.join(__dirname, 'ui/icon.png'));
         const contextMenu = Menu.buildFromTemplate([
+            {
+                label: 'About AuraWhisper...', click: () => {
+                    const { dialog } = require('electron');
+                    dialog.showMessageBox({
+                        type: 'info',
+                        title: 'About AuraWhisper',
+                        message: 'AuraWhisper v1.2.2',
+                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.2\nPlatform: ' + process.platform + ' (x64)',
+                        buttons: ['OK']
+                    });
+                }
+            },
+            { type: 'separator' },
             { label: 'Settings', click: () => createSettingsWindow() },
             {
                 label: 'Show Recorder', click: () => {

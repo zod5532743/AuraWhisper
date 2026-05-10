@@ -167,7 +167,9 @@ ensure_file_exists(CONFIG_PATH, {
     "device": "auto",
     "use_ollama": False,
     "ollama_model": "gemma2:2b",
-    "window_style": "classic"
+    "window_style": "classic",
+    "ai_provider": "lmstudio",
+    "ollama_base_url": "http://localhost:1234/v1"
 })
 ensure_file_exists(HISTORY_PATH, [])
 ensure_file_exists(VOCAB_PATH, [])
@@ -300,13 +302,28 @@ def save_modes(data):
 def init_app_globals():
     global config, recorder, transcriber
     config = load_config()
-    # 起動時は常に AI を off にする
-    config["use_ollama"] = False
-    try:
-        save_config_file(config)
-    except Exception as e:
-        logger.error(f"Failed to save config on startup: {e}")
-    recorder = AudioRecorder(device_index=config.get("device_index"))
+    
+    # Resolve device_index based on saved device_name (Task 2)
+    saved_device_name = config.get("device_name")
+    current_device_index = config.get("device_index")
+    
+    if saved_device_name and saved_device_name != "System Default":
+        try:
+            devices = AudioRecorder.get_input_devices()
+            found = False
+            for d in devices:
+                if d.get("name") == saved_device_name:
+                    current_device_index = d.get("id")
+                    config["device_index"] = current_device_index
+                    found = True
+                    logger.info(f"Resolved microphone '{saved_device_name}' to index {current_device_index}")
+                    break
+            if not found:
+                logger.warning(f"Saved microphone '{saved_device_name}' not found. Falling back to default or saved index {current_device_index}")
+        except Exception as e:
+            logger.error(f"Failed to resolve device name index: {e}")
+            
+    recorder = AudioRecorder(device_index=current_device_index)
     
     # Initialize history and vocabulary files if they don't exist
     if not HISTORY_PATH.exists(): save_history([])
@@ -516,6 +533,7 @@ def process_and_paste_task():
             if item.get("original") and item.get("replacement"):
                 raw_text = raw_text.replace(item["original"], item["replacement"])
         
+        is_fallback = False
         if config.get("use_ollama", True):
             provider = config.get("ai_provider", "ollama")
             base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
@@ -554,10 +572,22 @@ def process_and_paste_task():
                             refined_text = resp.json()["choices"][0]["message"]["content"]
 
                     elif provider == "lmstudio":
-                        url = f"{base_url}/chat/completions"
+                        lm_base = base_url if "v1" in base_url else f"{base_url}/v1"
+                        # Auto-detect currently loaded model in LM Studio to avoid model name mismatch errors
+                        active_model = model
+                        try:
+                            models_resp = client.get(f"{lm_base}/models", timeout=3.0)
+                            if models_resp.status_code == 200:
+                                loaded_models = [m["id"] for m in models_resp.json().get("data", [])]
+                                if loaded_models and (not active_model or active_model not in loaded_models):
+                                    active_model = loaded_models[0]
+                        except Exception:
+                            pass
+
+                        url = f"{lm_base}/chat/completions"
                         headers = {"Authorization": "Bearer lm-studio"}
                         payload = {
-                            "model": model,
+                            "model": active_model,
                             "messages": [{"role": "user", "content": prompt}]
                         }
                         resp = client.post(url, json=payload, headers=headers, timeout=60.0)
@@ -575,6 +605,7 @@ def process_and_paste_task():
             except Exception as e:
                 logger.error(f"AI Refinement failed: {e}")
                 refined_text = raw_text
+                is_fallback = True
         else:
             refined_text = raw_text
         
@@ -593,6 +624,9 @@ def process_and_paste_task():
                             final_text += "。"
                     else:
                         final_text += "."
+            
+            if is_fallback:
+                final_text += " （フォールバック）"
             
             # After Insertion suffix
             after_insert = config.get("after_insertion", "none")
@@ -644,6 +678,7 @@ def refine_and_paste(raw_text):
             if item.get("original") and item.get("replacement"):
                 raw_text = raw_text.replace(item["original"], item["replacement"])
         
+        is_fallback = False
         if config.get("use_ollama", True):
             provider = config.get("ai_provider", "ollama")
             base_url = config.get("ollama_base_url", "http://localhost:11434").rstrip('/')
@@ -667,8 +702,20 @@ def refine_and_paste(raw_text):
                         resp = client.post(url, json={"model": model, "messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": f"Bearer {api_key}"}, timeout=60.0)
                         if resp.status_code == 200: refined_text = resp.json()["choices"][0]["message"]["content"]
                     elif provider == "lmstudio":
-                        url = f"{base_url}/chat/completions"
-                        resp = client.post(url, json={"model": model, "messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": "Bearer lm-studio"}, timeout=60.0)
+                        lm_base = base_url if "v1" in base_url else f"{base_url}/v1"
+                        # Auto-detect currently loaded model in LM Studio to avoid model name mismatch errors
+                        active_model = model
+                        try:
+                            models_resp = client.get(f"{lm_base}/models", timeout=3.0)
+                            if models_resp.status_code == 200:
+                                loaded_models = [m["id"] for m in models_resp.json().get("data", [])]
+                                if loaded_models and (not active_model or active_model not in loaded_models):
+                                    active_model = loaded_models[0]
+                        except Exception:
+                            pass
+
+                        url = f"{lm_base}/chat/completions"
+                        resp = client.post(url, json={"model": active_model, "messages": [{"role": "user", "content": prompt}]}, headers={"Authorization": "Bearer lm-studio"}, timeout=60.0)
                         if resp.status_code == 200: refined_text = resp.json()["choices"][0]["message"]["content"]
                     elif provider == "gemini":
                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
@@ -676,10 +723,13 @@ def refine_and_paste(raw_text):
                         if resp.status_code == 200: refined_text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
             except Exception as e:
                 logger.error(f"Refinement error: {e}")
+                is_fallback = True
         else:
             refined_text = raw_text
 
         final_text = refined_text.strip()
+        if is_fallback:
+            final_text += " （フォールバック）"
         # (Auto-Punctuation logic could be added here too)
         
         pyperclip.copy(final_text)
@@ -823,8 +873,10 @@ async def get_devices():
 
 
 @app.get("/lmstudio/models")
-async def get_lmstudio_models():
-    base_url = config.get("ollama_base_url", "http://localhost:1234/v1").rstrip('/')
+async def get_lmstudio_models(base_url: str = None):
+    if not base_url:
+        base_url = config.get("ollama_base_url", "http://localhost:1234/v1")
+    base_url = base_url.rstrip('/')
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{base_url}/models", timeout=3.0)
@@ -856,6 +908,21 @@ async def save_config(new_config: dict):
         # 1. Update recorder ONLY if device_index actually changed
         if old_config.get("device_index") != config.get("device_index"):
             logger.info("Audio device changed. Updating recorder...")
+            device_index = config.get("device_index")
+            device_name = "System Default"
+            if device_index is not None and device_index != -1:
+                try:
+                    devices = AudioRecorder.get_input_devices()
+                    for d in devices:
+                        if d.get("id") == device_index:
+                            device_name = d.get("name")
+                            break
+                except Exception as e:
+                    logger.error(f"Failed to get device name for index {device_index}: {e}")
+            
+            merged_config["device_name"] = device_name
+            save_config_file(merged_config)
+            config = load_config()
             recorder = AudioRecorder(device_index=config.get("device_index"))
         
         # 2. Reload transcriber ONLY if model or device settings actually changed

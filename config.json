@@ -14,8 +14,8 @@
     "autostart": true,
     "active_mode_id": "general",
     "ui_lang": "en",
-    "ai_provider": "ollama",
-    "ollama_base_url": "http://localhost:11434",
+    "ai_provider": "lmstudio",
+    "ollama_base_url": "http://localhost:1234/v1",
     "api_key": "",
     "window_x": 1293,
     "window_y": 919
