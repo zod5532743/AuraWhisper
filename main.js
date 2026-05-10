@@ -588,9 +588,16 @@ app.whenReady().then(() => {
 
     ipcMain.on('resize-window', (event, { width, height }) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
-            const currentSize = mainWindow.getSize();
-            if (currentSize[0] !== width || currentSize[1] !== height) {
-                mainWindow.setSize(width, height, true);
+            const bounds = mainWindow.getBounds();
+            if (bounds.width !== width || bounds.height !== height) {
+                // Shift the y position to anchor movement from the bottom up
+                const dy = height - bounds.height;
+                mainWindow.setBounds({
+                    x: bounds.x,
+                    y: bounds.y - dy,
+                    width: width,
+                    height: height
+                }, true);
             }
         }
     });
@@ -621,8 +628,8 @@ app.whenReady().then(() => {
                     dialog.showMessageBox({
                         type: 'info',
                         title: 'About AuraWhisper',
-                        message: 'AuraWhisper v1.2.5',
-                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.5\nPlatform: ' + process.platform + ' (x64)',
+                        message: 'AuraWhisper v1.2.6',
+                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.6\nPlatform: ' + process.platform + ' (x64)',
                         buttons: ['OK']
                     });
                 }
