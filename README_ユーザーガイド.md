@@ -108,13 +108,12 @@ AuraWhisper は、AI 搭載の高度なダイクテーションツールです�
 ## 初回起動時の設定
 
 1. アプリを起動
-2. **Alt+Shift+S** で設定画面を開く
-3. 以下の項目を設定：
-   - AI Provider（Ollama 推奨）
-   - Model Size（7B または 8B）
-   - Compute Device（GPU なら選択）
-   - マイクロフォン選択
-4. **保存**
+2. バックエンド環境（Python仮想環境）が未構築の場合、自動的に設定画面が開きます。手動で開く場合は Alt+Shift+S を押してください。
+3. ご利用のグラフィックボード（GPU）のメーカーに合わせて、設定画面の Engine Setup から適切なエンジンを選択して「Install」をクリックしてください：
+   - NVIDIA製グラフィックボード（GeForce、RTX等）をご使用の場合：「Install GPU Engine (CUDA)」を選択します。GPUをフルに活用して最も高速に文字起こしが行えます。
+   - AMD製グラフィックボード（Radeon等）をご使用の場合：「Install GPU Engine (AMD DirectML)」を選択します。DirectML技術を利用してAMD GPUで高速動作します。
+   - グラフィックボードを搭載していない場合、または動作が不安定な場合：「Install Standard Engine (CPU)」を選択します。CPUで安全に動作します。
+4. セットアップ完了後、設定画面でマイクロフォンなどの必要項目を整えて「保存」をクリックします。
 
 ---
 
@@ -133,6 +132,21 @@ AuraWhisper は、AI 搭載の高度なダイクテーションツールです�
 
 ### Q: ダッシュボードが表示されない
 **A**: `dashboard.js` が正常に読み込まれているか確認してください
+
+### Q: AMD製のGPU（Radeonなど）をご使用の場合、どのエンジンを選択すればよいですか。
+**A**: AuraWhisperはDirectML技術を介したAMD製GPUの高速動作に対応しています。AMD製のGPU（Radeon等）を搭載している場合は、セットアップ画面で「Install GPU Engine (AMD DirectML)」を選択してインストールを行ってください。これにより、AMD製GPUのグラフィック処理能力を利用した高速な文字起こしが有効になります。
+
+### Q: 「Install Standard Engine」を押すと、20%（venvの作成）付近で「アクセスが拒否されました (WinError 5)」というエラーで止まります。
+**A**: AuraWhisperが「C:\Program Files」の中にインストールされていることが原因です。Program Filesフォルダ内はWindowsのセキュリティにより書き込みが制限されているため、仮想環境（venv）の作成に失敗します。
+解決するには、一度AuraWhisperを完全に終了し、「C:\Program Files\aurawhisper」フォルダを丸ごと「デスクトップ」や「マイドキュメント」などの書き込み制限のない一般フォルダにコピーし、そこにある「aurawhisper.exe」を通常通りダブルクリックして起動した状態でセットアップを行ってください（管理者として実行する必要はありません）。
+
+### Q: アプリを「管理者として実行」で起動すると、「Python Not Found」と表示されてアプリが起動しなくなりました。
+**A**: 通常通りにインストールしたPythonは、インストールした一般ユーザーの個人環境にのみ登録されます。アプリを「管理者として実行」すると、管理者用の別の環境を探すため、一般ユーザー用にインストールされたPythonを見つけることができなくなります。
+解決するには、Pythonのインストーラーを再度実行し、アンインストールした後に再インストールを行います。その際、「Customize installation」を選び、「Advanced Options」画面で「Install for all users（すべてのユーザー用にインストール）」にチェックを入れることで、システム全体（管理者含む）にPythonが登録され、エラーが出なくなります。また、前述の「Program Files以外の場所にフォルダを移動して通常起動する」ことでもこのエラーを完全に回避できます。
+
+### Q: Pythonをインストールしたはずなのに、「Global Python is not found (10%)」というエラーが消えません。
+**A**: Pythonのインストール時に、WindowsにPythonの場所を教える設定（環境変数への登録）が漏れている可能性が非常に高いです。
+解決するには、Python 3.11.6のインストーラー（python-3.11.6-amd64.exe）を起動し、一度アンインストールした後に再インストールを行ってください。その際、最初の画面の最下部にある「Add Python.exe to PATH」に必ずチェックを入れ、さらに「Customize installation」を進めた先の「Advanced Options」画面にある「Add Python to environment variables（Pythonを環境変数に追加する）」にも必ずチェックを入れてインストールを完了させてください。その後、パソコンを一度再起動するとWindows全体に設定が確実に反映されます。
 
 ---
 

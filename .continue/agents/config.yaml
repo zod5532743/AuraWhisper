@@ -1,0 +1,14 @@
+name: Local LLM Config
+version: 1.0.0
+schema: v1
+
+# 完全無料で動くローカルLLM（LM Studio）の設定
+models:
+  - name: LM Studio Qwen 3.5 9B
+    provider: lmstudio
+    model: qwen3.5-9b
+    apiBase: http://localhost:1234/v1
+    roles:
+      - chat
+      - edit
+      - apply

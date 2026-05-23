@@ -499,7 +499,7 @@
         <div class="sidebar">
             <div class="sidebar-brand" style="display:flex; flex-direction:column; gap:4px; padding-bottom:30px;">
                 AuraWhisper
-                <span style="font-size:11px; font-weight:400; color:rgba(255,255,255,0.3); letter-spacing:0.5px;">Version 1.2.10</span>
+                <span style="font-size:11px; font-weight:400; color:rgba(255,255,255,0.3); letter-spacing:0.5px;">Version 1.2.11</span>
             </div>
             <div class="nav-item active" id="nav-home" onclick="tab('home')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -701,6 +701,7 @@
                             <select id="device">
                                 <option value="auto">Auto (Prefer GPU)</option>
                                 <option value="cuda">NVIDIA GPU (CUDA)</option>
+                                <option value="dml">AMD GPU (DirectML)</option>
                                 <option value="cpu">CPU (Standard)</option>
                             </select>
                         </div>
@@ -764,11 +765,10 @@
                     </div>
 
                     <div id="setup-controls">
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                            <button class="btn" onclick="startEngineSetup('base')" id="btn-setup-base">Install Standard
-                                Engine</button>
-                            <button class="btn btn-primary" onclick="startEngineSetup('gpu')" id="btn-setup-gpu">Install
-                                GPU Engine (CUDA)</button>
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <button class="btn" onclick="startEngineSetup('base')" id="btn-setup-base">Install Standard Engine</button>
+                            <button class="btn btn-primary" onclick="startEngineSetup('gpu')" id="btn-setup-gpu">Install GPU Engine (CUDA)</button>
+                            <button class="btn" onclick="startEngineSetup('dml')" id="btn-setup-dml" style="background: rgba(255, 69, 58, 0.1); color: #ff453a; border: 1px solid rgba(255, 69, 58, 0.2);">Install GPU Engine (AMD DirectML)</button>
                         </div>
 
                         <div id="setup-progress-container" class="hide"
@@ -1911,6 +1911,7 @@
                     document.getElementById('setup-progress-container').classList.remove('hide');
                     document.getElementById('btn-setup-base').disabled = true;
                     document.getElementById('btn-setup-gpu').disabled = true;
+                    document.getElementById('btn-setup-dml').disabled = true;
 
                     ipcRenderer.on('setup-progress', (event, data) => {
                         const bar = document.getElementById('setup-bar');
@@ -1939,6 +1940,7 @@
                         showToast("Error during engine setup: " + err);
                         document.getElementById('btn-setup-base').disabled = false;
                         document.getElementById('btn-setup-gpu').disabled = false;
+                        document.getElementById('btn-setup-dml').disabled = false;
                     });
                 } else {
                     showToast("IPC renderer not available.");
@@ -1966,6 +1968,7 @@
                     <div style="display:flex; justify-content:space-between;"><span>Python Runtime:</span> ${check(hasPython)}</div>
                     <div style="display:flex; justify-content:space-between;"><span>Whisper Library:</span> <span style="color:#ff3b30;">○ Missing</span></div>
                     <div style="display:flex; justify-content:space-between;"><span>CUDA (NVIDIA GPU):</span> <span style="color:#ff3b30;">○ Missing</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>DirectML (AMD GPU):</span> <span style="color:#ff3b30;">○ Missing</span></div>
                 `;
             }
 
@@ -1979,6 +1982,7 @@
                         <div style="display:flex; justify-content:space-between;"><span>Python Runtime:</span> ${check(hasPython)}</div>
                         <div style="display:flex; justify-content:space-between;"><span>Whisper Library:</span> ${check(info.has_whisper)}</div>
                         <div style="display:flex; justify-content:space-between;"><span>CUDA (NVIDIA GPU):</span> ${check(info.cuda_available)}</div>
+                        <div style="display:flex; justify-content:space-between;"><span>DirectML (AMD GPU):</span> ${check(info.dml_available)}</div>
                         <div style="display:flex; justify-content:space-between;"><span>Global Listener:</span> ${check(info.has_pynput)}</div>
                     `;
                 }

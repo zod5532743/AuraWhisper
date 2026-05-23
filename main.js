@@ -280,17 +280,43 @@ function startPythonBackend() {
                 console.log('[INFO] venv not found. Falling back to system python.');
             }
 
-            // Final check: if neither venv nor system python works, alert user
+            // Final check: if neither venv nor system python works or libraries are missing, alert user and show settings
             try {
                 const { execSync } = require('child_process');
-                execSync(`${pythonExe} --version`);
+                // Check if Python works AND has crucial libraries installed
+                execSync(`"${pythonExe}" -c "import fastapi, uvicorn, faster_whisper, sounddevice"`);
             } catch (e) {
-                const { dialog } = require('electron');
-                dialog.showErrorBox(
-                    'Python Not Found',
-                    'AuraWhisper requires Python to run.\n\nPlease install Python from python.org and ensure "Add to PATH" is checked during installation.'
-                );
-                return;
+                // If it failed, check if Python itself exists at least
+                let hasPython = false;
+                try {
+                    const { execSync } = require('child_process');
+                    execSync(`"${pythonExe}" --version`);
+                    hasPython = true;
+                } catch (pyErr) {}
+
+                if (!hasPython) {
+                    const { dialog } = require('electron');
+                    dialog.showErrorBox(
+                        'Python Not Found',
+                        'AuraWhisper requires Python to run.\n\nPlease install Python from python.org and ensure "Add to PATH" is checked during installation.'
+                    );
+                    return;
+                } else {
+                    // Python is installed but libraries (or venv) are missing.
+                    // Automatically open Settings Window so the user can perform setup.
+                    console.log('Required Python libraries are missing. Opening Setup/Settings Window...');
+                    const { dialog } = require('electron');
+                    dialog.showMessageBox({
+                        type: 'info',
+                        title: 'AuraWhisper Setup',
+                        message: 'AI Engine Setup Required',
+                        detail: 'Crucial backend libraries are missing. The Settings window will now open to help you set up the AI Engine (Python virtual environment and libraries) automatically.',
+                        buttons: ['OK']
+                    }).then(() => {
+                        createSettingsWindow();
+                    });
+                    return;
+                }
             }
 
             console.log(`Spawning backend: ${pythonExe} ${scriptPath}`);
@@ -626,8 +652,8 @@ app.whenReady().then(() => {
                     dialog.showMessageBox({
                         type: 'info',
                         title: 'About AuraWhisper',
-                        message: 'AuraWhisper v1.2.10',
-                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.10\nPlatform: ' + process.platform + ' (x64)',
+                        message: 'AuraWhisper v1.2.11',
+                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.11\nPlatform: ' + process.platform + ' (x64)',
                         buttons: ['OK']
                     });
                 }
@@ -787,6 +813,18 @@ ipcMain.on('start-engine-setup', (event, type) => {
                     if (type === 'gpu') {
                         event.reply('setup-progress', { percent: 70, status: 'Installing GPU libraries (CUDA)...' });
                         exec(`"${venvPython}" -m pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cu121`, (err, stdout, stderr) => {
+                            event.reply('setup-progress', { percent: 90, status: 'Finalizing installation...' });
+                            event.reply('setup-complete');
+                        });
+                    } else if (type === 'dml') {
+                        event.reply('setup-progress', { percent: 70, status: 'Installing GPU libraries (AMD DirectML)...' });
+                        const dmlReqFile = path.join(backendDir, 'requirements-dml.txt');
+                        exec(`"${venvPython}" -m pip install -r "${dmlReqFile}"`, (err, stdout, stderr) => {
+                            if (err) {
+                                console.error('Failed to install AMD DirectML dependencies:', err);
+                                event.reply('setup-error', 'Failed to install DirectML dependencies: ' + err.message);
+                                return;
+                            }
                             event.reply('setup-progress', { percent: 90, status: 'Finalizing installation...' });
                             event.reply('setup-complete');
                         });

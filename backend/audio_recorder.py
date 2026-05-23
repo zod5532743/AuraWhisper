@@ -55,7 +55,8 @@ class AudioRecorder:
             if status:
                 logger.warning(status)
             if self.is_recording:
-                data_copy = indata.copy()
+                # Allocate a brand-new independent memory block to prevent PortAudio ring-buffer memory overwriting
+                data_copy = np.array(indata, dtype=np.float32, order='C')
                 self.recording.append(data_copy)
                 
                 # Fire real-time stream callback if provided
@@ -79,7 +80,8 @@ class AudioRecorder:
                 samplerate=self.sample_rate, 
                 channels=1, 
                 callback=callback,
-                device=actual_device
+                device=actual_device,
+                blocksize=2048
             )
             self.stream.start()
         except Exception as e:
@@ -89,7 +91,8 @@ class AudioRecorder:
                     samplerate=self.sample_rate, 
                     channels=1, 
                     callback=callback,
-                    device=None
+                    device=None,
+                    blocksize=2048
                 )
                 self.stream.start()
             except Exception as e2:
@@ -109,6 +112,31 @@ class AudioRecorder:
             return None
 
         audio_data = np.concatenate(self.recording, axis=0)
+        
+        # Trim first and last 0.3 seconds to remove hotkey click noise and physical button releases
+        trim_samples = int(self.sample_rate * 0.3)
+        if len(audio_data) > trim_samples * 2:
+            audio_data = audio_data[trim_samples:-trim_samples]
+            logger.info(f"Trimmed hotkey click noise (removed {trim_samples} samples from start/end).")
+        
+        # Automatic volume normalization to prevent Whisper hallucinations from low-input mic levels
+        try:
+            max_amp = np.abs(audio_data).max()
+            if max_amp > 0.0001:
+                # Normalize to max amplitude 0.9
+                audio_data = audio_data * (0.9 / max_amp)
+                logger.info(f"Audio normalized to prevent Whisper hallucination. Original max amp: {max_amp:.5f} -> 0.90000")
+            else:
+                logger.warning(f"Audio is virtually silent (max amplitude: {max_amp:.5f}). Normalization skipped.")
+        except Exception as e:
+            logger.error(f"Failed to normalize audio: {e}")
+            
+        # Convert float32 [-1.0, 1.0] to standard 16-bit PCM (int16) to ensure 100% compatibility with all decoders
+        try:
+            audio_data = (audio_data * 32767.0).astype(np.int16)
+            logger.info("Audio converted to standard 16-bit PCM (int16).")
+        except Exception as e:
+            logger.error(f"Failed to convert audio to int16: {e}")
         
         # Save to a temporary wav file
         fd, path = tempfile.mkstemp(suffix=".wav")

@@ -64,16 +64,22 @@ if os.name == 'nt':
                         logger.warning(f"Failed to add DLL directory {bin_path}: {e}")
 
 
-try:
-    from transcriber import Transcriber
-    from audio_recorder import AudioRecorder
-    engine_ready = True
-except ImportError as e:
-    logger.error(f"Engine libraries missing: {e}")
-    engine_ready = False
+    try:
+        try:
+            from transcriber import Transcriber
+            from audio_recorder import AudioRecorder
+        except ImportError:
+            from .transcriber import Transcriber
+            from .audio_recorder import AudioRecorder
+        engine_ready = True
+    except Exception as e:
+        logger.error(f"Engine libraries missing: {e}")
+        engine_ready = False
+        AudioRecorder = None
 
-# Check for CUDA availability
+# Check for CUDA and DirectML availability
 cuda_available = False
+dml_available = False
 if engine_ready:
     try:
         import ctranslate2
@@ -82,6 +88,14 @@ if engine_ready:
     except Exception as e:
         logger.warning(f"Failed to check CUDA availability: {e}")
         cuda_available = False
+
+    try:
+        import onnxruntime as ort
+        dml_available = "DmlExecutionProvider" in ort.get_available_providers()
+        logger.info(f"DirectML detected: {dml_available} (Available providers: {ort.get_available_providers()})")
+    except Exception as e:
+        logger.warning(f"Failed to check DirectML availability: {e}")
+        dml_available = False
 
 # Global state and instances
 
@@ -103,6 +117,7 @@ def check_full_environment():
     info = {
         "engine_ready": engine_ready,
         "cuda_available": cuda_available,
+        "dml_available": dml_available,
         "has_whisper": False,
         "has_pynput": False,
         "has_fastapi": True # Obviously
@@ -110,6 +125,11 @@ def check_full_environment():
     try:
         import faster_whisper
         info["has_whisper"] = True
+    except: pass
+    try:
+        if not info["has_whisper"]:
+            import optimum
+            info["has_whisper"] = True
     except: pass
     try:
         import pynput
@@ -311,22 +331,29 @@ def init_app_globals():
     current_device_index = config.get("device_index")
     
     if saved_device_name and saved_device_name != "System Default":
-        try:
-            devices = AudioRecorder.get_input_devices()
-            found = False
-            for d in devices:
-                if d.get("name") == saved_device_name:
-                    current_device_index = d.get("id")
-                    config["device_index"] = current_device_index
-                    found = True
-                    logger.info(f"Resolved microphone '{saved_device_name}' to index {current_device_index}")
-                    break
-            if not found:
-                logger.warning(f"Saved microphone '{saved_device_name}' not found. Falling back to default or saved index {current_device_index}")
-        except Exception as e:
-            logger.error(f"Failed to resolve device name index: {e}")
+        if AudioRecorder:
+            try:
+                devices = AudioRecorder.get_input_devices()
+                found = False
+                for d in devices:
+                    if d.get("name") == saved_device_name:
+                        current_device_index = d.get("id")
+                        config["device_index"] = current_device_index
+                        found = True
+                        logger.info(f"Resolved microphone '{saved_device_name}' to index {current_device_index}")
+                        break
+                if not found:
+                    logger.warning(f"Saved microphone '{saved_device_name}' not found. Falling back to default or saved index {current_device_index}")
+            except Exception as e:
+                logger.error(f"Failed to resolve device name index: {e}")
+        else:
+            logger.warning("AudioRecorder unavailable; cannot resolve saved microphone name.")
             
-    recorder = AudioRecorder(device_index=current_device_index)
+    if AudioRecorder:
+        recorder = AudioRecorder(device_index=current_device_index)
+    else:
+        recorder = None
+        logger.warning("AudioRecorder unavailable; audio recording disabled.")
     
     # Initialize history and vocabulary files if they don't exist
     if not HISTORY_PATH.exists(): save_history([])
@@ -341,10 +368,15 @@ def init_app_globals():
 def init_transcriber_task():
     global transcriber
     try:
-        # Prefer CUDA if available and not explicitly set to CPU
+        # Prefer CUDA or DirectML if available and not explicitly set to CPU
         device = config.get("device", "auto")
         if device == "auto":
-            device = "cuda" if cuda_available else "cpu"
+            if cuda_available:
+                device = "cuda"
+            elif dml_available:
+                device = "dml"
+            else:
+                device = "cpu"
         
         current_model = config.get("model_size", "small")
         logger.info(f"Preparing transcriber: {current_model} on {device}...")
@@ -552,7 +584,10 @@ def trigger_start_sync():
             if vosk_audio_queue is not None:
                 vosk_audio_queue.put(data)
 
-        recorder.start_recording(on_audio_data=audio_data_callback)
+        if recorder:
+            recorder.start_recording(on_audio_data=audio_data_callback)
+        else:
+            logger.warning("AudioRecorder unavailable; cannot start recording.")
         app_state["is_recording"] = True
         app_state["status"] = "recording"
         app_state["error_message"] = None
@@ -896,6 +931,7 @@ async def get_status():
     # Add engine readiness info
     status["engine_ready"] = engine_ready
     status["cuda_available"] = cuda_available
+    status["dml_available"] = dml_available
     
     # Check AI Provider connectivity with 3-second caching to prevent port exhaustion
     provider_connected = False
@@ -932,14 +968,14 @@ async def get_status():
 
 @app.get("/devices")
 async def get_devices():
-    try:
+    if AudioRecorder:
         devices = AudioRecorder.get_input_devices()
         current_device_id = config.get("device_index")
         for d in devices:
             d["is_selected"] = (d["id"] == current_device_id)
         return devices
-    except Exception as e:
-        logger.error(f"Error in /devices endpoint: {e}", exc_info=True)
+    else:
+        logger.warning("AudioRecorder unavailable; cannot list devices.")
         return []
 
 
@@ -1240,7 +1276,12 @@ async def api_engine_setup(payload: dict):
             import sys
             
             # Determine which requirements to use
-            req_file = "requirements-base.txt" if type == "base" else "requirements-gpu.txt"
+            if type == "base":
+                req_file = "requirements-base.txt"
+            elif type == "dml":
+                req_file = "requirements-dml.txt"
+            else:
+                req_file = "requirements-gpu.txt"
             req_path = os.path.join(os.path.dirname(__file__), req_file)
             
             app_state["setup_progress"] = 30

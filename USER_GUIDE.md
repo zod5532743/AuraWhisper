@@ -17,9 +17,10 @@ AuraWhisperは、プライバシー保護のために全ての処理をお手元
 - 高精度なAI校正・推敲機能を利用する場合に必要です。
 - Ollama公式サイト（https://ollama.com/ ）からダウンロードしてインストールし、バックグラウンドで起動しておいてください。
 
-### グラフィックボード（NVIDIA GPU / CUDA）について
-- NVIDIA製GPUを搭載した環境では、自動的にGPU（CUDA）を利用して高速に文字起こしを行います。
-- GPUを搭載していない場合、または環境に問題がある場合は、自動的にCPU処理へ切り替わる（フォールバック）ため安全に動作します。
+### グラフィックボード（NVIDIA GPU / AMD GPU）について
+- NVIDIA製GPUを搭載した環境では、セットアップ時に「Install GPU Engine (CUDA)」を選択することで、GPU（CUDA）を利用した高速動作が有効になります。
+- AMD製GPU（Radeonなど）を搭載した環境では、セットアップ時に「Install GPU Engine (AMD DirectML)」を選択することで、DirectMLを利用したGPU支援動作が有効になります。
+- GPUを搭載していない場合、または環境に問題がある場合は、「Install Standard Engine (CPU)」を選択してCPUでの安全な動作を行うことができます。
 
 ---
 
@@ -61,7 +62,13 @@ AuraWhisperは、プライバシー保護のために全ての処理をお手元
 ## 5. よくあるトラブルシューティング
 
 - 「Python Not Found」と表示される場合：
-  PCにPython 3.10以降がインストールされているか確認してください。インストール時に「Add Python to PATH」にチェックが入っていない場合もこのメッセージが出るため、再インストールをお試しください。
+  PCにPython 3.10〜3.11（推奨：Python 3.11.6）がインストールされているか確認してください。インストール時に「Add Python to PATH」にチェックが入っていない場合や、管理者権限で実行した際に一般ユーザー用のPythonしかインストールされていない場合もこのメッセージが出ます。その場合はPythonを「すべてのユーザー向け（Install for all users）」として再インストールするか、アプリをProgram Files以外のフォルダに移動して通常起動してください。
+
+- 「アクセスが拒否されました (WinError 5)」と表示されて20%で停止する場合：
+  AuraWhisperが「C:\Program Files」にインストールされているため、書き込み制限に引っかかっています。AuraWhisperのフォルダをデスクトップやマイドキュメントに丸ごとコピーし、そこにあるaurawhisper.exeを通常起動してセットアップを実行してください。
+
+- AMD製のGPU（Radeonなど）をご使用の場合：
+  AuraWhisperはDirectMLによるAMD製GPU（Radeon等）の高速化を正式にサポートしています。セットアップ画面（Engine Setup）で「Install GPU Engine (AMD DirectML)」を選択してインストールを完了させてください。
 
 - 文字に変換されて出力されてこない場合：
   PCに古いAuraWhisperなどのプログラムが残っていないかご確認ください。今回のv1.2.0インストーラーでは、古い実行中のプロセスを自動で停止・上書きする機能が組み込まれています。再度インストーラーを実行することをお勧めします。

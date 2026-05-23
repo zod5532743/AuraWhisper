@@ -1,0 +1,4 @@
+onnxruntime-directml
+optimum[onnxruntime]
+transformers
+torch
