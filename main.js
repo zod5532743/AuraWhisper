@@ -123,6 +123,7 @@ ipcMain.on('show-context-menu', async (event) => {
                 label: 'Window Style',
                 submenu: [
                     { label: 'Classic', type: 'radio', checked: config.window_style === 'classic', click: () => updateStyle('classic') },
+                    { label: 'Dashboard', type: 'radio', checked: config.window_style === 'dashboard', click: () => updateStyle('dashboard') },
                     { label: 'Mini', type: 'radio', checked: config.window_style === 'mini', click: () => updateStyle('mini') }
                 ]
             },
@@ -139,7 +140,30 @@ ipcMain.on('show-context-menu', async (event) => {
         async function updateStyle(s) {
             config.window_style = s;
             await axios.post('http://127.0.0.1:8240/config', config);
-            if (mainWindow) mainWindow.webContents.send('config-updated');
+
+            // 既存ウィンドウを全閉じて新しいスタイルで再作成
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.close();
+                mainWindow = null;
+            }
+            if (settingsWindow && !settingsWindow.isDestroyed()) {
+                settingsWindow.close();
+                settingsWindow = null;
+            }
+
+            // 設定を再読み込みして新しいスタイルでウィンドウを作成
+            const newConfig = loadConfig();
+            if (newConfig.window_style === 'dashboard') {
+                createDashboardWindow();
+            } else if (newConfig.window_style === 'mini') {
+                createMiniWindow();
+            } else {
+                createClassicWindow();
+            }
+
+            // 設定変更を通知（ホットキー再登録等）
+            axios.post('http://127.0.0.1:8240/config/reload').catch(e => console.error('Failed to notify backend:', e.message));
+            registerHotkey();
         }
 
         menu.popup(BrowserWindow.fromWebContents(event.sender));
@@ -153,7 +177,7 @@ ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
     if (win) win.setIgnoreMouseEvents(ignore, options || {});
 });
 
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs');
@@ -274,22 +298,93 @@ function startPythonBackend() {
                 }
             }
 
-            // Fallback to system python if venv is missing
+            // AUTO-SETUP: Create venv and install dependencies if missing
             if (!fs.existsSync(pythonExe)) {
-                pythonExe = 'python'; 
-                console.log('[INFO] venv not found. Falling back to system python.');
+                try {
+                    console.log('[SETUP] venv not found. Attempting auto-setup...');
+                    const setupLogPath = path.join(app.getPath('userData'), 'setup.log');
+                    const systemPython = 'python';
+                    const venvDir = path.join(cwd, 'venv');
+
+                    // Read existing setup log to determine checkpoint
+                    let setupLog = '';
+                    try {
+                        setupLog = fs.readFileSync(setupLogPath, 'utf-8');
+                    } catch (_) { /* log does not exist yet */ }
+
+                    const hasVenvPython = fs.existsSync(path.join(venvDir, 'Scripts', 'python.exe'));
+                    const pipExe = path.join(venvDir, 'Scripts', 'pip.exe');
+
+                    // Determine completed steps from log checkpoints
+                    const step1done = setupLog.includes('venv created.') || hasVenvPython;
+                    const step2done = setupLog.includes('Base requirements installed.');
+                    const step3done = setupLog.includes('GPU requirements installed.') || setupLog.includes('No GPU torch found');
+
+                    // Write initial header only if log is empty or no steps completed
+                    if (!setupLog || (!step1done && !step2done && !step3done)) {
+                        fs.writeFileSync(setupLogPath, `[${new Date().toISOString()}] Starting auto-setup...\n`);
+                        // Re-read setupLog after overwrite
+                        setupLog = fs.readFileSync(setupLogPath, 'utf-8');
+                    }
+
+                    // Step 1: Create virtual environment (if not already done)
+                    if (!step1done) {
+                        console.log('[SETUP] Step 1: Creating venv...');
+                        execSync(`"${systemPython}" -m venv "${venvDir}"`, { timeout: 60000 });
+                        fs.appendFileSync(setupLogPath, `[${new Date().toISOString()}] venv created.\n`);
+                    } else {
+                        console.log('[SETUP] Step 1: venv already exists, skipping.');
+                    }
+
+                    // Step 2: Install base requirements (if not already done)
+                    if (!step2done) {
+                        console.log('[SETUP] Step 2: Installing base requirements...');
+                        const reqFile = path.join(cwd, 'requirements-base.txt');
+                        if (fs.existsSync(reqFile)) {
+                            execSync(`"${pipExe}" install -r "${reqFile}"`, { timeout: 600000 });
+                            fs.appendFileSync(setupLogPath, `[${new Date().toISOString()}] Base requirements installed.\n`);
+                        }
+                    } else {
+                        console.log('[SETUP] Step 2: Base requirements already installed, skipping.');
+                    }
+
+                    // Step 3: Try GPU-specific requirements (if not already done)
+                    if (!step3done) {
+                        try {
+                            execSync(`"${systemPython}" -c "import torch; print('torch OK')"`, { timeout: 10000 });
+                            const gpuReqFile = path.join(cwd, 'requirements-gpu.txt');
+                            if (fs.existsSync(gpuReqFile)) {
+                                console.log('[SETUP] Step 3: Installing GPU requirements...');
+                                execSync(`"${pipExe}" install -r "${gpuReqFile}"`, { timeout: 600000 });
+                                fs.appendFileSync(setupLogPath, `[${new Date().toISOString()}] GPU requirements installed.\n`);
+                            }
+                        } catch (_) {
+                            fs.appendFileSync(setupLogPath, `[${new Date().toISOString()}] No GPU torch found, skipping GPU reqs.\n`);
+                        }
+                    } else {
+                        console.log('[SETUP] Step 3: GPU check already completed, skipping.');
+                    }
+
+                    // Update pythonExe to use the newly created venv
+                    pythonExe = path.join(venvDir, 'Scripts', 'python.exe');
+                    console.log('[SETUP] Virtual environment created and dependencies installed successfully.');
+                    fs.appendFileSync(setupLogPath, `[${new Date().toISOString()}] Setup complete.\n`);
+                } catch (setupErr) {
+                    console.error('[SETUP] Auto-setup failed:', setupErr.message);
+                    // Fallback to system python
+                    pythonExe = 'python';
+                    console.log('[INFO] venv auto-setup failed. Falling back to system python.');
+                }
             }
 
-            // Final check: if neither venv nor system python works or libraries are missing, alert user and show settings
+            // Final check: verify Python environment has required libraries
+            let importPass = false;
             try {
-                const { execSync } = require('child_process');
-                // Check if Python works AND has crucial libraries installed
                 execSync(`"${pythonExe}" -c "import fastapi, uvicorn, faster_whisper, sounddevice"`);
+                importPass = true;
             } catch (e) {
-                // If it failed, check if Python itself exists at least
                 let hasPython = false;
                 try {
-                    const { execSync } = require('child_process');
                     execSync(`"${pythonExe}" --version`);
                     hasPython = true;
                 } catch (pyErr) {}
@@ -301,22 +396,45 @@ function startPythonBackend() {
                         'AuraWhisper requires Python to run.\n\nPlease install Python from python.org and ensure "Add to PATH" is checked during installation.'
                     );
                     return;
-                } else {
-                    // Python is installed but libraries (or venv) are missing.
-                    // Automatically open Settings Window so the user can perform setup.
-                    console.log('Required Python libraries are missing. Opening Setup/Settings Window...');
-                    const { dialog } = require('electron');
-                    dialog.showMessageBox({
-                        type: 'info',
-                        title: 'AuraWhisper Setup',
-                        message: 'AI Engine Setup Required',
-                        detail: 'Crucial backend libraries are missing. The Settings window will now open to help you set up the AI Engine (Python virtual environment and libraries) automatically.',
-                        buttons: ['OK']
-                    }).then(() => {
-                        createSettingsWindow();
-                    });
-                    return;
                 }
+
+                // Retry: if venv python exists but packages are missing, try pip install again
+                // Handles the case where auto-setup was interrupted (e.g., app closed during pip install)
+                if (pythonExe.includes('venv')) {
+                    console.log('[IMPORT] Libraries missing in venv. Attempting pip install retry...');
+                    const setupLogPath = path.join(app.getPath('userData'), 'setup.log');
+                    const pipExe = path.join(path.dirname(pythonExe), 'pip.exe');
+                    const reqFile = path.join(cwd, 'requirements-base.txt');
+                    try {
+                        if (fs.existsSync(pipExe) && fs.existsSync(reqFile)) {
+                            execSync(`"${pipExe}" install -r "${reqFile}"`, { timeout: 600000 });
+                            fs.appendFileSync(setupLogPath, `[${new Date().toISOString()}] Retry: Base requirements installed.\n`);
+                            // Retry import check
+                            execSync(`"${pythonExe}" -c "import fastapi, uvicorn, faster_whisper, sounddevice"`);
+                            console.log('[IMPORT] Pip install retry succeeded.');
+                            importPass = true;
+                        }
+                    } catch (retryErr) {
+                        console.error('[IMPORT] Pip install retry failed:', retryErr.message);
+                        const setupLogPath = path.join(app.getPath('userData'), 'setup.log');
+                        fs.appendFileSync(setupLogPath, `[${new Date().toISOString()}] Retry failed: ${retryErr.message}\n`);
+                    }
+                }
+            }
+
+            if (!importPass) {
+                console.log('Required Python libraries are missing. Opening Setup/Settings Window...');
+                const { dialog } = require('electron');
+                dialog.showMessageBox({
+                    type: 'info',
+                    title: 'AuraWhisper Setup',
+                    message: 'AI Engine Setup Required',
+                    detail: 'Crucial backend libraries are missing. The Settings window will now open to help you set up the AI Engine (Python virtual environment and libraries) automatically.\n\nIf auto-setup previously failed, try running "backend\\setup.bat" as Administrator from the installation directory.',
+                    buttons: ['OK']
+                }).then(() => {
+                    createSettingsWindow();
+                });
+                return;
             }
 
             console.log(`Spawning backend: ${pythonExe} ${scriptPath}`);
@@ -397,25 +515,34 @@ function loadConfig() {
 
 function createWindow() {
     const config = loadConfig();
+    
+    // window_style に応じてウィンドウを作成
+    if (config.window_style === 'dashboard') {
+        createDashboardWindow();
+    } else if (config.window_style === 'mini') {
+        createMiniWindow();
+    } else {
+        createClassicWindow();
+    }
+}
+
+function createClassicWindow() {
+    const config = loadConfig();
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
     
     console.log(`[INFO] Detected Screen Resolution: ${screenWidth}x${screenHeight}`);
 
-    const winWidth = config.window_style === 'mini' ? 320 : 450;
-    const winHeight = config.window_style === 'mini' ? 350 : 500;
+    const winWidth = 450;
+    const winHeight = 500;
 
-    // Use saved coordinates or default to center
     let x = config.window_x;
     let y = config.window_y;
 
-    // If coordinates are missing or completely invalid, center it
     if (x === undefined || y === undefined) {
         x = Math.floor((screenWidth - winWidth) / 2);
         y = Math.floor((screenHeight - winHeight) / 2);
     } else {
-        // Safety: Clamp coordinates to be within the current screen boundaries
-        // This ensures the window is visible even if the user changed resolution or disconnected a monitor
         x = Math.max(0, Math.min(x, screenWidth - winWidth));
         y = Math.max(0, Math.min(y, screenHeight - winHeight));
     }
@@ -428,7 +555,7 @@ function createWindow() {
         x: x,
         y: y,
         frame: false,
-        transparent: true, // Re-enable transparency for v1.0.5
+        transparent: true,
         alwaysOnTop: true,
         skipTaskbar: true,
         resizable: true,
@@ -441,17 +568,127 @@ function createWindow() {
         }
     });
 
-    // Save position when moved
     mainWindow.on('move', () => {
-        const [x, y] = mainWindow.getPosition();
-        const currentConfig = loadConfig();
-        currentConfig.window_x = x;
-        currentConfig.window_y = y;
-        fs.writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 4));
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            const [x, y] = mainWindow.getPosition();
+            const currentConfig = loadConfig();
+            currentConfig.window_x = x;
+            currentConfig.window_y = y;
+            fs.writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 4));
+        }
     });
 
     mainWindow.setMenu(null);
     mainWindow.loadFile('ui/index.html');
+}
+
+function createMiniWindow() {
+    const config = loadConfig();
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+
+    const winWidth = 320;
+    const winHeight = 350;
+
+    let x = config.window_x;
+    let y = config.window_y;
+
+    if (x === undefined || y === undefined) {
+        x = Math.floor((screenWidth - winWidth) / 2);
+        y = Math.floor((screenHeight - winHeight) / 2);
+    } else {
+        x = Math.max(0, Math.min(x, screenWidth - winWidth));
+        y = Math.max(0, Math.min(y, screenHeight - winHeight));
+    }
+
+    mainWindow = new BrowserWindow({
+        width: winWidth,
+        height: winHeight,
+        x: x,
+        y: y,
+        frame: false,
+        transparent: true,
+        alwaysOnTop: true,
+        skipTaskbar: true,
+        resizable: true,
+        focusable: false,
+        show: false,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        }
+    });
+
+    mainWindow.on('move', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            const [x, y] = mainWindow.getPosition();
+            const currentConfig = loadConfig();
+            currentConfig.window_x = x;
+            currentConfig.window_y = y;
+            fs.writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 4));
+        }
+    });
+
+    mainWindow.setMenu(null);
+    mainWindow.loadFile('ui/index.html');
+}
+
+function createDashboardWindow() {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.destroy();
+        mainWindow = null;
+    }
+
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+
+    const winWidth = 1200;
+    const winHeight = 800;
+    const x = Math.floor((screenWidth - winWidth) / 2);
+    const y = Math.floor((screenHeight - winHeight) / 2);
+
+    mainWindow = new BrowserWindow({
+        width: winWidth,
+        height: winHeight,
+        x: x,
+        y: y,
+        frame: true,
+        transparent: false,
+        alwaysOnTop: false,
+        skipTaskbar: false,
+        resizable: true,
+        focusable: true,
+        show: false,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false
+        }
+    });
+
+    mainWindow.setMenu(null);
+    mainWindow.loadFile('ui/dashboard.html');
+
+    mainWindow.on('ready-to-show', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.show();
+        }
+    });
+
+    mainWindow.on('move', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            const [x, y] = mainWindow.getPosition();
+            const currentConfig = loadConfig();
+            currentConfig.window_x = x;
+            currentConfig.window_y = y;
+            fs.writeFileSync(CONFIG_PATH, JSON.stringify(currentConfig, null, 4));
+        }
+    });
+
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
 }
 
 function createSettingsWindow() {
@@ -652,8 +889,8 @@ app.whenReady().then(() => {
                     dialog.showMessageBox({
                         type: 'info',
                         title: 'About AuraWhisper',
-                        message: 'AuraWhisper v1.2.11',
-                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.11\nPlatform: ' + process.platform + ' (x64)',
+                        message: 'AuraWhisper v1.2.16',
+                        detail: 'Premium dictation tool for Windows\n\nVersion: 1.2.16\nPlatform: ' + process.platform + ' (x64)',
                         buttons: ['OK']
                     });
                 }

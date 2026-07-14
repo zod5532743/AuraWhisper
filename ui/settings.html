@@ -942,7 +942,11 @@
             else if (id === 'vocab') loadVocab();
             else if (id === 'history') loadHistory();
             else if (id === 'modes') loadModes();
-            else if (id === 'ai') checkOllamaModelStatus();
+            else if (id === 'ai') {
+                checkOllamaModelStatus();
+                // AI Engineタブ表示時にマイク一覧を再読み込み
+                loadDevices(lastLoadedConfig?.device_index);
+            }
         }
 
         async function loadHome() {

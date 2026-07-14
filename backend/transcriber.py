@@ -40,43 +40,42 @@ class Transcriber:
         download_root = os.environ.get("HF_HOME")
 
         if self.device == "dml":
-            logger.warning("DirectML not supported; falling back to CPU")
-            self.device = "cpu"
+            # DirectML requires onnxruntime-directml package and uses float32
             self.compute_type = "float32"
+            logger.info(f"DirectML mode detected. Ensure 'onnxruntime-directml' is installed.")
 
-        if self.device != "dml":
-            logger.info(f"Loading Whisper model: {model_to_load} on {self.device} ({self.compute_type})...")
+        logger.info(f"Loading Whisper model: {model_to_load} on {self.device} ({self.compute_type})...")
+        try:
+            self.model = WhisperModel(
+                model_to_load, 
+                device=self.device, 
+                compute_type=self.compute_type,
+                download_root=download_root,
+                local_files_only=False
+            )
+        except Exception as e:
+            logger.warning(f"Failed to load model online, trying offline-only load: {e}")
             try:
                 self.model = WhisperModel(
                     model_to_load, 
                     device=self.device, 
                     compute_type=self.compute_type,
                     download_root=download_root,
-                    local_files_only=False
+                    local_files_only=True
                 )
-            except Exception as e:
-                logger.warning(f"Failed to load model online, trying offline-only load: {e}")
+            except Exception as e_offline:
+                logger.error(f"Failed to load model {model_to_load} from {download_root}: {e_offline}. Falling back to CPU...")
                 try:
                     self.model = WhisperModel(
                         model_to_load, 
-                        device=self.device, 
-                        compute_type=self.compute_type,
+                        device="cpu", 
+                        compute_type="float32", 
                         download_root=download_root,
                         local_files_only=True
                     )
-                except Exception as e_offline:
-                    logger.error(f"Failed to load model {model_to_load} from {download_root}: {e_offline}. Falling back to CPU...")
-                    try:
-                        self.model = WhisperModel(
-                            model_to_load, 
-                            device="cpu", 
-                            compute_type="float32", 
-                            download_root=download_root,
-                            local_files_only=True
-                        )
-                    except Exception as e2:
-                        logger.error(f"Critical fallback failure: {e2}")
-                        self.model = None
+                except Exception as e2:
+                    logger.error(f"Critical fallback failure: {e2}")
+                    self.model = None
         
         logger.info("Model loaded successfully.")
         
@@ -96,11 +95,6 @@ class Transcriber:
         logger.info(f"Transcribing {audio_path}...")
         start_time = time.time()
         
-        if self.device == "dml":
-            logger.warning("DirectML not supported; falling back to CPU")
-            self.device = "cpu"
-            self.compute_type = "float32"
-            self._load_model()
         segments, info = self.model.transcribe(audio_path, beam_size=5, language=language)
         # Convert to list to avoid generator-related crashes/hangs
         segments = list(segments)

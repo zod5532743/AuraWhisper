@@ -64,27 +64,18 @@ if os.name == 'nt':
                         logger.warning(f"Failed to add DLL directory {bin_path}: {e}")
 
 
-    # AudioRecorder は独立してインポート（音声デバイス一覧取得のため）
-    try:
-        try:
-            from audio_recorder import AudioRecorder
-        except ImportError:
-            from .audio_recorder import AudioRecorder
-    except Exception as e:
-        logger.error(f"AudioRecorder import failed: {e}")
-        AudioRecorder = None
-
     try:
         try:
             from transcriber import Transcriber
-            from dml_transcriber import DmlTranscriber
+            from audio_recorder import AudioRecorder
         except ImportError:
             from .transcriber import Transcriber
-            from .dml_transcriber import DmlTranscriber
+            from .audio_recorder import AudioRecorder
         engine_ready = True
     except Exception as e:
-        logger.error(f"Transcriber/DML modules missing: {e}")
+        logger.error(f"Engine libraries missing: {e}")
         engine_ready = False
+        AudioRecorder = None
 
 # Check for CUDA and DirectML availability
 cuda_available = False
@@ -394,41 +385,16 @@ def init_transcriber_task():
 
         # If we already have a transcriber, its _load_model will now handle cleanup
         if transcriber is None:
-            if device == "dml":
-                logger.info("DirectML 用の DmlTranscriber を初期化しています")
-                transcriber = DmlTranscriber(
-                    model_size=current_model,
-                    device=device,
-                    compute_type=config.get("compute_type")
-                )
-            else:
-                transcriber = Transcriber(
-                    model_size=current_model,
-                    device=device,
-                    compute_type=config.get("compute_type")
-                )
+            transcriber = Transcriber(
+                model_size=current_model,
+                device=device,
+                compute_type=config.get("compute_type")
+            )
         else:
-            # Check if transcriber type needs to change (DML <-> standard)
-            is_dml = isinstance(transcriber, DmlTranscriber)
-            if is_dml and device != "dml":
-                logger.info("DmlTranscriber -> Transcriber に切り替えています")
-                transcriber = Transcriber(
-                    model_size=current_model,
-                    device=device,
-                    compute_type=config.get("compute_type")
-                )
-            elif not is_dml and device == "dml":
-                logger.info("Transcriber -> DmlTranscriber に切り替えています")
-                transcriber = DmlTranscriber(
-                    model_size=current_model,
-                    device=device,
-                    compute_type=config.get("compute_type")
-                )
-            else:
-                # Update parameters for existing instance
-                transcriber.model_size = current_model
-                transcriber.device = device
-                transcriber.compute_type = config.get("compute_type")
+            # Update parameters for existing instance
+            transcriber.model_size = current_model
+            transcriber.device = device
+            transcriber.compute_type = config.get("compute_type")
         
         # This will trigger the cleanup of old model and load of new one
         transcriber._load_model()

@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraWhisper - Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- サイドバー -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-microphone-lines"></i>
+                    <span>AuraWhisper</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="サイドバーを折りたたむ">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-page="home" title="ホーム">
+                    <i class="fas fa-home"></i>
+                    <span>ホーム</span>
+                </button>
+                <button class="nav-item" data-page="history" title="履歴">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>履歴</span>
+                </button>
+                <button class="nav-item" data-page="modes" title="モード">
+                    <i class="fas fa-layer-group"></i>
+                    <span>モード</span>
+                </button>
+                <button class="nav-item" data-page="vocabulary" title="辞書">
+                    <i class="fas fa-book"></i>
+                    <span>辞書</span>
+                </button>
+                <button class="nav-item" data-page="models" title="モデル">
+                    <i class="fas fa-robot"></i>
+                    <span>モデル</span>
+                </button>
+                <button class="nav-item" data-page="settings" title="設定">
+                    <i class="fas fa-gear"></i>
+                    <span>設定</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-card" id="status-card">
+                    <div class="status-indicator" id="status-dot"></div>
+                    <span id="status-text">準備中...</span>
+                </div>
+                <div class="version-info">v1.2.11</div>
+            </div>
+        </aside>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content" id="main-content">
+            <!-- ホームページ -->
+            <div class="page active" id="page-home">
+                <div class="page-header">
+                    <h1>ダッシュボード</h1>
+                    <button class="btn-primary" id="start-recording-btn">
+                        <i class="fas fa-microphone"></i>
+                        録音開始
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-waveform-lines"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="wpm-value">0</span>
+                            <span class="stat-label">WPM（文字入力速度）</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="time-saved">0分</span>
+                            <span class="stat-label">節約時間</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-lines"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="total-transcriptions">0</span>
+                            <span class="stat-label">総文字起こし数</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="ai-refinements">0</span>
+                            <span class="stat-label">AI推敲回数</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3>クイックアクション</h3>
+                    <div class="action-grid">
+                        <button class="action-card" id="action-copy-last">
+                            <i class="fas fa-copy"></i>
+                            <span>最後の結果をコピー</span>
+                        </button>
+                        <button class="action-card" id="action-clear-history">
+                            <i class="fas fa-trash"></i>
+                            <span>履歴をクリア</span>
+                        </button>
+                        <button class="action-card" id="action-open-settings">
+                            <i class="fas fa-sliders"></i>
+                            <span>詳細設定</span>
+                        </button>
+                        <button class="action-card" id="action-restart-backend">
+                            <i class="fas fa-rotate"></i>
+                            <span>バックエンド再起動</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="live-preview">
+                    <h3>リアルタイム文字起こしプレビュー</h3>
+                    <div class="preview-box" id="live-preview-box">
+                        <p class="placeholder">録音中にここにテキストが表示されます...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 履歴ページ -->
+            <div class="page" id="page-history">
+                <div class="page-header">
+                    <h1><i class="fas fa-clock-rotate-left"></i> 履歴</h1>
+                    <div class="header-actions">
+                        <input type="text" class="search-input" id="history-search" placeholder="履歴を検索...">
+                        <button class="btn-secondary" id="clear-all-history">
+                            <i class="fas fa-trash"></i>
+                            全件削除
+                        </button>
+                    </div>
+                </div>
+
+                <div class="history-list" id="history-list">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>まだ履歴がありません</p>
+                        <span>録音を開始すると、ここに保存されます</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- モードページ -->
+            <div class="page" id="page-modes">
+                <div class="page-header">
+                    <h1><i class="fas fa-layer-group"></i> モード</h1>
+                    <button class="btn-primary" id="add-mode-btn">
+                        <i class="fas fa-plus"></i>
+                        新規モード
+                    </button>
+                </div>
+
+                <div class="modes-grid" id="modes-grid">
+                    <!-- モードカードが動的に生成される -->
+                </div>
+            </div>
+
+            <!-- 辞書ページ -->
+            <div class="page" id="page-vocabulary">
+                <div class="page-header">
+                    <h1><i class="fas fa-book"></i> カスタム辞書</h1>
+                    <button class="btn-primary" id="add-vocab-btn">
+                        <i class="fas fa-plus"></i>
+                        新規ルール
+                    </button>
+                </div>
+
+                <div class="vocabulary-list" id="vocabulary-list">
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <p>辞書ルールがありません</p>
+                        <span>独自の置換ルールを追加して、文字起こしの精度を向上させましょう</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- モデルページ -->
+            <div class="page" id="page-models">
+                <div class="page-header">
+                    <h1><i class="fas fa-robot"></i> AIモデルライブラリ</h1>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+                        校正に使用するAIモデルを選択・管理できます。
+                    </p>
+                </div>
+
+                <!-- プロバイダー切替 -->
+                <div class="provider-tabs" style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+                    <button class="provider-tab active" data-provider="ollama">Ollama</button>
+                    <button class="provider-tab" data-provider="lmstudio">LM Studio</button>
+                    <button class="provider-tab" data-provider="openai">OpenAI</button>
+                    <button class="provider-tab" data-provider="gemini">Gemini</button>
+                </div>
+
+                <!-- Ollama接続設定 -->
+                <div id="ollama-connection-settings" style="margin-bottom:20px; padding:14px 18px; background:var(--bg-card); border-radius:var(--radius-md); border:1px solid var(--border-color);">
+                    <label style="font-size:12px; color:var(--text-secondary); display:block; margin-bottom:6px;">Ollama Base URL</label>
+                    <input type="text" id="models-ollama-base-url" placeholder="http://localhost:11434" 
+                           style="width:100%; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-color); border-radius:var(--radius-sm); color:var(--text-primary); font-size:13px;">
+                </div>
+
+                <!-- モデルカードグリッド -->
+                <div class="models-grid" id="models-grid">
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>モデルを読み込み中...</p>
+                    </div>
+                </div>
+
+                <!-- 現在選択中のモデル -->
+                <div style="margin-top:24px; padding:16px 20px; background:rgba(0,113,227,0.08); border-radius:var(--radius-md); border:1px solid rgba(0,113,227,0.2);">
+                    <h4 style="font-size:13px; color:var(--accent-primary); margin-bottom:8px;"><i class="fas fa-circle-info"></i> 現在選択中のモデル</h4>
+                    <div id="current-model-display" style="font-size:14px;">読み込み中...</div>
+                </div>
+            </div>
+
+            <!-- 設定ページ -->
+            <div class="page" id="page-settings">
+                <div class="page-header">
+                    <h1><i class="fas fa-gear"></i> 設定</h1>
+                </div>
+
+                <div class="settings-sections">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-microphone"></i> 音声認識</h3>
+                        <div class="setting-item">
+                            <label>言語</label>
+                            <select id="setting-language">
+                                <option value="ja">日本語</option>
+                                <option value="en">English</option>
+                                <option value="auto">自動検出</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>モデルサイズ</label>
+                            <select id="setting-model-size">
+                                <option value="tiny">Tiny (高速)</option>
+                                <option value="base">Base</option>
+                                <option value="small" selected>Small (推奨)</option>
+                                <option value="medium">Medium</option>
+                                <option value="large-v3">Large-v3 (最高精度)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>デバイス</label>
+                            <select id="setting-device">
+                                <option value="auto">自動選択</option>
+                                <option value="cpu">CPU</option>
+                                <option value="cuda">GPU (CUDA)</option>
+                                <option value="dml">GPU (DirectML)</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>マイク（入力機器）</label>
+                            <select id="setting-mic-device">
+                                <option value="-1">システムデフォルト</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>文字起こしモード</label>
+                            <select id="setting-transcribe-mode">
+                                <option value="">読み込み中...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3><i class="fas fa-keyboard"></i> ホットキー</h3>
+                        <div class="setting-item">
+                            <label>録音開始/終了</label>
+                            <input type="text" id="setting-hotkey" placeholder="Alt+Shift+S" readonly>
+                        </div>
+                        <div class="setting-item">
+                            <label>録音モード</label>
+                            <select id="setting-mode">
+                                <option value="toggle">トグル（切り替え）</option>
+                                <option value="hold">ホールド（押しっぱなし）</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3><i class="fas fa-wand-magic-sparkles"></i> AI 推敲</h3>
+                        <div class="setting-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="setting-ai-enabled">
+                                <span class="checkmark"></span>
+                                AI 推敲を有効化
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>プロバイダー</label>
+                            <select id="setting-ai-provider">
+                                <option value="ollama">Ollama</option>
+                                <option value="lmstudio">LM Studio</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>モデル</label>
+                            <input type="text" id="setting-ai-model" placeholder="gemma2:2b">
+                        </div>
+                        <div class="setting-item">
+                            <label>API URL</label>
+                            <input type="text" id="setting-ai-url" placeholder="http://localhost:1234/v1">
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3><i class="fas fa-palette"></i> UI</h3>
+                        <div class="setting-item">
+                            <label>ウィンドウスタイル</label>
+                            <select id="setting-window-style">
+                                <option value="classic">Classic（カプセル型）</option>
+                                <option value="dashboard">Dashboard（サイドバー）</option>
+                                <option value="mini">Mini（コンパクト）</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="setting-notifications">
+                                <span class="checkmark"></span>
+                                通知を表示
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="setting-autopunct">
+                                <span class="checkmark"></span>
+                                自動句読点
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button class="btn-primary" id="save-settings-btn">
+                            <i class="fas fa-check"></i>
+                            保存
+                        </button>
+                        <button class="btn-secondary" id="reset-settings-btn">
+                            <i class="fas fa-rotate-left"></i>
+                            リセット
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- モード追加ダイアログ -->
+        <div class="modal-overlay" id="add-mode-modal">
+            <div class="modal-dialog">
+                <h3><i class="fas fa-plus-circle"></i> 新規モード</h3>
+                <form class="modal-form" id="add-mode-form">
+                    <div class="form-group">
+                        <label for="mode-name">名前</label>
+                        <input type="text" id="mode-name" placeholder="例: 会議録" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mode-desc-input">説明</label>
+                        <textarea id="mode-desc-input" placeholder="このモードの用途を簡潔に"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="mode-prompt">プロンプト</label>
+                        <textarea id="mode-prompt" placeholder="AIに指示するプロンプト文" rows="4"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeModal('add-mode-modal')">キャンセル</button>
+                        <button type="submit" class="btn-primary"><i class="fas fa-check"></i> 追加</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 辞書追加ダイアログ -->
+        <div class="modal-overlay" id="add-vocab-modal">
+            <div class="modal-dialog">
+                <h3><i class="fas fa-plus-circle"></i> 新規ルール</h3>
+                <form class="modal-form" id="add-vocab-form">
+                    <div class="form-group">
+                        <label for="vocab-input-field">入力（文字起こしされる語句）</label>
+                        <input type="text" id="vocab-input-field" placeholder="例: 東京タワー" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vocab-output-field">出力（置換後の語句）</label>
+                        <input type="text" id="vocab-output-field" placeholder="例: とうきょうたわー" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeModal('add-vocab-modal')">キャンセル</button>
+                        <button type="submit" class="btn-primary"><i class="fas fa-check"></i> 追加</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const axios = require('axios');
+
+        // --- Sound Feedback ---
+        class AudioFeedback {
+            constructor() {
+                this.audioCtx = null;
+                this.unlock();
+            }
+            unlock() {
+                const unlockHandler = () => {
+                    if (!this.audioCtx) {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume();
+                    }
+                };
+                document.addEventListener('mousedown', unlockHandler, { once: true });
+            }
+
+            async playPremiumSound(type) {
+                if (!this.audioCtx) return;
+                if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
+
+                const now = this.audioCtx.currentTime;
+                const masterGain = this.audioCtx.createGain();
+                masterGain.connect(this.audioCtx.destination);
+                masterGain.gain.setValueAtTime(0, now);
+                masterGain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                masterGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+                if (type === 'start') {
+                    // Two-tone rising "ding"
+                    this.createTone(880, now, 0.4, masterGain);
+                    this.createTone(1320, now + 0.05, 0.3, masterGain);
+                } else {
+                    // Two-tone falling "dong"
+                    this.createTone(660, now, 0.4, masterGain);
+                    this.createTone(440, now + 0.05, 0.3, masterGain);
+                }
+            }
+
+            createTone(freq, startTime, duration, target) {
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+
+                gain.gain.setValueAtTime(0.5, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+                osc.connect(gain);
+                gain.connect(target);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            }
+
+            playStart() { this.playPremiumSound('start'); }
+            playStop() { this.playPremiumSound('stop'); }
+        }
+
+        const audioFeedback = new AudioFeedback();
+        document.addEventListener('mousedown', () => audioFeedback.init(), { once: true });
+
+        // --- ナビゲーション ---
+        const navItems = document.querySelectorAll('.nav-item');
+        const pages = document.querySelectorAll('.page');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                navigateTo(page);
+            });
+        });
+
+        function navigateTo(page) {
+            navItems.forEach(n => n.classList.remove('active'));
+            pages.forEach(p => p.classList.remove('active'));
+
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+            document.getElementById(`page-${page}`).classList.add('active');
+
+            // ページ固有の初期化
+            if (page === 'history') loadHistory();
+            if (page === 'modes') loadModes();
+            if (page === 'vocabulary') loadVocabulary();
+            if (page === 'settings') loadSettings();
+            if (page === 'models') loadModelsPage();
+            if (page === 'home') loadStats();
+        }
+
+        // --- サイドバーの折りたたみ ---
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            const icon = sidebarToggle.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-angles-right');
+        });
+
+        // --- ステータス監視 ---
+        let currentConfig = {};
+        let allModes = [];
+
+        async function fetchStatus() {
+            try {
+                const [statusRes, configRes] = await Promise.all([
+                    axios.get('http://127.0.0.1:8240/status', { timeout: 3000 }),
+                    axios.get('http://127.0.0.1:8240/config', { timeout: 3000 })
+                ]);
+
+                currentConfig = configRes.data;
+                const status = statusRes.data.status;
+
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+
+                if (status === 'ready') {
+                    statusDot.className = 'status-indicator ready';
+                    statusText.textContent = '準備完了';
+                } else if (status === 'recording') {
+                    statusDot.className = 'status-indicator recording';
+                    statusText.textContent = '録音中...';
+                } else if (status === 'analyzing') {
+                    statusDot.className = 'status-indicator analyzing';
+                    statusText.textContent = '処理中...';
+                } else if (status === 'loading') {
+                    statusDot.className = 'status-indicator loading';
+                    statusText.textContent = '読み込み中...';
+                } else if (status === 'error') {
+                    statusDot.className = 'status-indicator offline';
+                    statusText.textContent = 'エラー';
+                } else {
+                    statusDot.className = 'status-indicator offline';
+                    statusText.textContent = 'オフライン';
+                }
+            } catch (e) {
+                const statusDot = document.getElementById('status-dot');
+                const statusText = document.getElementById('status-text');
+                statusDot.className = 'status-indicator offline';
+                statusText.textContent = '接続エラー';
+            }
+        }
+
+        // --- ホーム統計 ---
+        async function loadStats() {
+            try {
+                const historyRes = await axios.get('http://127.0.0.1:8240/history', { timeout: 3000 });
+                const history = historyRes.data;
+
+                document.getElementById('total-transcriptions').textContent = history.length;
+                document.getElementById('ai-refinements').textContent = history.filter(h => h.ai_refined).length;
+
+                // WPM（文字/分）の計算: 全履歴の文字数合計 ÷ 全履歴の時間合計(分)
+                let totalChars = 0;
+                let totalDurationSec = 0;
+                for (const h of history) {
+                    totalChars += h.chars || 0;
+                    totalDurationSec += h.duration || 0;
+                }
+                const wpmValue = document.getElementById('wpm-value');
+                if (totalDurationSec > 0) {
+                    const wpm = Math.round(totalChars / (totalDurationSec / 60));
+                    wpmValue.textContent = wpm.toLocaleString();
+                } else {
+                    wpmValue.textContent = '0';
+                }
+
+                // 節約時間の計算: 手入力想定時間(40WPM) - 実際のトランスクリプション時間
+                const manualMinutes = totalChars / 40; // 日本語手入力を40文字/分で推定
+                const actualMinutes = totalDurationSec / 60;
+                let savedMinutes = Math.round(manualMinutes - actualMinutes);
+                if (savedMinutes < 0) savedMinutes = 0;
+                document.getElementById('time-saved').textContent = savedMinutes + '分';
+            } catch (e) {
+                console.log('統計の読み込みに失敗しました');
+            }
+        }
+
+        // --- 履歴 ---
+        async function loadHistory() {
+            try {
+                const res = await axios.get('http://127.0.0.1:8240/history', { timeout: 3000 });
+                const history = res.data;
+                const list = document.getElementById('history-list');
+
+                if (history.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>まだ履歴がありません</p>
+                            <span>録音を開始すると、ここに保存されます</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = history.map((h, i) => `
+                    <div class="history-item" data-index="${i}">
+                        <div class="history-meta">
+                            <span class="history-date">${new Date(h.timestamp).toLocaleString('ja-JP')}</span>
+                            <span class="history-mode">${h.mode || 'General'}</span>
+                        </div>
+                        <div class="history-text">${escapeHtml(h.text)}</div>
+                        <div class="history-actions">
+                            <button class="btn-icon" title="コピー" onclick="copyHistory(${i})">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="btn-icon" title="削除" onclick="deleteHistory(${i})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).reverse().join('');
+            } catch (e) {
+                console.log('履歴の読み込みに失敗しました');
+            }
+        }
+
+        // --- モード ---
+        async function loadModes() {
+            try {
+                const res = await axios.get('http://127.0.0.1:8240/modes', { timeout: 3000 });
+                const modes = res.data;
+                const grid = document.getElementById('modes-grid');
+
+                grid.innerHTML = modes.map(m => `
+                    <div class="mode-card ${m.id === currentConfig.active_mode_id ? 'active' : ''}" data-mode-id="${m.id}">
+                        <div class="mode-header">
+                            <h4>${m.name}</h4>
+                            ${m.id === currentConfig.active_mode_id ? '<span class="active-badge">使用中</span>' : ''}
+                        </div>
+                        <p class="mode-desc">${m.description || 'デフォルトモード'}</p>
+                        <div class="mode-actions">
+                            <button class="btn-sm" onclick="activateMode('${m.id}')">
+                                <i class="fas fa-check"></i> 選択
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.log('モードの読み込みに失敗しました');
+            }
+        }
+
+        // --- 辞書 ---
+        async function loadVocabulary() {
+            try {
+                const res = await axios.get('http://127.0.0.1:8240/vocabulary', { timeout: 3000 });
+                const vocab = res.data;
+                const list = document.getElementById('vocabulary-list');
+
+                if (vocab.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-book-open"></i>
+                            <p>辞書ルールがありません</p>
+                            <span>独自の置換ルールを追加して、文字起こしの精度を向上させましょう</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = vocab.map((v, i) => `
+                    <div class="vocab-item">
+                        <div class="vocab-input">
+                            <label>入力</label>
+                            <input type="text" value="${escapeHtml(v.original || '')}" readonly>
+                        </div>
+                        <div class="vocab-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                        <div class="vocab-output">
+                            <label>出力</label>
+                            <input type="text" value="${escapeHtml(v.replacement || '')}" readonly>
+                        </div>
+                        <button class="btn-icon" title="削除" onclick="deleteVocabulary(${i})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.log('辞書の読み込みに失敗しました');
+            }
+        }
+
+        // --- 設定 ---
+        async function loadSettings() {
+            try {
+                const [configRes, modesRes] = await Promise.all([
+                    axios.get('http://127.0.0.1:8240/config', { timeout: 3000 }),
+                    axios.get('http://127.0.0.1:8240/modes', { timeout: 3000 })
+                ]);
+                const config = configRes.data;
+                const modes = modesRes.data;
+
+                document.getElementById('setting-language').value = config.language || 'ja';
+                document.getElementById('setting-model-size').value = config.model_size || 'small';
+                document.getElementById('setting-device').value = config.device || 'auto';
+                document.getElementById('setting-hotkey').value = config.hotkey || 'Alt+Shift+S';
+                document.getElementById('setting-mode').value = config.mode || 'toggle';
+                document.getElementById('setting-ai-enabled').checked = config.use_ollama || false;
+                document.getElementById('setting-ai-provider').value = config.ai_provider || 'lmstudio';
+                document.getElementById('setting-ai-model').value = config.ollama_model || 'gemma2:2b';
+                document.getElementById('setting-ai-url').value = config.ollama_base_url || 'http://localhost:1234/v1';
+                document.getElementById('setting-window-style').value = config.window_style || 'classic';
+                document.getElementById('setting-notifications').checked = config.notifications !== false;
+                document.getElementById('setting-autopunct').checked = config.auto_punctuation !== false;
+
+                // 文字起こしモードのドロップダウンを構築
+                const modeSelect = document.getElementById('setting-transcribe-mode');
+                modeSelect.innerHTML = modes.map(m =>
+                    `<option value="${m.id}" ${m.id === config.active_mode_id ? 'selected' : ''}>${m.name}</option>`
+                ).join('');
+                allModes = modes;
+
+                // マイク入力機器を読み込み
+                await loadMicDevices(config.device_index);
+            } catch (e) {
+                console.log('設定の読み込みに失敗しました');
+            }
+        }
+
+        async function loadMicDevices(selectedIndex) {
+            try {
+                const res = await axios.get('http://127.0.0.1:8240/devices', { timeout: 3000 });
+                const devices = res.data;
+                const select = document.getElementById('setting-mic-device');
+                if (!select) return;
+
+                // デフォルトオプションを保持
+                select.innerHTML = '<option value="-1">システムデフォルト</option>';
+
+                devices.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.name;
+                    if (d.id === selectedIndex) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.log('マイクデバイスの読み込みに失敗しました');
+            }
+        }
+
+        // --- モデルページ ---
+        let currentProvider = 'ollama';
+        let installedOllamaModels = [];
+
+        const RECOMMENDED_MODELS = [
+            { id: 'gemma2:2b', name: 'Gemma 2 (2B) - Lightweight' },
+            { id: 'qwen2.5-coder:7b', name: 'Qwen 2.5 Coder (7B)' },
+            { id: 'qwen2.5-coder:14b', name: 'Qwen 2.5 Coder (14B) - Best' },
+            { id: 'llama3.1:8b', name: 'Llama 3.1 (8B)' },
+            { id: 'llama3.2:3b', name: 'Llama 3.2 (3B)' },
+            { id: 'phi3:latest', name: 'Phi-3 Mini' }
+        ];
+
+        async function loadModelsPage() {
+            // プロバイダータブの初期化
+            document.querySelectorAll('.provider-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchProvider(tab.dataset.provider));
+            });
+
+            const ollamaUrlInput = document.getElementById('models-ollama-base-url');
+            if (ollamaUrlInput) {
+                ollamaUrlInput.value = currentConfig.ollama_base_url || 'http://localhost:11434';
+            }
+
+            await refreshModelList();
+            updateCurrentModelDisplay();
+        }
+
+        function switchProvider(provider) {
+            currentProvider = provider;
+            document.querySelectorAll('.provider-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.provider-tab[data-provider="${provider}"]`).classList.add('active');
+
+            // Ollama接続設定の表示切替
+            const connSettings = document.getElementById('ollama-connection-settings');
+            if (connSettings) {
+                connSettings.style.display = provider === 'ollama' ? '' : 'none';
+            }
+
+            refreshModelList();
+        }
+
+        async function refreshModelList() {
+            const grid = document.getElementById('models-grid');
+            if (!grid) return;
+
+            try {
+                if (currentProvider === 'ollama') {
+                    await fetchOllamaModels(grid);
+                } else if (currentProvider === 'lmstudio') {
+                    await fetchLmStudioModelsPage(grid);
+                } else if (currentProvider === 'openai') {
+                    renderStaticModels(grid, [
+                        { id: 'gpt-4o', name: 'GPT-4o' },
+                        { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+                        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+                        { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
+                    ]);
+                } else if (currentProvider === 'gemini') {
+                    renderStaticModels(grid, [
+                        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+                        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+                        { id: 'gemini-1.0-pro', name: 'Gemini 1.0 Pro' }
+                    ]);
+                }
+            } catch (e) {
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>モデルの読み込みに失敗しました</p></div>';
+            }
+        }
+
+        async function fetchOllamaModels(grid) {
+            try {
+                const baseUrl = document.getElementById('models-ollama-base-url')?.value || 'http://localhost:11434';
+                
+                // 接続中の表示
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>モデルを読み込み中...</p></div>';
+
+                const res = await axios.get(`${baseUrl}/api/tags`, { timeout: 5000 });
+                installedOllamaModels = (res.data.models || []).map(m => m.name);
+
+                // 推奨 + 既インストールをマージ
+                const allModels = [...RECOMMENDED_MODELS];
+                installedOllamaModels.forEach(name => {
+                    if (!allModels.some(m => m.id === name)) {
+                        allModels.push({ id: name, name: name });
+                    }
+                });
+
+                renderModelCards(grid, allModels);
+            } catch (e) {
+                // Ollamaが接続できない場合は推奨モデルのみ表示
+                console.log('Ollama connection failed, showing recommended models only');
+                renderModelCards(grid, RECOMMENDED_MODELS);
+            }
+        }
+
+        async function fetchLmStudioModelsPage(grid) {
+            try {
+                const baseUrl = currentConfig.ollama_base_url || 'http://localhost:1234';
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>モデルを読み込み中...</p></div>';
+
+                const res = await axios.get(`http://127.0.0.1:8240/lmstudio/models?base_url=${encodeURIComponent(baseUrl)}`, { timeout: 5000 });
+                if (res.data && res.data.data) {
+                    const models = res.data.data.map(m => ({ id: m.id, name: m.id }));
+                    renderModelCards(grid, models);
+                } else {
+                    throw new Error('No data');
+                }
+            } catch (e) {
+                // フォールバックモデル
+                const fallback = [
+                    'qwen2.5-coder-7b-instruct',
+                    'meta-llama-3-8b-instruct',
+                    'gemma-2-9b-it'
+                ];
+                renderModelCards(grid, fallback.map(id => ({ id, name: id })));
+            }
+        }
+
+        function renderStaticModels(grid, models) {
+            renderModelCards(grid, models);
+        }
+
+        function renderModelCards(grid, models) {
+            grid.innerHTML = models.map(m => {
+                const isInstalled = installedOllamaModels.some(im => im === m.id || im.startsWith(m.id));
+                const isActive = currentConfig.ollama_model === m.id;
+                return `
+                    <div class="model-card ${isActive ? 'active' : ''} ${isInstalled ? 'installed' : ''}" 
+                         data-model-id="${m.id}" onclick="selectModel('${m.id}')">
+                        <div class="model-card-header">
+                            <h4>${m.name}</h4>
+                            ${isActive ? '<span class="active-badge">使用中</span>' : ''}
+                        </div>
+                        <div class="model-card-body">
+                            <code style="font-size:11px; color:var(--text-tertiary);">${m.id}</code>
+                        </div>
+                        <div class="model-card-footer">
+                            ${isInstalled ? 
+                                '<span style="font-size:11px; color:#30d158;"><i class="fas fa-check-circle"></i> インストール済み</span>' :
+                                (currentProvider === 'ollama' ? `<button class="btn-sm btn-install" onclick="event.stopPropagation(); installModel('${m.id}')">Install</button>` : '')
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function selectModel(modelId) {
+            try {
+                await axios.post('http://127.0.0.1:8240/config', { ollama_model: modelId });
+                currentConfig.ollama_model = modelId;
+                
+                // 選択したモデルのカードを強調表示
+                document.querySelectorAll('.model-card').forEach(card => card.classList.remove('active'));
+                const selectedCard = document.querySelector(`.model-card[data-model-id="${modelId}"]`);
+                if (selectedCard) selectedCard.classList.add('active');
+
+                updateCurrentModelDisplay();
+            } catch (e) {
+                alert('モデルの選択に失敗しました: ' + e.message);
+            }
+        }
+
+        async function installModel(modelId) {
+            try {
+                const baseUrl = document.getElementById('models-ollama-base-url')?.value || 'http://localhost:11434';
+                await axios.post(`${baseUrl}/api/pull`, { model: modelId }, { timeout: 60000 });
+                
+                // インストール完了を待ってリスト更新
+                const checkInterval = setInterval(async () => {
+                    try {
+                        const res = await axios.get(`${baseUrl}/api/tags`, { timeout: 5000 });
+                        installedOllamaModels = (res.data.models || []).map(m => m.name);
+                        if (installedOllamaModels.some(im => im === modelId || im.startsWith(modelId))) {
+                            clearInterval(checkInterval);
+                            refreshModelList();
+                            showToast(`${modelId} がインストールされました！`);
+                        }
+                    } catch (e) {}
+                }, 3000);
+
+                // 60秒でタイムアウト
+                setTimeout(() => clearInterval(checkInterval), 60000);
+            } catch (e) {
+                alert('モデルのインストールに失敗しました: ' + e.message);
+            }
+        }
+
+        function updateCurrentModelDisplay() {
+            const display = document.getElementById('current-model-display');
+            if (!display) return;
+            const model = currentConfig.ollama_model || '(未選択)';
+            display.textContent = `${model} (${currentProvider})`;
+        }
+
+        // --- 操作 ---
+        async function saveSettings() {
+            try {
+                const config = {
+                    language: document.getElementById('setting-language').value,
+                    model_size: document.getElementById('setting-model-size').value,
+                    device: document.getElementById('setting-device').value,
+                    device_index: parseInt(document.getElementById('setting-mic-device').value),
+                    mode: document.getElementById('setting-mode').value,
+                    active_mode_id: document.getElementById('setting-transcribe-mode').value,
+                    use_ollama: document.getElementById('setting-ai-enabled').checked,
+                    ai_provider: document.getElementById('setting-ai-provider').value,
+                    ollama_model: document.getElementById('setting-ai-model').value,
+                    ollama_base_url: document.getElementById('setting-ai-url').value,
+                    window_style: document.getElementById('setting-window-style').value,
+                    notifications: document.getElementById('setting-notifications').checked,
+                    auto_punctuation: document.getElementById('setting-autopunct').checked,
+                };
+
+                await axios.post('http://127.0.0.1:8240/config', config);
+                ipcRenderer.send('relaunch-app');
+            } catch (e) {
+                alert('設定の保存に失敗しました: ' + e.message);
+            }
+        }
+
+        async function copyHistory(index) {
+            try {
+                const res = await axios.get('http://127.0.0.1:8240/history', { timeout: 3000 });
+                const text = res.data[index].text;
+                await axios.post('http://127.0.0.1:8240/copy', { text });
+                alert('クリップボードにコピーしました');
+            } catch (e) {
+                alert('コピーに失敗しました');
+            }
+        }
+
+        async function deleteHistory(index) {
+            if (!confirm('この履歴を削除しますか？')) return;
+            try {
+                await axios.post('http://127.0.0.1:8240/history/delete', { id: index });
+                loadHistory();
+            } catch (e) {
+                alert('削除に失敗しました');
+            }
+        }
+
+        async function activateMode(modeId) {
+            try {
+                await axios.post('http://127.0.0.1:8240/config', { active_mode_id: modeId });
+                loadModes();
+            } catch (e) {
+                alert('モードの選択に失敗しました');
+            }
+        }
+
+        async function deleteVocabulary(index) {
+            if (!confirm('このルールを削除しますか？')) return;
+            try {
+                await axios.post('http://127.0.0.1:8240/vocabulary', { action: "delete", index: index });
+                loadVocabulary();
+            } catch (e) {
+                alert('削除に失敗しました');
+            }
+        }
+
+        // --- ユーティリティ ---
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // --- イベントリスナー ---
+        document.getElementById('start-recording-btn').addEventListener('click', async () => {
+            try {
+                const res = await axios.get('http://127.0.0.1:8240/status', { timeout: 3000 });
+                if (res.data.status === 'ready') {
+                    audioFeedback.playStart();
+                    await axios.post('http://127.0.0.1:8240/toggle');
+                }
+            } catch (e) {
+                alert('バックエンドに接続できません');
+            }
+        });
+
+        document.getElementById('open-settings-btn').addEventListener('click', () => {
+            ipcRenderer.send('open-settings');
+        });
+
+        document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
+
+        document.getElementById('reset-settings-btn').addEventListener('click', async () => {
+            if (!confirm('設定を初期値に戻しますか？')) return;
+            try {
+                await axios.post('http://127.0.0.1:8240/config/reset');
+                loadSettings();
+            } catch (e) {
+                alert('リセットに失敗しました');
+            }
+        });
+
+        document.getElementById('clear-all-history').addEventListener('click', async () => {
+            if (!confirm('すべての履歴を削除しますか？')) return;
+            try {
+                await axios.post('http://127.0.0.1:8240/history/clear');
+                loadHistory();
+            } catch (e) {
+                alert('履歴のクリアに失敗しました');
+            }
+        });
+
+        document.getElementById('action-copy-last').addEventListener('click', async () => {
+            try {
+                const res = await axios.get('http://127.0.0.1:8240/history', { timeout: 3000 });
+                if (res.data.length > 0) {
+                    await axios.post('http://127.0.0.1:8240/copy', { text: res.data[res.data.length - 1].text });
+                    alert('クリップボードにコピーしました');
+                }
+            } catch (e) {
+                alert('コピーに失敗しました');
+            }
+        });
+
+        document.getElementById('action-restart-backend').addEventListener('click', () => {
+            ipcRenderer.send('relaunch-app');
+        });
+
+        // --- 履歴検索 ---
+        document.getElementById('history-search').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.history-item').forEach(item => {
+                const text = item.querySelector('.history-text')?.textContent.toLowerCase() || '';
+                const mode = item.querySelector('.history-mode')?.textContent.toLowerCase() || '';
+                if (!query || text.includes(query) || mode.includes(query)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // --- モード追加ダイアログ ---
+        document.getElementById('add-mode-btn').addEventListener('click', () => {
+            openModal('add-mode-modal');
+        });
+
+        document.getElementById('add-mode-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('mode-name').value.trim();
+            const description = document.getElementById('mode-desc-input').value.trim();
+            const prompt = document.getElementById('mode-prompt').value.trim();
+            if (!name) return;
+
+            try {
+                await axios.post('http://127.0.0.1:8240/modes', {
+                    action: 'add',
+                    item: { id: name.toLowerCase().replace(/\s+/g, '-'), name, description, prompt }
+                });
+                closeModal('add-mode-modal');
+                document.getElementById('add-mode-form').reset();
+                loadModes();
+            } catch (err) {
+                alert('モードの追加に失敗しました: ' + err.message);
+            }
+        });
+
+        // --- 辞書追加ダイアログ ---
+        document.getElementById('add-vocab-btn').addEventListener('click', () => {
+            openModal('add-vocab-modal');
+        });
+
+        document.getElementById('add-vocab-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('vocab-input-field').value.trim();
+            const output = document.getElementById('vocab-output-field').value.trim();
+            if (!input || !output) return;
+
+            try {
+                await axios.post('http://127.0.0.1:8240/vocabulary', {
+                    action: 'add',
+                    item: { original: input, replacement: output }
+                });
+                closeModal('add-vocab-modal');
+                document.getElementById('add-vocab-form').reset();
+                loadVocabulary();
+            } catch (err) {
+                alert('辞書ルールの追加に失敗しました: ' + err.message);
+            }
+        });
+
+        // --- モーダル操作 ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // クリックで外側を閉じる
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('active');
+            });
+        });
+
+        // --- 初期化 ---
+        fetchStatus();
+        setInterval(fetchStatus, 2000);
+        loadStats();
+    </script>
+</body>
+</html>

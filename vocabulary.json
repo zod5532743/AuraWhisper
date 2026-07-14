@@ -1,258 +1,950 @@
 [
-    {
-        "original": "ディゼーブル",
-        "replacement": "Disable"
-    },
-    {
-        "original": "イネーブル",
-        "replacement": "Enable"
-    },
-    {
-        "original": "スーパーウィスパー",
-        "replacement": "SuperWhisper"
-    },
-    {
-        "original": "クロードコード",
-        "replacement": "Cloude Code"
-    },
-    {
-        "original": "インストール",
-        "replacement": "Install"
-    },
-    {
-        "original": "アプリケーション",
-        "replacement": "Application"
-    },
-    {
-        "original": "ディレクトリ",
-        "replacement": "Directory"
-    },
-    {
-        "original": "ファイル",
-        "replacement": "File"
-    },
-    {
-        "original": "アップデート",
-        "replacement": "Update"
-    },
-    {
-        "original": "デバッグ",
-        "replacement": "Debug"
-    },
-    {
-        "original": "エラー",
-        "replacement": "Error"
-    },
-    {
-        "original": "ユーザー",
-        "replacement": "User"
-    },
-    {
-        "original": "システム",
-        "replacement": "System"
-    },
-    {
-        "original": "データベース",
-        "replacement": "Database"
-    },
-    {
-        "original": "サーバー",
-        "replacement": "Server"
-    },
-    {
-        "original": "クライアント",
-        "replacement": "Client"
-    },
-    {
-        "original": "ネットワーク",
-        "replacement": "Network"
-    },
-    {
-        "original": "ブラウザ",
-        "replacement": "Browser"
-    },
-    {
-        "original": "ログイン",
-        "replacement": "Login"
-    },
-    {
-        "original": "コンポーネント",
-        "replacement": "Component"
-    },
-    {
-        "original": "インターフェース",
-        "replacement": "Interface"
-    },
-    {
-        "original": "ライブラリ",
-        "replacement": "Library"
-    },
-    {
-        "original": "フレームワーク",
-        "replacement": "Framework"
-    },
-    {
-        "original": "デプロイ",
-        "replacement": "Deploy"
-    },
-    {
-        "original": "ビルド",
-        "replacement": "Build"
-    },
-    {
-        "original": "パラメータ",
-        "replacement": "Parameter"
-    },
-    {
-        "original": "プロパティ",
-        "replacement": "Property"
-    },
-    {
-        "original": "メソッド",
-        "replacement": "Method"
-    },
-    {
-        "original": "オブジェクト",
-        "replacement": "Object"
-    },
-    {
-        "original": "プロジェクト",
-        "replacement": "Project"
-    },
-    {
-        "original": "バージョン",
-        "replacement": "Version"
-    },
-    {
-        "original": "コミット",
-        "replacement": "Commit"
-    },
-    {
-        "original": "リポジトリ",
-        "replacement": "Repository"
-    },
-    {
-        "original": "ソフトウェア",
-        "replacement": "Software"
-    },
-    {
-        "original": "ビジネス",
-        "replacement": "Business"
-    },
-    {
-        "original": "サービス",
-        "replacement": "Service"
-    },
-    {
-        "original": "サポート",
-        "replacement": "Support"
-    },
-    {
-        "original": "デザイン",
-        "replacement": "Design"
-    },
-    {
-        "original": "メッセージ",
-        "replacement": "Message"
-    },
-    {
-        "original": "ニュース",
-        "replacement": "News"
-    },
-    {
-        "original": "イベント",
-        "replacement": "Event"
-    },
-    {
-        "original": "チーム",
-        "replacement": "Team"
-    },
-    {
-        "original": "メンバー",
-        "replacement": "Member"
-    },
-    {
-        "original": "オフィス",
-        "replacement": "Office"
-    },
-    {
-        "original": "カレンダー",
-        "replacement": "Calendar"
-    },
-    {
-        "original": "ガイド",
-        "replacement": "Guide"
-    },
-    {
-        "original": "ルール",
-        "replacement": "Rule"
-    },
-    {
-        "original": "チェック",
-        "replacement": "Check"
-    },
-    {
-        "original": "レビュー",
-        "replacement": "Review"
-    },
-    {
-        "original": "キャンセル",
-        "replacement": "Cancel"
-    },
-    {
-        "original": "スケジュール",
-        "replacement": "Schedule"
-    },
-    {
-        "original": "ミーティング",
-        "replacement": "Meeting"
-    },
-    {
-        "original": "コミュニケーション",
-        "replacement": "Communication"
-    },
-    {
-        "original": "インターネット",
-        "replacement": "Internet"
-    },
-    {
-        "original": "スマートフォン",
-        "replacement": "Smartphone"
-    },
-    {
-        "original": "カメラ",
-        "replacement": "Camera"
-    },
-    {
-        "original": "ビデオ",
-        "replacement": "Video"
-    },
-    {
-        "original": "ミュージック",
-        "replacement": "Music"
-    },
-    {
-        "original": "ストア",
-        "replacement": "Store"
-    },
-    {
-        "original": "ショッピング",
-        "replacement": "Shopping"
-    },
-    {
-        "original": "カード",
-        "replacement": "Card"
-    },
-    {
-        "original": "チケット",
-        "replacement": "Ticket"
-    },
-    {
-        "original": "キャンペーン",
-        "replacement": "Campaign"
-    },
-    {
-        "original": "スタート",
-        "replacement": "Start"
-    }
+  {
+    "original": "アーカイブ",
+    "replacement": "archive"
+  },
+  {
+    "original": "アート",
+    "replacement": "art"
+  },
+  {
+    "original": "アイコン",
+    "replacement": "icon"
+  },
+  {
+    "original": "アイデア",
+    "replacement": "idea"
+  },
+  {
+    "original": "アイテム",
+    "replacement": "item"
+  },
+  {
+    "original": "アウトプット",
+    "replacement": "output"
+  },
+  {
+    "original": "アカウント",
+    "replacement": "account"
+  },
+  {
+    "original": "アクション",
+    "replacement": "action"
+  },
+  {
+    "original": "アクティブ",
+    "replacement": "active"
+  },
+  {
+    "original": "アジェンダ",
+    "replacement": "agenda"
+  },
+  {
+    "original": "アシスタント",
+    "replacement": "assistant"
+  },
+  {
+    "original": "アシスト",
+    "replacement": "assist"
+  },
+  {
+    "original": "アップグレード",
+    "replacement": "upgrade"
+  },
+  {
+    "original": "アップデート",
+    "replacement": "update"
+  },
+  {
+    "original": "アップロード",
+    "replacement": "Upload"
+  },
+  {
+    "original": "アドレス",
+    "replacement": "address"
+  },
+  {
+    "original": "アプリ",
+    "replacement": "app"
+  },
+  {
+    "original": "アプリケーション",
+    "replacement": "application"
+  },
+  {
+    "original": "アンインストール",
+    "replacement": "uninstall"
+  },
+  {
+    "original": "イネーブル",
+    "replacement": "Enable"
+  },
+  {
+    "original": "イノベーション",
+    "replacement": "innovation"
+  },
+  {
+    "original": "イベント",
+    "replacement": "event"
+  },
+  {
+    "original": "イメージ",
+    "replacement": "image"
+  },
+  {
+    "original": "インストール",
+    "replacement": "install"
+  },
+  {
+    "original": "インターネット",
+    "replacement": "internet"
+  },
+  {
+    "original": "インターフェース",
+    "replacement": "Interface"
+  },
+  {
+    "original": "インフォメーション",
+    "replacement": "information"
+  },
+  {
+    "original": "インプット",
+    "replacement": "input"
+  },
+  {
+    "original": "インポート",
+    "replacement": "import"
+  },
+  {
+    "original": "ウィンドウ",
+    "replacement": "window"
+  },
+  {
+    "original": "エーピーアイ",
+    "replacement": "API"
+  },
+  {
+    "original": "エクスポート",
+    "replacement": "export"
+  },
+  {
+    "original": "エラー",
+    "replacement": "error"
+  },
+  {
+    "original": "エリア",
+    "replacement": "area"
+  },
+  {
+    "original": "エレメント",
+    "replacement": "element"
+  },
+  {
+    "original": "エンジニア",
+    "replacement": "engineer"
+  },
+  {
+    "original": "オーラウィスパー",
+    "replacement": "AuraWhisper"
+  },
+  {
+    "original": "オーラビスバー",
+    "replacement": "AuraWhisper"
+  },
+  {
+    "original": "オフィス",
+    "replacement": "office"
+  },
+  {
+    "original": "オブジェクト",
+    "replacement": "object"
+  },
+  {
+    "original": "オプション",
+    "replacement": "option"
+  },
+  {
+    "original": "オフライン",
+    "replacement": "offline"
+  },
+  {
+    "original": "オンライン",
+    "replacement": "online"
+  },
+  {
+    "original": "カード",
+    "replacement": "card"
+  },
+  {
+    "original": "ガイド",
+    "replacement": "guide"
+  },
+  {
+    "original": "カット",
+    "replacement": "cut"
+  },
+  {
+    "original": "カテゴリ",
+    "replacement": "category"
+  },
+  {
+    "original": "カメラ",
+    "replacement": "Camera"
+  },
+  {
+    "original": "カルチャー",
+    "replacement": "culture"
+  },
+  {
+    "original": "カレンダー",
+    "replacement": "Calendar"
+  },
+  {
+    "original": "カンファレンス",
+    "replacement": "conference"
+  },
+  {
+    "original": "キャリア",
+    "replacement": "career"
+  },
+  {
+    "original": "キャンセル",
+    "replacement": "cancel"
+  },
+  {
+    "original": "キャンペーン",
+    "replacement": "campaign"
+  },
+  {
+    "original": "クオリティ",
+    "replacement": "quality"
+  },
+  {
+    "original": "クライアント",
+    "replacement": "client"
+  },
+  {
+    "original": "クラウド",
+    "replacement": "cloud"
+  },
+  {
+    "original": "クラス",
+    "replacement": "class"
+  },
+  {
+    "original": "クラブ",
+    "replacement": "club"
+  },
+  {
+    "original": "グラフ",
+    "replacement": "graph"
+  },
+  {
+    "original": "グラフィック",
+    "replacement": "graphic"
+  },
+  {
+    "original": "クリック",
+    "replacement": "click"
+  },
+  {
+    "original": "グループ",
+    "replacement": "group"
+  },
+  {
+    "original": "クロードコード",
+    "replacement": "Cloude Code"
+  },
+  {
+    "original": "クローン",
+    "replacement": "clone"
+  },
+  {
+    "original": "ケア",
+    "replacement": "care"
+  },
+  {
+    "original": "ゲーム",
+    "replacement": "game"
+  },
+  {
+    "original": "コード",
+    "replacement": "code"
+  },
+  {
+    "original": "コスト",
+    "replacement": "cost"
+  },
+  {
+    "original": "コピー",
+    "replacement": "copy"
+  },
+  {
+    "original": "コミット",
+    "replacement": "commit"
+  },
+  {
+    "original": "コミュニケーション",
+    "replacement": "communication"
+  },
+  {
+    "original": "コミュニティ",
+    "replacement": "community"
+  },
+  {
+    "original": "コラボレーション",
+    "replacement": "collaboration"
+  },
+  {
+    "original": "コンセプト",
+    "replacement": "concept"
+  },
+  {
+    "original": "コントロール",
+    "replacement": "control"
+  },
+  {
+    "original": "コンフィグ",
+    "replacement": "config"
+  },
+  {
+    "original": "コンポーネント",
+    "replacement": "Component"
+  },
+  {
+    "original": "サーバー",
+    "replacement": "server"
+  },
+  {
+    "original": "サービス",
+    "replacement": "service"
+  },
+  {
+    "original": "サイト",
+    "replacement": "site"
+  },
+  {
+    "original": "サポート",
+    "replacement": "support"
+  },
+  {
+    "original": "シーエスブイ",
+    "replacement": "CSV"
+  },
+  {
+    "original": "ジェイソン",
+    "replacement": "JSON"
+  },
+  {
+    "original": "システム",
+    "replacement": "system"
+  },
+  {
+    "original": "ショー",
+    "replacement": "show"
+  },
+  {
+    "original": "ショッピング",
+    "replacement": "Shopping"
+  },
+  {
+    "original": "ジョブ",
+    "replacement": "job"
+  },
+  {
+    "original": "スーパーウィスパー",
+    "replacement": "SuperWhisper"
+  },
+  {
+    "original": "スキル",
+    "replacement": "skill"
+  },
+  {
+    "original": "スクリーン",
+    "replacement": "screen"
+  },
+  {
+    "original": "スクロール",
+    "replacement": "scroll"
+  },
+  {
+    "original": "スケジュール",
+    "replacement": "schedule"
+  },
+  {
+    "original": "スタート",
+    "replacement": "Start"
+  },
+  {
+    "original": "スタイル",
+    "replacement": "style"
+  },
+  {
+    "original": "スタッフ",
+    "replacement": "staff"
+  },
+  {
+    "original": "ステージ",
+    "replacement": "stage"
+  },
+  {
+    "original": "ストア",
+    "replacement": "Store"
+  },
+  {
+    "original": "ストレス",
+    "replacement": "stress"
+  },
+  {
+    "original": "スピード",
+    "replacement": "speed"
+  },
+  {
+    "original": "スポーツ",
+    "replacement": "sport"
+  },
+  {
+    "original": "スマート",
+    "replacement": "smart"
+  },
+  {
+    "original": "スマートフォン",
+    "replacement": "Smartphone"
+  },
+  {
+    "original": "スマホ",
+    "replacement": "Smartphone"
+  },
+  {
+    "original": "セーブ",
+    "replacement": "save"
+  },
+  {
+    "original": "セールス",
+    "replacement": "sales"
+  },
+  {
+    "original": "セキュリティ",
+    "replacement": "Security"
+  },
+  {
+    "original": "セクション",
+    "replacement": "section"
+  },
+  {
+    "original": "セットアップ",
+    "replacement": "setup"
+  },
+  {
+    "original": "セミナー",
+    "replacement": "seminar"
+  },
+  {
+    "original": "ソース",
+    "replacement": "source"
+  },
+  {
+    "original": "ゾーン",
+    "replacement": "zone"
+  },
+  {
+    "original": "ソフトウェア",
+    "replacement": "software"
+  },
+  {
+    "original": "ターゲット",
+    "replacement": "target"
+  },
+  {
+    "original": "タイプ",
+    "replacement": "type"
+  },
+  {
+    "original": "ダウングレード",
+    "replacement": "downgrade"
+  },
+  {
+    "original": "ダウンロード",
+    "replacement": "download"
+  },
+  {
+    "original": "タグ",
+    "replacement": "tag"
+  },
+  {
+    "original": "タスク",
+    "replacement": "task"
+  },
+  {
+    "original": "タップ",
+    "replacement": "tap"
+  },
+  {
+    "original": "チーム",
+    "replacement": "team"
+  },
+  {
+    "original": "チェック",
+    "replacement": "check"
+  },
+  {
+    "original": "チェックアウト",
+    "replacement": "checkout"
+  },
+  {
+    "original": "チケット",
+    "replacement": "Ticket"
+  },
+  {
+    "original": "チャート",
+    "replacement": "chart"
+  },
+  {
+    "original": "ツアー",
+    "replacement": "tour"
+  },
+  {
+    "original": "ツール",
+    "replacement": "tool"
+  },
+  {
+    "original": "ディゼーブル",
+    "replacement": "Disable"
+  },
+  {
+    "original": "ディレクション",
+    "replacement": "direction"
+  },
+  {
+    "original": "ディレクトリ",
+    "replacement": "directory"
+  },
+  {
+    "original": "データ",
+    "replacement": "data"
+  },
+  {
+    "original": "データベース",
+    "replacement": "database"
+  },
+  {
+    "original": "テーブル",
+    "replacement": "table"
+  },
+  {
+    "original": "テキスト",
+    "replacement": "text"
+  },
+  {
+    "original": "テクノロジー",
+    "replacement": "technology"
+  },
+  {
+    "original": "デザイン",
+    "replacement": "design"
+  },
+  {
+    "original": "テスト",
+    "replacement": "test"
+  },
+  {
+    "original": "デバイス",
+    "replacement": "device"
+  },
+  {
+    "original": "デバッグ",
+    "replacement": "Debug"
+  },
+  {
+    "original": "デプロイ",
+    "replacement": "deploy"
+  },
+  {
+    "original": "デメリット",
+    "replacement": "demerit"
+  },
+  {
+    "original": "デモンストレーション",
+    "replacement": "demonstration"
+  },
+  {
+    "original": "テンプレート",
+    "replacement": "template"
+  },
+  {
+    "original": "ドキュメント",
+    "replacement": "document"
+  },
+  {
+    "original": "トラブル",
+    "replacement": "trouble"
+  },
+  {
+    "original": "トラベル",
+    "replacement": "travel"
+  },
+  {
+    "original": "トレンド",
+    "replacement": "trend"
+  },
+  {
+    "original": "ニュース",
+    "replacement": "news"
+  },
+  {
+    "original": "ネットワーク",
+    "replacement": "network"
+  },
+  {
+    "original": "バージョン",
+    "replacement": "version"
+  },
+  {
+    "original": "パーツ",
+    "replacement": "parts"
+  },
+  {
+    "original": "ハードウェア",
+    "replacement": "hardware"
+  },
+  {
+    "original": "パートナー",
+    "replacement": "partner"
+  },
+  {
+    "original": "バグ",
+    "replacement": "bug"
+  },
+  {
+    "original": "パスワード",
+    "replacement": "password"
+  },
+  {
+    "original": "パソコン",
+    "replacement": "PC"
+  },
+  {
+    "original": "バックアップ",
+    "replacement": "backup"
+  },
+  {
+    "original": "パッチ",
+    "replacement": "patch"
+  },
+  {
+    "original": "パネル",
+    "replacement": "panel"
+  },
+  {
+    "original": "パフォーマンス",
+    "replacement": "performance"
+  },
+  {
+    "original": "パラメータ",
+    "replacement": "parameter"
+  },
+  {
+    "original": "バランス",
+    "replacement": "balance"
+  },
+  {
+    "original": "バリュー",
+    "replacement": "value"
+  },
+  {
+    "original": "ビジネス",
+    "replacement": "business"
+  },
+  {
+    "original": "ビジョン",
+    "replacement": "vision"
+  },
+  {
+    "original": "ビデオ",
+    "replacement": "Video"
+  },
+  {
+    "original": "ビュー",
+    "replacement": "view"
+  },
+  {
+    "original": "ビルド",
+    "replacement": "build"
+  },
+  {
+    "original": "ファイル",
+    "replacement": "file"
+  },
+  {
+    "original": "フィードバック",
+    "replacement": "feedback"
+  },
+  {
+    "original": "フィジカル",
+    "replacement": "physical"
+  },
+  {
+    "original": "フィットネス",
+    "replacement": "fitness"
+  },
+  {
+    "original": "フォーマット",
+    "replacement": "format"
+  },
+  {
+    "original": "フォルダ",
+    "replacement": "folder"
+  },
+  {
+    "original": "プッシュ",
+    "replacement": "push"
+  },
+  {
+    "original": "プライベート",
+    "replacement": "private"
+  },
+  {
+    "original": "ブラウザ",
+    "replacement": "browser"
+  },
+  {
+    "original": "プラグイン",
+    "replacement": "plugin"
+  },
+  {
+    "original": "プラン",
+    "replacement": "plan"
+  },
+  {
+    "original": "ブランチ",
+    "replacement": "branch"
+  },
+  {
+    "original": "プル",
+    "replacement": "pull"
+  },
+  {
+    "original": "フレーム",
+    "replacement": "frame"
+  },
+  {
+    "original": "フレームワーク",
+    "replacement": "Framework"
+  },
+  {
+    "original": "プレゼンテーション",
+    "replacement": "presentation"
+  },
+  {
+    "original": "プログラマー",
+    "replacement": "programmer"
+  },
+  {
+    "original": "プログラミング",
+    "replacement": "programming"
+  },
+  {
+    "original": "プロジェクト",
+    "replacement": "project"
+  },
+  {
+    "original": "プロセス",
+    "replacement": "process"
+  },
+  {
+    "original": "ブロック",
+    "replacement": "block"
+  },
+  {
+    "original": "プロトコル",
+    "replacement": "protocol"
+  },
+  {
+    "original": "プロパティ",
+    "replacement": "Property"
+  },
+  {
+    "original": "プロモーション",
+    "replacement": "promotion"
+  },
+  {
+    "original": "ページ",
+    "replacement": "page"
+  },
+  {
+    "original": "ペースト",
+    "replacement": "paste"
+  },
+  {
+    "original": "ヘルプ",
+    "replacement": "help"
+  },
+  {
+    "original": "ボタン",
+    "replacement": "button"
+  },
+  {
+    "original": "ボランティア",
+    "replacement": "volunteer"
+  },
+  {
+    "original": "マーク",
+    "replacement": "mark"
+  },
+  {
+    "original": "マーケティング",
+    "replacement": "marketing"
+  },
+  {
+    "original": "マージ",
+    "replacement": "merge"
+  },
+  {
+    "original": "マップ",
+    "replacement": "map"
+  },
+  {
+    "original": "マニュアル",
+    "replacement": "manual"
+  },
+  {
+    "original": "マネージャー",
+    "replacement": "manager"
+  },
+  {
+    "original": "マネジメント",
+    "replacement": "management"
+  },
+  {
+    "original": "ミーティング",
+    "replacement": "meeting"
+  },
+  {
+    "original": "ミッション",
+    "replacement": "mission"
+  },
+  {
+    "original": "ミュージック",
+    "replacement": "music"
+  },
+  {
+    "original": "メール",
+    "replacement": "email"
+  },
+  {
+    "original": "メソッド",
+    "replacement": "Method"
+  },
+  {
+    "original": "メッセージ",
+    "replacement": "Message"
+  },
+  {
+    "original": "メニュー",
+    "replacement": "menu"
+  },
+  {
+    "original": "メリット",
+    "replacement": "benefit"
+  },
+  {
+    "original": "メンタル",
+    "replacement": "mental"
+  },
+  {
+    "original": "メンバー",
+    "replacement": "member"
+  },
+  {
+    "original": "モード",
+    "replacement": "mode"
+  },
+  {
+    "original": "モジュール",
+    "replacement": "module"
+  },
+  {
+    "original": "ユーザー",
+    "replacement": "user"
+  },
+  {
+    "original": "ユニット",
+    "replacement": "unit"
+  },
+  {
+    "original": "ライフ",
+    "replacement": "life"
+  },
+  {
+    "original": "ライブ",
+    "replacement": "live"
+  },
+  {
+    "original": "ライブラリ",
+    "replacement": "library"
+  },
+  {
+    "original": "ラベル",
+    "replacement": "label"
+  },
+  {
+    "original": "リーダー",
+    "replacement": "leader"
+  },
+  {
+    "original": "リカバリ",
+    "replacement": "recovery"
+  },
+  {
+    "original": "リスク",
+    "replacement": "risk"
+  },
+  {
+    "original": "リスト",
+    "replacement": "list"
+  },
+  {
+    "original": "リポジトリ",
+    "replacement": "repository"
+  },
+  {
+    "original": "リリース",
+    "replacement": "release"
+  },
+  {
+    "original": "リンク",
+    "replacement": "link"
+  },
+  {
+    "original": "ルール",
+    "replacement": "Rule"
+  },
+  {
+    "original": "レイアウト",
+    "replacement": "layout"
+  },
+  {
+    "original": "レジャー",
+    "replacement": "leisure"
+  },
+  {
+    "original": "レビュー",
+    "replacement": "review"
+  },
+  {
+    "original": "ローカル",
+    "replacement": "local"
+  },
+  {
+    "original": "ログアウト",
+    "replacement": "logout"
+  },
+  {
+    "original": "ログイン",
+    "replacement": "login"
+  },
+  {
+    "original": "ワーク",
+    "replacement": "work"
+  }
 ]

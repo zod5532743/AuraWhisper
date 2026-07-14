@@ -1,6 +1,6 @@
 {
   "name": "aurawhisper",
-  "version": "1.2.11",
+  "version": "1.2.16",
   "description": "Premium dictation tool for Windows",
   "main": "main.js",
   "scripts": {

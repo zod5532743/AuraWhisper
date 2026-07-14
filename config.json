@@ -3,7 +3,7 @@
     "mode": "toggle",
     "language": "ja",
     "model_size": "small",
-    "device": "auto",
+    "device": "dml",
     "device_index": 15,
     "use_ollama": false,
     "ollama_model": "gemma2:2b",

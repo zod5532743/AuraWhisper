@@ -18,6 +18,10 @@ config.json
 .vscode/
 .idea/
 .DS_Store
+
+# AI Tools (deprecated)
+.claude/
+.continue/
 build/
 !build/installer.nsh
 
